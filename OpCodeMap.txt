@@ -1,0 +1,238 @@
+This file is linked to Dasm8086.c.
+
+80x86 OpCode Cheat Sheet.
+Notes:
+∙	This summary applies to the 16-bit versions of the x86 (what was originally the MCS-86 family)
+	and has not been brought up to date for the 32-bit or 64-bit descendants of x86.
+∙	Opcodes are listed in octal, because the byte codes for x86 was originally designed this way ―
+	the octal format having been inherited from the predecessor MCS-80 family (the 8080/8085 and Z80 clone).
+∙	Octal numerals ABC, for 8-bit bytes, have three ‟octits” in the range A ∈ {0,1,2,3}, B,C ∈ {0,1,2,3,4,5,6,7};
+	the value denoted by the numeral ABC being A×8² + B×8 + C.
+∙	Operations are coded with an opcode byte, and may be followed an address mode byte (with octits ‟xrm”)
+	and whatever additional bytes are required by the addressing mode.
+∙	The octits xm in xrm are usually used together to determine a memory-based or register-based operand;
+	while the octit r may be used to denote a register or an operation.
+∙	In one case ― conditionals ― the code is 4-bit.
+
+The following key is used below
+
+Item	│	0	1	2	3
+────────┼───────────────────────────────────
+Ip	│	inc	dec	push	pop
+Dp	│	daa	das	aaa	aas
+Fp	│	pushf	popf	sahf	lahf
+Lp	│	loopnz	loopz	loop	jcxz
+
+Item	│	0	1	2	3	4	5	6	7
+────────┼───────────────────────────────────────────────────────────────────
+Rs	│	ES	CS	SS	DS	FS	GS	_	_
+Rb	│	AL	CL	DL	BL	AH	CH	DH	BH
+Rw	│	AX	CX	DX	BX	SP	BP	SI	DI
+Ap	│	add	or	adc	sbb	and	sub	xor	cmp
+Sp	│	rol	ror	rcl	rcr	shl	shr	sal	sar
+Up	│	_	_	not	neg	mul	imul	div	idiv
+Bp	│	clc	stc	cli	sti	cld	std	_	_
+
+CC	│	0	1	2	3	4	5	6	7
+────────┼────────────────────────────────────────────────────────────────
+c	│	o	no	b	nb	z	nz	be	a
+
+CC	│	8	9	a	b	c	d	e	f
+────────┼────────────────────────────────────────────────────────────────
+c	│	s	ns	p	np	l	ge	le	g
+
+Addressing mode octits:
+∙	For memory-based addresses, the Base is encoded by the octit m.
+∙	For register-based addresses, the register is encoded by the octit m, which is denoted as ‟r” below.
+∙	For memory-based addresses, the Offset is encoded by the octit x,
+	along with 0, 1 or 2 additional bytes following the address mode byte xrm.
+∙	The ‟r” in the address mode byte xrm is used separately to denote a register as a second operand or an operation.
+
+xm │	d	Eb/Ew		Conditions	Additional Byte(s)
+───┼──────────────────────────────────────────────────────────────
+06 │	w	[W]				W (16-bit unsigned integer)
+0m │	-	[Base]		m ≠ 6		(None)
+1m │	b	[Base+S]			S (8-bit signed integer)
+2m │	w	[Base+W]			W (16-bit unsigned integer)
+3r │	-	Rb/Rw				(None)
+───┼────────────────────────────────────────────────────────────
+x0 │	d	[BX+SI+Offset]	x ≠ 3
+x1 │	d	[BX+DI+Offset]	x ≠ 3
+x2 │	d	[BP+SI+Offset]	x ≠ 3
+x3 │	d	[BP+DI+Offset]	x ≠ 3
+x4 │	d	[SI+Offset]	x ≠ 3
+x5 │	d	[DI+Offset]	x ≠ 3
+x6 │	d	[BP+Offset]	x ≠ 0,3
+x7 │	d	[BX+Offset]	x ≠ 3
+
+k	│ v	Av	Ev	Rv	V	movsv	cmpsv	stosv	lodsv	scasv	insv	outsv
+────────┼────────────────────────────────────────────────────────────────────────────────────────────
+0	│ b	AL	Eb	Rb	B	movsb	cmpsb	stosb	lodsb	scasb	insb	outsb
+1	│ w	AX	Ew	Rw	W	movsw	cmpsw	stosw	lodsw	scasw	insw	outsw
+
+OpCode Encodings
+
+0P0+k xPm d	Ap Ev,Rv	[P: 0=add,1=or,2=adc,3=sbb,4=and,5=sub,6=xor,7=cmp]
+0P2+k xPm d	Ap Rv,Ev	[P: 0=add,1=or,2=adc,3=sbb,4=and,5=sub,6=xor,7=cmp]
+0P4+k v		Ap Av,V		[P: 0=add,1=or,2=adc,3=sbb,4=and,5=sub,6=xor,7=cmp]
+0s6		push Rs
+0s7		pop Rs		[s ≠ 1, 80186+]
+017 000 x0m d	sldt Ew		[80???+]
+017 000 x1m d	str Ew		[80???+]
+017 000 x2m d	lldt Ew		[80???+]
+017 000 x3m d	ltr Ew		[80???+]
+017 000 x4m d	verr Ew		[80???+]
+017 000 x5m d	verw Ew		[80???+]
+017 001 x0m d	sgdt Es		[80???+]	(x ≠ 3)
+017 001 x1m d	sidt Es		[80???+]	(x ≠ 3)
+017 001 x2m d	lgdt Es		[80???+]	(x ≠ 3)
+017 001 x3m d	lidt Es		[80???+]	(x ≠ 3)
+017 001 x4m d	smsw Ev		[80???+]
+017 001 x6m d	lmsw Ev		[80???+]
+017 001 x7m d	invlpg E	[80???+]	(x ≠ 3)
+017 001 371	rdtscp
+017 002 xrm d	lar Rw,Ew	[80???+]
+017 003 xrm d	lsl Rw,Ew	[80???+]
+017 006		clts		[80???+]
+017 010		invd		[80???+]
+017 011		wbinvd		[80???+]
+017 017		ud2		[80???+]
+017 037 x0m d	nop R?		[80???+]
+017 040 xer	mov R?,CRe	[e ≠ 5,6,7]	[80???+]
+017 041 xer	mov R?,DRe	[80???+]
+017 042 xer	mov CRe,R?	[e ≠ 1,5,6,7]	[80???+]
+017 043 xer	mov DRe,R?	[80???+]
+017 060		wrmsr
+017 061		rdtsc
+017 062		rdmsr
+017 063		rdpmc
+017 070 360 xrm d	movbe R?,E?	[80???+]
+017 070 361 xrm d	movbe E?,R?	[80???+]
+017 200+c v	jCC V		[80???+]
+017 220+c xom	setCC E?	[80???+]
+017 2s1		pop Rs		[80???+]	(s = 4,5)
+017 242		cpuid		[80???+]
+017 243 xrm d	bt Ew,Rw	[80???+]
+017 244 xrm d b	shld E?,R?,B	[80???+]
+017 245 xrm d	shld E?,R?,CL	[80???+]
+017 252		rsm		[80???+]
+017 253 xrm d	bts Ew,Rw	[80???+]
+017 254 xrm d b	shrd E?,R?,B	[80???+]
+017 255 xrm d	shrd E?,R?,CL	[80???+]
+017 260+k xrm d	cmpxchg Ev,Rv	[80???+]
+017 262 xrm d	lss Rw,E	[80???+]	(x ≠ 3)
+017 263 xrm d	btr Ew,Rw	[80???+]
+017 264 xrm d	lfs Rw,E	[80???+]	(x ≠ 3)
+017 265 xrm d	lgs Rw,E	[80???+]	(x ≠ 3)
+017 266+k xrm d	movzx Rv,Ev	[80???+]
+017 272 x4m d b	bt Ew,B		[80???+]
+017 272 x5m d b	bts Ew,B	[80???+]
+017 272 x6m d b	btr Ew,B	[80???+]
+017 272 x7m d b	btc Ew,B	[80???+]
+017 273 xrm d	btc Ew,Rw	[80???+]
+017 274 xrm d	bsf Ew,Rw	[80???+]
+017 275 xrm d	bsr Ew,Rw	[80???+]
+017 276+k xrm d	movsx Rv,Ev	[80???+]
+017 300+k xrm d	xadd Ev,Rv	[80???+]
+017 31r		bswap Rd	[80???+]
+04+s6		Rs:
+04+P7		Dp
+1Pr		Ip Rw
+140		pusha		[80186+]
+141		popa		[80186+]
+142 xrm d	bound Rw,Ew	[80186+]	(x ≠ 3)
+143 xrm d	arpl Ew,Rw	[80???+]
+140+s		Rs:		(s=4,5)
+146 017 070 202 xrm d	invpcid Rd,M8	[80???+]
+146		OP:		[80???+]
+147		RAND:		[80???+]
+150 w		push W		[80186+]
+151 xrm d w	imul Rw,Ew,W	[80186+]
+152 b		push B		[80186+]
+153 xrm d b	imul Rw,Ew,S	[80186+]
+154+k		insv		[80186+]
+156+k		outsv		[80186+]
+16+c2 b		jCC C
+200+k xPm d v	Ap Ev,V		[P: 0=add,1=or,2=adc,3=sbb,4=and,5=sub,6=xor,7=cmp]
+202+k xPm d v	Ap Ev,S		[P: 0=add,1=or,2=adc,3=sbb,4=and,5=sub,6=xor,7=cmp]
+204+k xrm d	test Rv,Ev
+206+k xrm d	xchg Rv,Ev
+210+k xrm d	mov Ev,Rv
+212+k xrm d	mov Rv,Ev
+214 xsm d	mov Ew,Rs	(s ≠ 6,7)
+215 xrm d	lea Rw,E	(x ≠ 3)
+216 xsm d	mov Rs,Ew	(s ≠ 6,7)
+217 x0m d	pop Ew
+220		nop
+22r		xchg Rw,AX
+230		cbw
+231		cwd
+232 d		call far F
+233		wait
+234+P		Fp
+240+k w		mov Av,[W]
+242+k w		mov [W],Av
+244+k		movsv
+246+k		cmpsv
+250+k v		test Av,V
+252+k		stosv
+254+k		lodsv
+256+k		scasv
+26+kr v		mov Rv,V
+300+k xPm d	Sp Ev,V		(P ≠ 6) [80186+]
+302 w		ret W
+303		ret
+304 xrm d	les Rw,E	(x ≠ 3)
+305 xrm d	lds Rw,E	(x ≠ 3)
+306+v x0m d v	mov Ev,V
+310		enter		[80186+]
+311		leave		[80186+]
+312 w		retf W
+313		retf
+314		int 3
+315 b		int B
+316		into
+317		iret
+320+k xPm d	Sp Ev,1		(P ≠ 6)
+322+k xPm d	Sp Ev,CL	(P ≠ 6)
+324 0a		aam
+324 b		[aam B]
+325 0a		aad
+325 b		[aad B]
+326		salc		[8086/8088-]
+327		xlat
+33n xrm d	ESC n xrm
+34P b		Lp C
+344+k b		in Av,B
+346+k b		out B,Av
+350 w		call near N
+351 w		jmp near N
+352 d		jmp far F
+353 b		jmp short S
+354+k		in Av,DX
+356+k		out DX,Av
+360		lock
+361		―――
+362 246+k	repnz cmpsv
+362 256+k	repnz scasv
+363 246+k	repz cmpsv
+363 256+k	repz scasv
+363 154+k	rep insv		[80186+]
+363 156+k	rep outsv		[80186+]
+363 244+k	rep movsv
+363 252+k	rep stosv
+363 254+k	rep lodsv
+364		hlt
+365		cmc
+366+k x0m d v	test Ev,V
+366+k x1m d v	test Ev,V
+366+k xPm d	Up Ev		(P ≠ 0,1)
+37P		Bp
+376+k x0m d	inc Ev
+376+k x1m d	dec Ev
+376 xPm d	―――		[P ≠ 2,3,4,5,6,7]
+377 x2m d	call near En
+377 x3m d	call far Ef	(x ≠ 3)
+377 x4m d	jmp near En
+377 x5m d	jmp far Ef
+377 x6m d	push Ew
