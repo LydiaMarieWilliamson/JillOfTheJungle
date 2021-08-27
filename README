@@ -18,7 +18,7 @@ Some notes on the game, its implementation and the 80x86 family:
 	The 8080 legacy lives on as the octal-based coding used for the 80x86 operations.
 ∙	Other people created clones and used the 80*86 names.
 ∙	The 80386 is where multitasking was added to the processor around 1985-1990. That's when Windows appeared on PC's.
-	None of this is used in the JILL games ― it is DOS-only, not Windows-based.
+	None of this is used in the Jill games ― it is DOS-only, not Windows-based.
 ∙	A single program can also multitask. That is called multi-threading.
 	This was not made a standard part of C or C++, however, until 2011.
 ∙	It may be possible to port Jill into QT as a multi-threaded application.
