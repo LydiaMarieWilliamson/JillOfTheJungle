@@ -52591,7 +52591,7 @@ Y24dcbc7c:	word
 Y24dcbc7e:	word
 Y24dcbc80:	ds 0090
 
-Segment 30ad ;; Stack area
+Segment 30ad ;; Stack Area
 Y30ad0000:	ds 00c0
 Y30ad00c0:	ds 000c
 Y30ad00cc:	dword

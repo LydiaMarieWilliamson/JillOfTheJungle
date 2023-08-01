@@ -56022,6 +56022,3 @@ Y36ee00e0:	dword
 Y36ee00e4:	dw ffff
 Y36ee00e6:	word
 Y36ee00e8:
-
-   mov word ptr [BP-06],068F	;;; 2995:0070 C746FA8F06
-   mov word ptr [BP-08],068F	;;; 29A2:003F C746F88F06

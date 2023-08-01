@@ -1,8 +1,8 @@
-// CS:IP = 0000:0000, SS:SP = 295a:00e6
-// Relocated to 076a (under Linux), 140c (under Windows). 
+;; CS:IP = 0000:0000, SS:SP = 295a:00e6
+;; Relocated to 076a (under Linux), 140c (under Windows). 
 
-// === Top-Level Runtime System ===
-Segment 076a // C0L:C0L
+;; === Top-Level Runtime System ===
+Segment 076a ;; C0L:C0L
 X076a0000:
    mov DX,segment A24f10000	;;; 076A:0000 BAF124
    mov [CS:offset Y076a01c7],DX	;;; 076A:0003 2E8916C701
@@ -775,8 +775,8 @@ A076a05fa:
    pop BP	;;; 076A:0612 5D
 ret far 0008	;;; 076A:0613 CA0800
 
-// === Program Files ===
-Segment 07cb // COPYFILE.C:COPYFILE
+;; === Program Files ===
+Segment 07cb ;; COPYFILE.C:COPYFILE
 A07cb0006:
    push BP	;;; 07CB:0006 55
    mov BP,SP	;;; 07CB:0007 8BEC
@@ -848,7 +848,7 @@ L07cb00b3:
    pop BP	;;; 07CB:00B5 5D
 ret far	;;; 07CB:00B6 CB
 
-Segment 07d6 // SHM.C:SHM
+Segment 07d6 ;; SHM.C:SHM
 A07d60007:
    push BP	;;; 07D6:0007 55
    mov BP,SP	;;; 07D6:0008 8BEC
@@ -1868,7 +1868,7 @@ L07d609fb:
    pop BP	;;; 07D6:0A03 5D
 ret far	;;; 07D6:0A04 CB
 
-Segment 0876 // GR.C:GR
+Segment 0876 ;; GR.C:GR
 A08760005:
    push BP	;;; 0876:0005 55
    mov BP,SP	;;; 0876:0006 8BEC
@@ -3454,7 +3454,7 @@ A08760ddf:
    pop BP	;;; 0876:0E01 5D
 ret far	;;; 0876:0E02 CB
 
-Segment 0956 // GAMEGRL.C:GRL
+Segment 0956 ;; GAMEGRL.C:GRL
 A09560003:
    push BP	;;; 0956:0003 55
    mov BP,SP	;;; 0956:0004 8BEC
@@ -5281,7 +5281,7 @@ ret far	;;; 0956:10CA CB
 
 Y095610cb:	db 00
 
-Segment 0a62 // GRASM.ASM:GRASM
+Segment 0a62 ;; GRASM.ASM:GRASM
 A0a62000c:
    mov CL,BL	;;; 0A62:000C 8ACB
    xchg AH,AL	;;; 0A62:000E 86E0
@@ -5722,7 +5722,7 @@ L0a62036c:
    pop BP	;;; 0A62:0371 5D
 ret far	;;; 0A62:0372 CB
 
-Segment 0a99 // GAMEKEYBOARD.C:KEYBOARD
+Segment 0a99 ;; GAMEKEYBOARD.C:KEYBOARD
 A0a990003:
    push BP	;;; 0A99:0003 55
    mov BP,SP	;;; 0A99:0004 8BEC
@@ -6007,7 +6007,7 @@ jmp near L0a990261	;;; 0A99:025F EB00
 L0a990261:
 ret far	;;; 0A99:0261 CB
 
-Segment 0abf // WIN.C:WIN
+Segment 0abf ;; WIN.C:WIN
 A0abf0002:
    push BP	;;; 0ABF:0002 55
    mov BP,SP	;;; 0ABF:0003 8BEC
@@ -7365,7 +7365,7 @@ L0abf0c99:
    pop BP	;;; 0ABF:0CCC 5D
 ret far	;;; 0ABF:0CCD CB
 
-Segment 0b8b // GAMECTRL.C:GAMECTRL
+Segment 0b8b ;; GAMECTRL.C:GAMECTRL
 A0b8b000e:
    push BP	;;; 0B8B:000E 55
    mov BP,SP	;;; 0B8B:000F 8BEC
@@ -8599,7 +8599,7 @@ A0b8b0bcc:
    pop BP	;;; 0B8B:0BD4 5D
 ret far	;;; 0B8B:0BD5 CB
 
-Segment 0c48 // UNCRUNCH:UNCRUNCH
+Segment 0c48 ;; UNCRUNCH:UNCRUNCH
 A0c480006:
    push BP	;;; 0C48:0006 55
    mov BP,SP	;;; 0C48:0007 8BEC
@@ -8682,7 +8682,7 @@ L0c480077:
    pop BP	;;; 0C48:007F 5D
 ret far	;;; 0C48:0080 CB
 
-Segment 0c50 // CONFIG.C:CONFIG
+Segment 0c50 ;; CONFIG.C:CONFIG
 A0c500001:
    push BP	;;; 0C50:0001 55
    mov BP,SP	;;; 0C50:0002 8BEC
@@ -9468,7 +9468,7 @@ L0c500724:
    mov SP,BP	;;; 0C50:0724 8BE5
    pop BP	;;; 0C50:0726 5D
 
-Segment 0cc2 // PIXWRITE.C:PIXWRITE
+Segment 0cc2 ;; PIXWRITE.C:PIXWRITE
 X0cc20007:
 ret far	;;; 0CC2:0007 CB
 
@@ -9713,7 +9713,7 @@ L0cc2020d:
    pop BP	;;; 0CC2:0211 5D
 ret far	;;; 0CC2:0212 CB
 
-Segment 0ce3 // :::SOUNDS, S.C:S
+Segment 0ce3 ;; :::SOUNDS, S.C:S
 A0ce30003:
    push AX	;;; 0CE3:0003 50
    push BX	;;; 0CE3:0004 53
@@ -10965,7 +10965,7 @@ L0ce30cc0:
    pop BP	;;; 0CE3:0CC2 5D
 ret far	;;; 0CE3:0CC3 CB
 
-Segment 0daf // DIGI.ASM:DIGI
+Segment 0daf ;; DIGI.ASM:DIGI
 A0daf0004:
    sti	;;; 0DAF:0004 FB
    push DS	;;; 0DAF:0005 1E
@@ -11080,7 +11080,7 @@ L0daf00cf:
    pop BP	;;; 0DAF:00D5 5D
 jmp near L0daf0068	;;; 0DAF:00D6 EB90
 
-Segment 0dbc // JOBJ.C:JOBJ
+Segment 0dbc ;; JOBJ.C:JOBJ
 A0dbc0008:
    push BP	;;; 0DBC:0008 55
    mov BP,SP	;;; 0DBC:0009 8BEC
@@ -17479,7 +17479,7 @@ L0dbc401a:
    pop BP	;;; 0DBC:401E 5D
 ret far	;;; 0DBC:401F CB
 
-Segment 11be // JOBJ2.C:JOBJ2
+Segment 11be ;; JOBJ2.C:JOBJ2
 A11be0000:
    push BP	;;; 11BE:0000 55
    mov BP,SP	;;; 11BE:0001 8BEC
@@ -26546,7 +26546,7 @@ L11be4f20:
    pop BP	;;; 11BE:4F24 5D
 ret far	;;; 11BE:4F25 CB
 
-Segment 16b0 // JOBJ3.C:JOBJ3
+Segment 16b0 ;; JOBJ3.C:JOBJ3
 A16b00006:
    push BP	;;; 16B0:0006 55
    mov BP,SP	;;; 16B0:0007 8BEC
@@ -27436,7 +27436,7 @@ L16b00867:
    pop BP	;;; 16B0:086B 5D
 ret far	;;; 16B0:086C CB
 
-Segment 1736 // JPLAYER.C:JPLAYER
+Segment 1736 ;; JPLAYER.C:JPLAYER
 A1736000d:
    push BP	;;; 1736:000D 55
    mov BP,SP	;;; 1736:000E 8BEC
@@ -32846,7 +32846,7 @@ L173630a3:
    pop BP	;;; 1736:30A7 5D
 ret far	;;; 1736:30A8 CB
 
-Segment 1a40 // JUNGLE.C:JUNGLE
+Segment 1a40 ;; JUNGLE.C:JUNGLE
 A1a400009:
    push BP	;;; 1A40:0009 55
    mov BP,SP	;;; 1A40:000A 8BEC
@@ -38808,7 +38808,7 @@ L1a4035aa:
    pop BP	;;; 1A40:35B6 5D
 ret far	;;; 1A40:35B7 CB
 
-Segment 1d9b // JINFO.C:JINFO
+Segment 1d9b ;; JINFO.C:JINFO
 A1d9b0008:
    push BP	;;; 1D9B:0008 55
    mov BP,SP	;;; 1D9B:0009 8BEC
@@ -38977,7 +38977,7 @@ L1d9b0168:
    pop BP	;;; 1D9B:0190 5D
 ret far	;;; 1D9B:0191 CB
 
-Segment 1db4 // DESIGN.C:DESIGN
+Segment 1db4 ;; DESIGN.C:DESIGN
 A1db40002:
    push BP	;;; 1DB4:0002 55
    mov BP,SP	;;; 1DB4:0003 8BEC
@@ -40800,7 +40800,7 @@ L1db41020:
    pop BP	;;; 1DB4:1030 5D
 ret far	;;; 1DB4:1031 CB
 
-Segment 1eb7 // JMAN.C:JMAN
+Segment 1eb7 ;; JMAN.C:JMAN
 A1eb70002:
    push BP	;;; 1EB7:0002 55
    mov BP,SP	;;; 1EB7:0003 8BEC
@@ -45492,7 +45492,7 @@ ret far	;;; 1EB7:28BA CB
 
 Y1eb728bb:	db 00
 
-Segment 2142 // JVOL3.C:JVOL3
+Segment 2142 ;; JVOL3.C:JVOL3
 B2142000c:
    push DS	;;; 2142:000C 1E
    push AX	;;; 2142:000D 50
@@ -46083,8 +46083,8 @@ ret far	;;; 2142:0409 CB
 
 Y2142040a:	ds 0006
 
-// === External Library Modules ===
-Segment 2183 // SBCRWIO.ASM, VECTOR.ASM, SCANCARD.ASM, MUSDATA.ASM, SBCDATA.ASM, CARDHERE.ASM, DSPRESET.ASM, CMFASM.ASM, CMFDRV.ASM
+;; === External Library Modules ===
+Segment 2183 ;; SBCRWIO.ASM, VECTOR.ASM, SCANCARD.ASM, MUSDATA.ASM, SBCDATA.ASM, CARDHERE.ASM, DSPRESET.ASM, CMFASM.ASM, CMFDRV.ASM
 A21830000:
 jmp near L2183110f	;;; 2183:0000 E90C11
 
@@ -47618,8 +47618,8 @@ B218314a6:
    sub AX,AX	;;; 2183:14A9 2BC0
 ret near	;;; 2183:14AB C3
 
-// === Compiler Library Modules ===
-Segment 22cd // IOERROR
+;; === Compiler Library Modules ===
+Segment 22cd ;; IOERROR
 A22cd000c:
    push BP	;;; 22CD:000C 55
    mov BP,SP	;;; 22CD:000D 8BEC
@@ -47652,7 +47652,7 @@ L22cd0042:
    pop BP	;;; 22CD:0043 5D
 ret far 0002	;;; 22CD:0044 CA0200
 
-Segment 22d1 // EXIT, SETARGV, SETENVP
+Segment 22d1 ;; EXIT, SETARGV, SETENVP
 A22d10007:
 ret far	;;; 22D1:0007 CB
 
@@ -47679,7 +47679,7 @@ L22d10019:
    pop BP	;;; 22D1:0039 5D
 ret far	;;; 22D1:003A CB
 
-Segment 22d4 // ATEXIT
+Segment 22d4 ;; ATEXIT
 X22d4000b:
    push BP	;;; 22D4:000B 55
    mov BP,SP	;;; 22D4:000C 8BEC
@@ -47702,7 +47702,7 @@ L22d40038:
    pop BP	;;; 22D4:0038 5D
 ret far	;;; 22D4:0039 CB
 
-Segment 22d7 // FMALLOC
+Segment 22d7 ;; FMALLOC
 A22d7000a:
    push BP	;;; 22D7:000A 55
    mov BP,SP	;;; 22D7:000B 8BEC
@@ -48011,7 +48011,7 @@ L22d70316:
    pop BP	;;; 22D7:0318 5D
 ret far	;;; 22D7:0319 CB
 
-Segment 2308 // FBRK, PADD, PCMP
+Segment 2308 ;; FBRK, PADD, PCMP
 B2308000a:
    push BP	;;; 2308:000A 55
    mov BP,SP	;;; 2308:000B 8BEC
@@ -48158,7 +48158,7 @@ L23080158:
    pop BP	;;; 2308:015A 5D
 ret far	;;; 2308:015B CB
 
-Segment 231d // SETBLOCK, CTYPE
+Segment 231d ;; SETBLOCK, CTYPE
 A231d000c:
    push BP	;;; 231D:000C 55
    mov BP,SP	;;; 231D:000D 8BEC
@@ -48179,7 +48179,7 @@ L231d002a:
    pop BP	;;; 231D:002A 5D
 ret far	;;; 231D:002B CB
 
-Segment 231f // OPEN
+Segment 231f ;; OPEN
 B231f000c:
    push BP	;;; 231F:000C 55
    mov BP,SP	;;; 231F:000D 8BEC
@@ -48383,7 +48383,7 @@ L231f01a6:
    pop BP	;;; 231F:01AA 5D
 ret far	;;; 231F:01AB CB
 
-Segment 2339 // OPENA, FILES2, FMODE
+Segment 2339 ;; OPENA, FILES2, FMODE
 A2339000c:
    push BP	;;; 2339:000C 55
    mov BP,SP	;;; 2339:000D 8BEC
@@ -48424,7 +48424,7 @@ L23390056:
    pop BP	;;; 2339:0057 5D
 ret far	;;; 2339:0058 CB
 
-Segment 233e // IOCTL
+Segment 233e ;; IOCTL
 A233e0009:
    push BP	;;; 233E:0009 55
    mov BP,SP	;;; 233E:000A 8BEC
@@ -48451,7 +48451,7 @@ L233e0034:
    pop BP	;;; 233E:0034 5D
 ret far	;;; 233E:0035 CB
 
-Segment 2341 // CLOSE
+Segment 2341 ;; CLOSE
 A23410006:
    push BP	;;; 2341:0006 55
    mov BP,SP	;;; 2341:0007 8BEC
@@ -48479,7 +48479,7 @@ L23410034:
    pop BP	;;; 2341:0035 5D
 ret far	;;; 2341:0036 CB
 
-Segment 2344 // CLOSEA
+Segment 2344 ;; CLOSEA
 A23440007:
    push BP	;;; 2344:0007 55
    mov BP,SP	;;; 2344:0008 8BEC
@@ -48502,7 +48502,7 @@ L2344002a:
    pop BP	;;; 2344:002B 5D
 ret far	;;; 2344:002C CB
 
-Segment 2346 // READ
+Segment 2346 ;; READ
 A2346000d:
    push BP	;;; 2346:000D 55
    mov BP,SP	;;; 2346:000E 8BEC
@@ -48605,7 +48605,7 @@ L234600cc:
    pop BP	;;; 2346:00D0 5D
 ret far	;;; 2346:00D1 CB
 
-Segment 2353 // READA
+Segment 2353 ;; READA
 A23530002:
    push BP	;;; 2353:0002 55
    mov BP,SP	;;; 2353:0003 8BEC
@@ -48626,7 +48626,7 @@ L23530020:
    pop BP	;;; 2353:0020 5D
 ret far	;;; 2353:0021 CB
 
-Segment 2355 // WRITE
+Segment 2355 ;; WRITE
 A23550002:
    push BP	;;; 2355:0002 55
    mov BP,SP	;;; 2355:0003 8BEC
@@ -48775,7 +48775,7 @@ L23550162:
    pop BP	;;; 2355:0166 5D
 ret far	;;; 2355:0167 CB
 
-Segment 236b // WRITEA
+Segment 236b ;; WRITEA
 A236b0008:
    push BP	;;; 236B:0008 55
    mov BP,SP	;;; 236B:0009 8BEC
@@ -48814,7 +48814,7 @@ L236b0052:
    pop BP	;;; 236B:0052 5D
 ret far	;;; 236B:0053 CB
 
-Segment 2370 // LSEEK
+Segment 2370 ;; LSEEK
 A23700004:
    push BP	;;; 2370:0004 55
    mov BP,SP	;;; 2370:0005 8BEC
@@ -48838,7 +48838,7 @@ L2370002f:
    pop BP	;;; 2370:002F 5D
 ret far	;;; 2370:0030 CB
 
-Segment 2373 // LTOA, LXMUL
+Segment 2373 ;; LTOA, LXMUL
 A23730001:
    push BP	;;; 2373:0001 55
    mov BP,SP	;;; 2373:0002 8BEC
@@ -48986,7 +48986,7 @@ L237300fb:
    pop BP	;;; 2373:00FB 5D
 ret far	;;; 2373:00FC CB
 
-Segment 2382 // UNLINK
+Segment 2382 ;; UNLINK
 A2382000d:
    push BP	;;; 2382:000D 55
    mov BP,SP	;;; 2382:000E 8BEC
@@ -49006,7 +49006,7 @@ L23820027:
    pop BP	;;; 2382:0027 5D
 ret far	;;; 2382:0028 CB
 
-Segment 2384 // STRCAT
+Segment 2384 ;; STRCAT
 A23840009:
    push BP	;;; 2384:0009 55
    mov BP,SP	;;; 2384:000A 8BEC
@@ -49050,7 +49050,7 @@ L23840047:
    pop BP	;;; 2384:0049 5D
 ret far	;;; 2384:004A CB
 
-Segment 2388 // STRLEN
+Segment 2388 ;; STRLEN
 A2388000b:
    push BP	;;; 2388:000B 55
    mov BP,SP	;;; 2388:000C 8BEC
@@ -49071,7 +49071,7 @@ L23880022:
    pop BP	;;; 2388:0024 5D
 ret far	;;; 2388:0025 CB
 
-Segment 238a // STRCMP
+Segment 238a ;; STRCMP
 A238a0006:
    push BP	;;; 238A:0006 55
    mov BP,SP	;;; 238A:0007 8BEC
@@ -49101,7 +49101,7 @@ L238a0034:
    pop BP	;;; 238A:0036 5D
 ret far	;;; 238A:0037 CB
 
-Segment 238d // STRCPY
+Segment 238d ;; STRCPY
 A238d0008:
    push BP	;;; 238D:0008 55
    mov BP,SP	;;; 238D:0009 8BEC
@@ -49129,7 +49129,7 @@ L238d002d:
    pop BP	;;; 238D:002F 5D
 ret far	;;; 238D:0030 CB
 
-Segment 2390 // MEMCPY
+Segment 2390 ;; MEMCPY
 A23900001:
    push BP	;;; 2390:0001 55
    mov BP,SP	;;; 2390:0002 8BEC
@@ -49155,7 +49155,7 @@ L23900023:
    pop BP	;;; 2390:0025 5D
 ret far	;;; 2390:0026 CB
 
-Segment 2392 // MEMSET
+Segment 2392 ;; MEMSET
 A23920007:
    push BP	;;; 2392:0007 55
    mov BP,SP	;;; 2392:0008 8BEC
@@ -49199,7 +49199,7 @@ L2392004a:
    pop BP	;;; 2392:004A 5D
 ret far	;;; 2392:004B CB
 
-Segment 2396 // MOVMEM
+Segment 2396 ;; MOVMEM
 A2396000c:
    push BP	;;; 2396:000C 55
    mov BP,SP	;;; 2396:000D 8BEC
@@ -49267,7 +49267,7 @@ A23960060:
    pop BP	;;; 2396:007E 5D
 ret far	;;; 2396:007F CB
 
-Segment 239e // CHMODA, CVTFAK, REALCVT
+Segment 239e ;; CHMODA, CVTFAK, REALCVT
 A239e0000:
    push BP	;;; 239E:0000 55
    mov BP,SP	;;; 239E:0001 8BEC
@@ -49289,7 +49289,7 @@ L239e001f:
    pop BP	;;; 239E:001F 5D
 ret far	;;; 239E:0020 CB
 
-Segment 23a0 // VPRINTER
+Segment 23a0 ;; VPRINTER
 B23a00001:
    push BP	;;; 23A0:0001 55
    mov BP,SP	;;; 23A0:0002 8BEC
@@ -49901,7 +49901,7 @@ L23a0054b:
    pop BP	;;; 23A0:054F 5D
 ret far 0010	;;; 23A0:0550 CA1000
 
-Segment 23f5 // CORELEFT, FCORELFT
+Segment 23f5 ;; CORELEFT, FCORELFT
 A23f50003:
    call far A23f5000b	;;; 23F5:0003 9A0B00F523
 jmp near L23f5000a	;;; 23F5:0008 EB00
@@ -49920,7 +49920,7 @@ jmp near L23f50027	;;; 23F5:0025 EB00
 L23f50027:
 ret far	;;; 23F5:0027 CB
 
-Segment 23f7 // FFREE
+Segment 23f7 ;; FFREE
 A23f70008:
    push BP	;;; 23F7:0008 55
    mov BP,SP	;;; 23F7:0009 8BEC
@@ -50217,7 +50217,7 @@ L23f7032a:
    pop BP	;;; 23F7:032A 5D
 ret far	;;; 23F7:032B CB
 
-Segment 2429 // CREATA
+Segment 2429 ;; CREATA
 B2429000c:
    push BP	;;; 2429:000C 55
    mov BP,SP	;;; 2429:000D 8BEC
@@ -50295,7 +50295,7 @@ L2429008f:
    pop BP	;;; 2429:008F 5D
 ret far	;;; 2429:0090 CB
 
-Segment 2432 // FLENGTH
+Segment 2432 ;; FLENGTH
 A24320001:
    push BP	;;; 2432:0001 55
    mov BP,SP	;;; 2432:0002 8BEC
@@ -50333,7 +50333,7 @@ L24320042:
    pop BP	;;; 2432:0044 5D
 ret far	;;; 2432:0045 CB
 
-Segment 2436 // CRTINIT, CLRSCR
+Segment 2436 ;; CRTINIT, CLRSCR
 A24360006:
    mov AL,06	;;; 2436:0006 B006
    push AX	;;; 2436:0008 50
@@ -50351,7 +50351,7 @@ A24360006:
    call far A076a0414	;;; 2436:002D 9A14046A07
 ret far	;;; 2436:0032 CB
 
-Segment 2439 // COLOR
+Segment 2439 ;; COLOR
 A24390003:
    push BP	;;; 2439:0003 55
    mov BP,SP	;;; 2439:0004 8BEC
@@ -50399,7 +50399,7 @@ X24390048:
    mov [28CC],AL	;;; 2439:004B A2CC28
 ret far	;;; 2439:004E CB
 
-Segment 243d // CPRINTF
+Segment 243d ;; CPRINTF
 A243d000f:
    push BP	;;; 243D:000F 55
    mov BP,SP	;;; 243D:0010 8BEC
@@ -50555,7 +50555,7 @@ L243d0174:
    pop BP	;;; 243D:0174 5D
 ret far	;;; 243D:0175 CB
 
-Segment 2454 // CPUTS
+Segment 2454 ;; CPUTS
 A24540006:
    push BP	;;; 2454:0006 55
    mov BP,SP	;;; 2454:0007 8BEC
@@ -50576,7 +50576,7 @@ L24540028:
    pop BP	;;; 2454:0028 5D
 ret far	;;; 2454:0029 CB
 
-Segment 2456 // ABS
+Segment 2456 ;; ABS
 A2456000a:
    push BP	;;; 2456:000A 55
    mov BP,SP	;;; 2456:000B 8BEC
@@ -50590,7 +50590,7 @@ L24560018:
    pop BP	;;; 2456:0018 5D
 ret far	;;; 2456:0019 CB
 
-Segment 2457 // ATOL
+Segment 2457 ;; ATOL
 A2457000a:
    push BP	;;; 2457:000A 55
    mov BP,SP	;;; 2457:000B 8BEC
@@ -50678,7 +50678,7 @@ ret far	;;; 2457:0093 CB
 
 Y24570094:	ds 000c
 
-Segment 2461 // DELAY
+Segment 2461 ;; DELAY
 Y24610000:	word
 
 A24610002:
@@ -50784,7 +50784,7 @@ L246100b3:
    pop BX	;;; 2461:00B6 5B
 ret near	;;; 2461:00B7 C3
 
-Segment 246c // GETVECT
+Segment 246c ;; GETVECT
 A246c0008:
    push BP	;;; 246C:0008 55
    mov BP,SP	;;; 246C:0009 8BEC
@@ -50810,7 +50810,7 @@ A246c001a:
    pop BP	;;; 246C:0029 5D
 ret far	;;; 246C:002A CB
 
-Segment 246e // GOTOXY
+Segment 246e ;; GOTOXY
 A246e000b:
    push BP	;;; 246E:000B 55
    mov BP,SP	;;; 246E:000C 8BEC
@@ -50850,7 +50850,7 @@ L246e0062:
    pop BP	;;; 246E:0064 5D
 ret far	;;; 246E:0065 CB
 
-Segment 2474 // GPTEXT
+Segment 2474 ;; GPTEXT
 A24740006:
    push BP	;;; 2474:0006 55
    mov BP,SP	;;; 2474:0007 8BEC
@@ -50931,7 +50931,7 @@ L24740097:
    pop BP	;;; 2474:0099 5D
 ret far	;;; 2474:009A CB
 
-Segment 247d // INTR
+Segment 247d ;; INTR
 A247d000b:
    push BP	;;; 247D:000B 55
    mov BP,SP	;;; 247D:000C 8BEC
@@ -51007,7 +51007,7 @@ L247d005c:
    pop BP	;;; 247D:00AE 5D
 ret far	;;; 247D:00AF CB
 
-Segment 2488 // LDIV, LRSH, MOVETEXT
+Segment 2488 ;; LDIV, LRSH, MOVETEXT
 A24880000:
    push BP	;;; 2488:0000 55
    mov BP,SP	;;; 2488:0001 8BEC
@@ -51086,7 +51086,7 @@ L248800a6:
    pop BP	;;; 2488:00AA 5D
 ret far	;;; 2488:00AB CB
 
-Segment 2492 // OUTPORT, OVERFLOW, PSBP
+Segment 2492 ;; OUTPORT, OVERFLOW, PSBP
 A2492000c:
    push BP	;;; 2492:000C 55
    mov BP,SP	;;; 2492:000D 8BEC
@@ -51105,7 +51105,7 @@ X24920018:
    pop BP	;;; 2492:0022 5D
 ret far	;;; 2492:0023 CB
 
-Segment 2494 // RAND
+Segment 2494 ;; RAND
 A24940004:
    push BP	;;; 2494:0004 55
    mov BP,SP	;;; 2494:0005 8BEC
@@ -51132,7 +51132,7 @@ jmp near L2494003c	;;; 2494:003A EB00
 L2494003c:
 ret far	;;; 2494:003C CB
 
-Segment 2497 // SCOPY, SCROLL
+Segment 2497 ;; SCOPY, SCROLL
 B2497000d:
    push BP	;;; 2497:000D 55
    mov BP,SP	;;; 2497:000E 8BEC
@@ -51324,7 +51324,7 @@ L249701a7:
    pop BP	;;; 2497:01A9 5D
 ret far 000C	;;; 2497:01AA CA0C00
 
-Segment 24b1 // SCREEN
+Segment 24b1 ;; SCREEN
 B24b1000d:
    push BP	;;; 24B1:000D 55
    mov BP,SP	;;; 24B1:000E 8BEC
@@ -51542,7 +51542,7 @@ L24b101da:
    pop BP	;;; 24B1:01DA 5D
 ret far 0008	;;; 24B1:01DB CA0800
 
-Segment 24ce // SOUND
+Segment 24ce ;; SOUND
 A24ce000e:
    push BP	;;; 24CE:000E 55
    mov BP,SP	;;; 24CE:000F 8BEC
@@ -51575,7 +51575,7 @@ A24ce003a:
    out 61,AL	;;; 24CE:003E E661
 ret far	;;; 24CE:0040 CB
 
-Segment 24d2 // STRDUP
+Segment 24d2 ;; STRDUP
 A24d20001:
    push BP	;;; 24D2:0001 55
    mov BP,SP	;;; 24D2:0002 8BEC
@@ -51612,7 +51612,7 @@ L24d20046:
    pop BP	;;; 24D2:0049 5D
 ret far	;;; 24D2:004A CB
 
-Segment 24d6 // STRUPR
+Segment 24d6 ;; STRUPR
 A24d6000b:
    push BP	;;; 24D6:000B 55
    mov BP,SP	;;; 24D6:000C 8BEC
@@ -51639,7 +51639,7 @@ L24d60023:
    pop BP	;;; 24D6:002E 5D
 ret far	;;; 24D6:002F CB
 
-Segment 24d9 // TOUPPER
+Segment 24d9 ;; TOUPPER
 A24d90000:
    push BP	;;; 24D9:0000 55
    mov BP,SP	;;; 24D9:0001 8BEC
@@ -51668,7 +51668,7 @@ L24d9002f:
    pop BP	;;; 24D9:002F 5D
 ret far	;;; 24D9:0030 CB
 
-Segment 24dc // VRAM
+Segment 24dc ;; VRAM
 A24dc0001:
    push BP	;;; 24DC:0001 55
    mov BP,SP	;;; 24DC:0002 8BEC
@@ -51772,7 +51772,7 @@ L24dc009a:
    pop BP	;;; 24DC:009E 5D
 ret far 000A	;;; 24DC:009F CA0A00
 
-Segment 24e6 // WHEREXY
+Segment 24e6 ;; WHEREXY
 A24e60002:
    mov AH,03	;;; 24E6:0002 B403
    mov BH,00	;;; 24E6:0004 B700
@@ -51808,7 +51808,7 @@ jmp near L24e60037	;;; 24E6:0035 EB00
 L24e60037:
 ret far	;;; 24E6:0037 CB
 
-Segment 24e9 // WINDOW
+Segment 24e9 ;; WINDOW
 A24e90008:
    push BP	;;; 24E9:0008 55
    mov BP,SP	;;; 24E9:0009 8BEC
@@ -51856,7 +51856,7 @@ ret far	;;; 24E9:0071 CB
 
 Y24e90072:	ds 000e
 
-Segment 24f1 // Data Area
+Segment 24f1 ;; Data Area
 A24f10000:
 Y24f10000:	dword
 Y24f10004:	db "Turbo-C - Copyright (c) 1988 Borland Intl.",00
@@ -52664,7 +52664,7 @@ Y24f1bca8:	word
 Y24f1bcaa:	word
 Y24f1bcac:	ds 0084
 
-Segment 30c4 // Stack Area
+Segment 30c4 ;; Stack Area
 Y30c40000:	ds 00c0
 Y30c400c0:	ds 000c
 Y30c400cc:	dword
@@ -52678,8 +52678,8 @@ Y30c400de:	word
 Y30c400e0:	dword
 Y30c400e4:	dw ffff
 
-// === External Data Module ===
-Segment 30d2 // Sound Segment
+;; === External Data Module ===
+Segment 30d2 ;; Sound Segment
 Y30d20006:	dw 0180,0182,0184,0186,0188,018a,018c,018e, 0190,0192,0194,0196,0198,019a,019c,019e
 		dw 01a0,019f,019e,019d,019c,019b,019a,0199, 0198,0197,0196,0195,0194,0193,0192,0191
 		dw 0190,0192,0190,0192,0190,0192,0190,0192, 0190,0192,0190,0192,0190,0192,0190,0192
