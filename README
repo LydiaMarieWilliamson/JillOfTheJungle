@@ -13,8 +13,10 @@ So, internal references within a segment would be local to the translation unit,
 while cross-segment references would be to global objects.
 
 Some notes on the game, its implementation and the 80x86 family:
-∙	Most of Jill, parts 1, 2 and 3, were written in C using the Turbo C compiler,
+∙	Most of Jill, parts 1, 2 and 3, were written in C using the Turbo C compiler (version 2.0),
 	which was popular for PC programmers in the 1980's and 1990's.
+∙	There are vestiges of Pascal in the style, showing that the programmer(s) came from a Pascal background
+	and probably used Turbo Pascal, previously.
 ∙	Episode 1 was originally distributed as Shareware, Episodes 2 and 3 commercially.
 	All 3 episodes are now freely-downloadable, e.g. at
 		https://www.gog.com/game/jill_of_the_jungle_the_complete_trilogy
@@ -23,6 +25,14 @@ Some notes on the game, its implementation and the 80x86 family:
 		https://www.sandroid.org/TurboC/#Introduction
 	which also discusses porting Turbo C programs to GCC.
 ∙	Parts of Jill were written directly in the machine language of the Intel 8086 family.
+∙	Episode 1 included all of the functions of the WORX library, version 2.01, but only used a few of them.
+	WORX's ability to process WAV files was never used.
+∙	Much of the code is reused by the XARGON game, whose existence I just recently (on 2023-06-30) learned about.
+	The source code for XARGON has (mostly) been released ... the WORX library is included only as an object code file.
+	The Turbo C project files for XARGON include dangling references to the files used in the Jill game.
+	The XARGON game might be later added into this archive.
+	The XARGON source also shows vestiges of Pascal and its syntax is actually not C-compliant,
+	though the errors may have been ignored by the Turbo C++ compiler.
 
 Some notes on the 8086 processor and its derivatives:
 ∙	The 8086 family evolved from the 4040, 8080, 8086, through 80186, 80286, 80386, 80486, 80586,

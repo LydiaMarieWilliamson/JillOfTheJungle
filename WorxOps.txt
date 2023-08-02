@@ -1,0 +1,58 @@
+_CORE_STARTWORX: ;; 20c14b45
+_CORE_CLOSEWORX: ;; 20c14fa4
+_WORX_CALL: ;; 27600000
+_CloseWorx: ;; 27600066
+_GetMIDIBeat: ;; 27600070 ;; (@) Not directly accessed.
+_ContinueSequence: ;; 2760008d ;; (@) Not directly accessed.
+_SetAudioMode: ;; 276000a8 ;; (@) Not directly accessed.
+_LoadIBKFile: ;; 276000c4 ;; (@) Not directly accessed.
+_EnableExtenderMode: ;; 2760010a ;; (@) Not directly accessed.
+_SetMIDISpeaker: ;; 27600125 ;; (@) Not directly accessed.
+_ResetMPU401: ;; 27600141 ;; (@) Not directly accessed.
+_SetMasterVolume: ;; 2760015e
+_GetLastVOCMarker: ;; 27600189 ;; (@) Not directly accessed.
+_SetVOCIndex: ;; 276001a6 ;; (@) Not directly accessed.
+_SetVOCVolume: ;; 276001c1 ;; (@) Not directly accessed.
+_SetFMVolume: ;; 276001ec
+_JoyStickUpdate: ;; 27600217 ;; (@) Not directly accessed.
+_JoyStickButton: ;; 27600232 ;; (@) Not directly accessed.
+_JoyStickX: ;; 27600250 ;; (@) Not directly accessed.
+_JoyStickY: ;; 2760026d ;; (@) Not directly accessed.
+_AdlibDetect: ;; 2760028a
+_DSPPortSetting: ;; 276002a7 ;; (@) Not directly accessed.
+_DSPClose: ;; 276002c4
+_DSPReset: ;; 276002df
+_ElementGets: ;; 276002fc ;; (@) Not directly accessed.
+_ElementRead: ;; 27600331
+_ForceConfig: ;; 27600360 ;; (@) Not directly accessed.
+_GetSequence: ;; 2760037e
+_GoNote: ;; 276003fc ;; (@) Not directly accessed.
+_LoadOneShot: ;; 27600426
+_LoadSBIFile: ;; 2760049c ;; (@) Not directly accessed.
+_OpenElement: ;; 276004fb
+_PlayPWMBlock: ;; 27600525 ;; (@) Not directly accessed.
+_PlayVOCBlock: ;; 2760054f
+_PlayWAVBlock: ;; 27600579 ;; (@) Not directly accessed.
+_PlayCMFBlock: ;; 276005a3
+_PlayMIDBlock: ;; 276005c8 ;; (@) Not directly accessed.
+_PlayVOCFile: ;; 276005ed ;; (@) Not directly accessed.
+_PlayWAVFile: ;; 2760060a ;; (@) Not directly accessed.
+_ProgramChange: ;; 27600627 ;; (@) Not directly accessed.
+_ResetRealTime: ;; 27600647 ;; (@) Not directly accessed.
+_SequencePlaying: ;; 27600662 ;; (@) Not directly accessed.
+_SetLoopMode: ;; 2760067f
+_SetRealTime: ;; 2760069a ;; (@) Not directly accessed.
+_StartResource: ;; 276006b7 ;; (@) Not directly accessed.
+_StartWorx: ;; 276006d7
+_StopNote: ;; 276006e1 ;; (@) Not directly accessed.
+_StopSequence: ;; 27600707
+_StopVOC: ;; 27600722 ;; (@) Not directly accessed.
+_StopPWM: ;; 2760073d ;; (@) Not directly accessed.
+_TimerDone: ;; 27600758 ;; (@) Not directly accessed.
+_VOCPlaying: ;; 27600775
+_PWMPlaying: ;; 27600792 ;; (@) Not directly accessed.
+_CloseWorxDriver: ;; 276007af ;; (@) Not directly accessed.
+_StartPoly: ;; 276007ce ;; (@) Not directly accessed.
+_ClosePoly: ;; 276007fa ;; (@) Not directly accessed.
+_PlaySMPBlock: ;; 27600819 ;; (@) Not directly accessed.
+_PolyCellStatus: ;; 27600857 ;; (@) Not directly accessed.

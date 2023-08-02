@@ -10,35 +10,37 @@ Y0040006c: word	;; 0040006c	;; Clock.
 
 ;; === Top-Level Runtime System ===
 Segment 076a ;; C0L:C0L
-X076a0000:
+;; (@) Unnamed near calls: B076a012f, B076a01a7, B076a0260, B076a03d0, B076a03ff
+__turboCrt: ;; 076a0000 ;; (@) Unaccessed.
+__cvtfak: ;; 076a0000 ;; (@) Unaccessed.
    mov DX,segment A2a170000
-   mov [CS:offset Y076a01c7],DX
+   mov [CS:offset DGROUP@],DX
    mov AH,30
    int 21
    mov BP,[0002]
    mov BX,[002C]
    mov DS,DX
-   mov [offset Y2a17007d],AX
-   mov [offset Y2a17007b],ES
-   mov [offset Y2a170077],BX
-   mov [offset Y2a17008f+2],BP
-   mov word ptr [offset Y2a170081],FFFF
+   mov [offset __version],AX
+   mov [offset __psp],ES
+   mov [offset __envseg],BX
+   mov [offset __heaptop+02],BP
+   mov word ptr [offset __8087],FFFF
    call near B076a012f
-   les DI,[offset Y2a170075]
+   les DI,[offset __envLng]
    mov AX,DI
    mov BX,AX
    mov CX,7FFF
 L076a0039:
-   cmp word ptr [ES:DI],3738
+   cmp word ptr [ES:DI],3738	;; "87"
    jnz L076a0059
    mov DX,[ES:DI+02]
    cmp DL,3D
    jnz L076a0059
    and DH,DF
-   inc word ptr [offset Y2a170081]
+   inc word ptr [offset __8087]
    cmp DH,59
    jnz L076a0059
-   inc word ptr [offset Y2a170081]
+   inc word ptr [offset __8087]
 L076a0059:
    repnz scasb
    jcxz L076a0099
@@ -47,19 +49,19 @@ L076a0059:
    jnz L076a0039
    or CH,80
    neg CX
-   mov [offset Y2a170075],CX
+   mov [offset __envLng],CX
    mov CX,0002
    shl BX,CL
    add BX,+10
    and BX,-10
-   mov [offset Y2a170079],BX
+   mov [offset __envSize],BX
    mov DX,SS
    sub BP,DX
-   mov DI,[13BE]
+   mov DI,[offset __stklen]
    cmp DI,0200
    jnb L076a0090
    mov DI,0200
-   mov [13BE],DI
+   mov [offset __stklen],DI
 L076a0090:
    mov CL,04
    shr DI,CL
@@ -67,13 +69,13 @@ L076a0090:
    cmp BP,DI
    jnb L076a009c
 L076a0099:
-jmp near A076a01af
+jmp near _abort
 L076a009c:
    mov BX,DI
    add BX,DX
-   mov [offset Y2a170087+2],BX
-   mov [offset Y2a17008b+2],BX
-   mov AX,[offset Y2a17007b]
+   mov [offset __heapbase+02],BX
+   mov [offset __brklvl+02],BX
+   mov AX,[offset __psp]
    sub BX,AX
    mov ES,AX
    mov AH,4A
@@ -86,39 +88,39 @@ L076a009c:
    mov SP,DI
    sti
    xor AX,AX
-   mov ES,[CS:offset Y076a01c7]
+   mov ES,[CS:offset DGROUP@]
    mov DI,offset Y2a172c62
-   mov CX,CD64
+   mov CX,offset Y2a17cd64
    sub CX,DI
-   repz stosb
+   repz stosb ;; (@) Initialize the BSS segment to 0.
    push CS
-   call near [2C4C]
-   call far A076a01d2
-   call far A076a02d0
+   call near [offset Y2a172c4c]
+   call far __setargv
+   call far __setenvp
    mov AH,00
    int 1A
-   mov [offset Y2a170083],DX
-   mov [offset Y2a170083+2],CX
+   mov [offset __StartTime],DX
+   mov [offset __StartTime+02],CX
    push CS
-   call near [2C50]
-   push [offset Y2a170071+2]
-   push [offset Y2a170071]
-   push [offset Y2a17006d+2]
-   push [offset Y2a17006d]
-   push [offset Y2a17006b]
-   call far A19dd3016
+   call near [offset Y2a172c50]
+   push [offset _environ+02]
+   push [offset _environ]
+   push [offset __argv+02]
+   push [offset __argv]
+   push [offset __argc]
+   call far _main
    push AX
-   call far A27eb0001
+   call far _exit
 
-A076a010d:
-   mov DS,[CS:offset Y076a01c7]
-   call far A076a0172
+__exit: ;; 076a010d	;; (@) No return.
+   mov DS,[CS:offset DGROUP@]
+   call far __restorezero
    push CS
-   call near [2C4E]
+   call near [offset Y2a172c4e]
    mov BP,SP
    mov AH,4C
    mov AL,[BP+04]
-   int 21
+   int 21		;; (@) No return.
 
 B076a0125:
    mov CX,000E
@@ -130,20 +132,20 @@ B076a012f:
    push DS
    mov AX,3500
    int 21
-   mov [offset Y2a17005b],BX
-   mov [offset Y2a17005b+2],ES
+   mov [offset __Int0Vector],BX
+   mov [offset __Int0Vector+02],ES
    mov AX,3504
    int 21
-   mov [offset Y2a17005f],BX
-   mov [offset Y2a17005f+2],ES
+   mov [offset __Int4Vector],BX
+   mov [offset __Int4Vector+02],ES
    mov AX,3505
    int 21
-   mov [offset Y2a170063],BX
-   mov [offset Y2a170063+2],ES
+   mov [offset __Int5Vector],BX
+   mov [offset __Int5Vector+02],ES
    mov AX,3506
    int 21
-   mov [offset Y2a170067],BX
-   mov [offset Y2a170067+2],ES
+   mov [offset __Int6Vector],BX
+   mov [offset __Int6Vector+02],ES
    mov AX,2500
    mov DX,CS
    mov DS,DX
@@ -152,31 +154,31 @@ B076a012f:
    pop DS
 ret near
 
-A076a0172:
+__restorezero: ;; 076a0172
    push DS
    mov AX,2500
-   lds DX,[offset Y2a17005b]
+   lds DX,[offset __Int0Vector]
    int 21
    pop DS
    push DS
    mov AX,2504
-   lds DX,[offset Y2a17005f]
+   lds DX,[offset __Int4Vector]
    int 21
    pop DS
    push DS
    mov AX,2505
-   lds DX,[offset Y2a170063]
+   lds DX,[offset __Int5Vector]
    int 21
    pop DS
    push DS
    mov AX,2506
-   lds DX,[offset Y2a170067]
+   lds DX,[offset __Int6Vector]
    int 21
    pop DS
 ret far
 
 A076a019f:
-   mov word ptr [offset Y2a170081],0000
+   mov word ptr [offset __8087],0000
 ret far
 
 X076a01a6:
@@ -188,29 +190,29 @@ B076a01a7:
    int 21
 ret near
 
-A076a01af:
+_abort: ;; 076a01af	;; (@) No return.
    mov CX,001E
    nop
    mov DX,offset Y2a17003d
 
-B076a01b6:
-   mov DS,[CS:offset Y076a01c7]
+B076a01b6:		;; (@) No return.
+   mov DS,[CS:offset DGROUP@]
    call near B076a01a7
    mov AX,0003
    push AX
-   call far A076a010d
+   call far __exit
 
-Y076a01c7:	word
-Y076a01c9:	byte
-Y076a01ca:	dword
-Y076a01ce:	dword
+DGROUP@:	word	;; 076a01c7
+Y076a01c9:	byte	;; 076a01c9
+Y076a01ca:	dword	;; 076a01ca	;; TopLevelOp
+Y076a01ce:	dword	;; 076a01ce	;; TopLevelDS
 
-A076a01d2:
+__setargv: ;; 076a01d2
    pop [CS:offset Y076a01ca]
-   pop [CS:offset Y076a01ca+2]
+   pop [CS:offset Y076a01ca+02]
    mov [CS:offset Y076a01ce],DS
    cld
-   mov ES,[offset Y2a17007b]
+   mov ES,[offset __psp]
    mov SI,0080
    xor AH,AH
    ES:lodsb
@@ -218,12 +220,12 @@ A076a01d2:
    mov BP,ES
    xchg DX,SI
    xchg BX,AX
-   mov SI,[offset Y2a170075]
+   mov SI,[offset __envLng]
    add SI,+02
    mov CX,0001
-   cmp byte ptr [offset Y2a17007d],03
+   cmp byte ptr [offset __version],03
    jb L076a0215
-   mov ES,[offset Y2a170077]
+   mov ES,[offset __envseg]
    mov DI,SI
    mov CL,7F
    xor AL,AL
@@ -302,12 +304,12 @@ L076a0285:
 L076a0287:
 ret near
 L076a0288:
-jmp far A076a01af
+jmp far _abort
 L076a028d:
    pop CX
    add CX,DX
    mov DS,[CS:offset Y076a01ce]
-   mov [offset Y2a17006b],BX
+   mov [offset __argc],BX
    inc BX
    add BX,BX
    add BX,BX
@@ -316,8 +318,8 @@ L076a028d:
    sub BP,BX
    jb L076a0288
    mov SP,BP
-   mov [offset Y2a17006d],BP
-   mov [offset Y2a17006d+2],SS
+   mov [offset __argv],BP
+   mov [offset __argv+02],SS
 L076a02b0:
    jcxz L076a02c3
    mov [BP+00],SI
@@ -334,22 +336,22 @@ L076a02c3:
    mov [BP+02],AX
 jmp far [CS:offset Y076a01ca]
 
-A076a02d0:
-   mov ES,[offset Y2a170077]
+__setenvp: ;; 076a02d0
+   mov ES,[offset __envseg]
    xor DI,DI
    push ES
-   push [offset Y2a170079]
-   call far A27f10003
+   push [offset __envSize]
+   call far _malloc
    add SP,+02
    mov BX,AX
    pop ES
-   mov [offset Y2a170071],AX
-   mov [offset Y2a170071+2],DX
+   mov [offset _environ],AX
+   mov [offset _environ+02],DX
    push DS
    mov DS,DX
    or AX,DX
    jnz L076a02f9
-jmp far A076a01af
+jmp far _abort
 L076a02f9:
    xor AX,AX
    mov CX,FFFF
@@ -365,7 +367,7 @@ L076a02fe:
    pop DS
 ret far
 
-A076a0314:
+PADD@: ;; 076a0314
    or CX,CX
    jge L076a0325
    not BX
@@ -391,7 +393,7 @@ L076a032d:
    and AX,000F
 ret far
 
-X076a0341:
+PSUB@: ;; 076a0341 ;; (@) Unaccessed.
    or CX,CX
    jge L076a0351
    not BX
@@ -416,7 +418,7 @@ L076a0359:
    and AX,000F
 ret far
 
-A076a036f:
+PCMP@: ;; 076a036f
    push CX
    mov CH,AL
    mov CL,04
@@ -436,7 +438,7 @@ A076a036f:
 L076a038f:
 ret far
 
-A076a0390:
+LXMUL@: ;; 076a0390
    push SI
    xchg SI,AX
    xchg DX,AX
@@ -457,11 +459,11 @@ L076a03a2:
 ret far
 
 A076a03a9:
-   mov DX,2B86
+   mov DX,offset Y2a172b86+00
 jmp near L076a03b1
 
 A076a03ae:
-   mov DX,2B8B
+   mov DX,offset Y2a172b86+05
 L076a03b1:
    mov CX,0005
    nop
@@ -470,13 +472,13 @@ L076a03b1:
    int 21
    mov CX,0027
    nop
-   mov DX,2B90
+   mov DX,offset Y2a172b86+0a
    mov AH,40
    int 21
-jmp far A076a01af
+jmp far _abort
 
-A076a03cc:
-jmp far [2C52]
+__REALCVT: ;; 076a03cc
+jmp far [offset __RealCvtVector]
 
 B076a03d0:
    push BP
@@ -506,7 +508,7 @@ B076a03ff:
    mov AX,1130
    mov BH,00
    mov DL,FF
-   call far A076a0414
+   call far __VideoInt
    mov AL,DL
    inc AL
    mov AH,00
@@ -514,33 +516,33 @@ jmp near L076a0413
 L076a0413:
 ret near
 
-A076a0414:
+__VideoInt: ;; 076a0414
    push SI
    push DI
-   mov [CD62],BP
+   mov [offset Y2a17cd62],BP
    int 10
-   mov BP,[CD62]
+   mov BP,[offset Y2a17cd62]
    pop DI
    pop SI
 ret far
 
-A076a0423:
+__c0crtinit: ;; 076a0423
    mov AH,0F
    push CS
-   call near offset A076a0414
+   call near offset __VideoInt
    push AX
-   call far A076a0444
+   call far __crtinit
    pop CX
    mov AH,08
    mov BH,00
    push CS
-   call near offset A076a0414
+   call near offset __VideoInt
    and AH,7F
-   mov [2C35],AH
-   mov [2C34],AH
+   mov [offset __video+05],AH
+   mov [offset __video+04],AH
 ret far
 
-A076a0444:
+__crtinit: ;; 076a0444
    push BP
    mov BP,SP
    mov AL,[BP+06]
@@ -550,34 +552,34 @@ A076a0444:
    jz L076a0454
    mov AL,03
 L076a0454:
-   mov [2C36],AL
+   mov [offset __video+06],AL
    mov AH,0F
    push CS
-   call near offset A076a0414
-   cmp AL,[2C36]
+   call near offset __VideoInt
+   cmp AL,[offset __video+06]
    jz L076a0475
-   mov AL,[2C36]
+   mov AL,[offset __video+06]
    mov AH,00
    push CS
-   call near offset A076a0414
+   call near offset __VideoInt
    mov AH,0F
    push CS
-   call near offset A076a0414
-   mov [2C36],AL
+   call near offset __VideoInt
+   mov [offset __video+06],AL
 L076a0475:
-   mov [2C38],AH
-   cmp byte ptr [2C36],03
+   mov [offset __video+08],AH
+   cmp byte ptr [offset __video+06],03
    jbe L076a048c
-   cmp byte ptr [2C36],07
+   cmp byte ptr [offset __video+06],07
    jz L076a048c
    mov AX,0001
 jmp near L076a048e
 L076a048c:
    xor AX,AX
 L076a048e:
-   mov [2C39],AL
-   mov byte ptr [2C37],19
-   cmp byte ptr [2C36],07
+   mov [offset __video+09],AL
+   mov byte ptr [offset __video+07],19
+   cmp byte ptr [offset __video+06],07
    jz L076a04bd
    mov DX,F000
    mov AX,FFEA
@@ -597,42 +599,42 @@ jmp near L076a04bf
 L076a04bd:
    xor AX,AX
 L076a04bf:
-   mov [2C3A],AL
-   cmp byte ptr [2C36],07
+   mov [offset __video+0a],AL
+   cmp byte ptr [offset __video+06],07
    jnz L076a04ce
    mov AX,B000
 jmp near L076a04d1
 L076a04ce:
    mov AX,B800
 L076a04d1:
-   mov [2C3D],AX
-   mov word ptr [2C3B],0000
+   mov [offset __video+0d],AX
+   mov word ptr [offset __video+0b],0000
    mov AL,00
-   mov [2C31],AL
-   mov [2C30],AL
-   mov AL,[2C38]
+   mov [offset __video+01],AL
+   mov [offset __video],AL
+   mov AL,[offset __video+08]
    add AL,FF
-   mov [2C32],AL
-   mov byte ptr [2C33],18
+   mov [offset __video+02],AL
+   mov byte ptr [offset __video+03],18
    pop BP
 ret far
 
 X076a04f1:
 ret far
 
-A076a04f2:
+LDIV@: ;; 076a04f2
    xor CX,CX
 jmp near L076a0503
 
-X076a04f6:
+LUDIV@: ;; 076a04f6 ;; (@) Unaccessed.
    mov CX,0001
 jmp near L076a0503
 
-X076a04fb:
+LMOD@: ;; 076a04fb ;; (@) Unaccessed.
    mov CX,0002
 jmp near L076a0503
 
-X076a0500:
+LUMOD@: ;; 076a0500 ;; (@) Unaccessed.
    mov CX,0003
 L076a0503:
    push BP
@@ -714,7 +716,7 @@ L076a0591:
    xor DX,DX
 jmp near L076a0581
 
-A076a0595:
+LXRSH@: ;; 076a0595
    cmp CL,10
    jnb L076a05aa
    mov BX,DX
@@ -732,7 +734,7 @@ L076a05aa:
    sar AX,CL
 ret far
 
-A076a05b3:
+PSBP@: ;; 076a05b3
    push DI
    mov DI,CX
    mov CH,DH
@@ -754,7 +756,7 @@ A076a05b3:
    pop DI
 ret far
 
-A076a05d8:
+SCOPY@: ;; 076a05d8
    push BP
    mov BP,SP
    push SI
@@ -775,7 +777,7 @@ ret far 0008
 
 ;; === Program Files ===
 Segment 07c9 ;; COPYFILE.C:COPYFILE
-A07c90004:
+_copyfile: ;; 07c90004
    push BP
    mov BP,SP
    sub SP,+06
@@ -783,7 +785,7 @@ A07c90004:
    push DI
    mov AX,1000
    push AX
-   call far A27f10003
+   call far _malloc
    pop CX
    mov [BP-04],DX
    mov [BP-06],AX
@@ -795,7 +797,7 @@ L07c90023:
    push AX
    push [BP+08]
    push [BP+06]
-   call far A28530005
+   call far __open
    add SP,+06
    mov SI,AX
    or SI,SI
@@ -804,7 +806,7 @@ L07c90023:
    push AX
    push [BP+0C]
    push [BP+0A]
-   call far A29430036
+   call far __creat
    add SP,+06
    mov DI,AX
    or DI,DI
@@ -815,7 +817,7 @@ L07c90052:
    push [BP-04]
    push [BP-06]
    push SI
-   call far A286c000b
+   call far __read
    add SP,+08
    mov [BP-02],AX
    or AX,AX
@@ -824,22 +826,22 @@ L07c90052:
    push [BP-04]
    push [BP-06]
    push DI
-   call far A28850001
+   call far __write
    add SP,+08
 L07c9007c:
    cmp word ptr [BP-02],+00
    jg L07c90052
    push DI
-   call far A285e0000
+   call far __close
    pop CX
 L07c90089:
    push SI
-   call far A285e0000
+   call far __close
    pop CX
 L07c90090:
    push [BP-04]
    push [BP-06]
-   call far A29110001
+   call far _free
    pop CX
    pop CX
 L07c9009d:
@@ -850,28 +852,28 @@ L07c9009d:
 ret far
 
 Segment 07d3 ;; SHM.C:SHM
-A07d30003:
+_shm_init: ;; 07d30003
    push BP
    mov BP,SP
    push SI
    push [BP+08]
    push [BP+06]
    push DS
-   mov AX,offset Y2a172e64
+   mov AX,offset _shm_fname
    push AX
-   call far A28a70001
+   call far _strcpy
    add SP,+08
    xor SI,SI
 jmp near L07d3003b
 L07d3001e:
    mov BX,SI
    shl BX,1
-   mov word ptr [BX+2EB4],0000
+   mov word ptr [BX+offset _shm_want],0000
    mov BX,SI
    shl BX,1
    shl BX,1
-   mov word ptr [BX+3236],0000
-   mov word ptr [BX+3234],0000
+   mov word ptr [BX+offset _shm_tbladdr+02],0000
+   mov word ptr [BX+offset _shm_tbladdr],0000
    inc SI
 L07d3003b:
    cmp SI,+40
@@ -879,57 +881,57 @@ L07d3003b:
    mov AX,8001
    push AX
    push DS
-   mov AX,offset Y2a172e64
+   mov AX,offset _shm_fname
    push AX
-   call far A28530005
+   call far __open
    add SP,+06
-   mov [2D62],AX
+   mov [offset _shafile],AX
    or AX,AX
    jge L07d30062
    mov AX,0073
    push AX
-   call far A19dd3342
+   call far _rexit
    pop CX
 L07d30062:
    mov AX,0200
    push AX
    push DS
-   mov AX,offset Y2a172f34
+   mov AX,offset _shoffset
    push AX
-   push [2D62]
-   call far A28600006
+   push [offset _shafile]
+   call far _read
    add SP,+08
    or AX,AX
    jnz L07d30085
    mov AX,0066
    push AX
-   call far A19dd3342
+   call far _rexit
    pop CX
 L07d30085:
    mov AX,0100
    push AX
    push DS
-   mov AX,offset Y2a172c62
+   mov AX,offset _shlen
    push AX
-   push [2D62]
-   call far A28600006
+   push [offset _shafile]
+   call far _read
    add SP,+08
    or AX,AX
    jnz L07d300a8
    mov AX,0066
    push AX
-   call far A19dd3342
+   call far _rexit
    pop CX
 L07d300a8:
    pop SI
    pop BP
 ret far
 
-A07d300ab:
+_init8bit: ;; 07d300ab
    push BP
    mov BP,SP
    sub SP,+02
-   mov AL,[3B53]
+   mov AL,[offset _x_ourmode]
    mov AH,00
    and AX,00FE
    or AX,AX
@@ -946,7 +948,7 @@ L07d300d0:
    mov AL,[BP-02]
    and AL,03
    mov BX,[BP-02]
-   mov [BX+offset Y2a172d64],AL
+   mov [BX+offset _colortab],AL
    inc word ptr [BP-02]
 L07d300df:
    cmp word ptr [BP-02],0100
@@ -956,12 +958,12 @@ L07d300e8:
    mov AX,0100
    push AX
    push DS
-   mov AX,offset Y2a170094
+   mov AX,offset _egatab
    push AX
    push DS
-   mov AX,offset Y2a172d64
+   mov AX,offset _colortab
    push AX
-   call far A28a9000a
+   call far _memcpy
    add SP,+0A
 jmp near L07d3011b
 L07d30100:
@@ -970,7 +972,7 @@ jmp near L07d30114
 L07d30107:
    mov AL,[BP-02]
    mov BX,[BP-02]
-   mov [BX+offset Y2a172d64],AL
+   mov [BX+offset _colortab],AL
    inc word ptr [BP-02]
 L07d30114:
    cmp word ptr [BP-02],0100
@@ -981,7 +983,7 @@ jmp near L07d3012f
 L07d30122:
    mov AL,[BP-02]
    mov BX,[BP-02]
-   mov [BX+offset Y2a172d64],AL
+   mov [BX+offset _colortab],AL
    inc word ptr [BP-02]
 L07d3012f:
    cmp word ptr [BP-02],0100
@@ -990,7 +992,7 @@ L07d3012f:
    pop BP
 ret far
 
-A07d3013a:
+_xlate_table: ;; 07d3013a
    push BP
    mov BP,SP
    sub SP,+2C
@@ -1005,7 +1007,7 @@ A07d3013a:
    push SS
    lea AX,[BP-2C]
    push AX
-   call far A28a9000a
+   call far _memcpy
    add SP,+0A
    inc word ptr [BP+08]
    mov AX,0002
@@ -1015,7 +1017,7 @@ A07d3013a:
    push SS
    lea AX,[BP-2A]
    push AX
-   call far A28a9000a
+   call far _memcpy
    add SP,+0A
    add word ptr [BP+08],+02
    mov AX,0002
@@ -1025,7 +1027,7 @@ A07d3013a:
    push SS
    lea AX,[BP-24]
    push AX
-   call far A28a9000a
+   call far _memcpy
    add SP,+0A
    add word ptr [BP+08],+02
    mov AX,0002
@@ -1035,7 +1037,7 @@ A07d3013a:
    push SS
    lea AX,[BP-22]
    push AX
-   call far A28a9000a
+   call far _memcpy
    add SP,+0A
    add word ptr [BP+08],+02
    mov AX,0002
@@ -1045,7 +1047,7 @@ A07d3013a:
    push SS
    lea AX,[BP-20]
    push AX
-   call far A28a9000a
+   call far _memcpy
    add SP,+0A
    add word ptr [BP+08],+02
    mov AX,0001
@@ -1055,7 +1057,7 @@ A07d3013a:
    push SS
    lea AX,[BP-2B]
    push AX
-   call far A28a9000a
+   call far _memcpy
    add SP,+0A
    inc word ptr [BP+08]
    mov AX,0002
@@ -1065,10 +1067,10 @@ A07d3013a:
    push SS
    lea AX,[BP-14]
    push AX
-   call far A28a9000a
+   call far _memcpy
    add SP,+0A
    add word ptr [BP+08],+02
-   cmp byte ptr [3B53],00
+   cmp byte ptr [offset _x_ourmode],00
    jnz L07d30221
    mov AX,[BP-24]
    add AX,0010
@@ -1077,7 +1079,7 @@ A07d3013a:
    mov word ptr [BP-0A],0000
 jmp near L07d30250
 L07d30221:
-   cmp byte ptr [3B53],02
+   cmp byte ptr [offset _x_ourmode],02
    jnz L07d3023d
    mov AX,[BP-22]
    add AX,0010
@@ -1101,7 +1103,7 @@ L07d3025d:
    mov DL,[BP-17]
    mov DH,00
    mov BX,DX
-   mov [BX+offset Y2a172d64],AL
+   mov [BX+offset _colortab],AL
    inc byte ptr [BP-17]
 L07d3026e:
    mov AX,0001
@@ -1116,7 +1118,7 @@ L07d30281:
    cmp byte ptr [BP-2B],08
    jnz L07d3028d
    push CS
-   call near offset A07d300ab
+   call near offset _init8bit
 jmp near L07d302de
 L07d3028d:
    mov byte ptr [BP-17],00
@@ -1129,18 +1131,18 @@ L07d30293:
    push SS
    lea AX,[BP-28]
    push AX
-   call far A28a9000a
+   call far _memcpy
    add SP,+0A
    add word ptr [BP+08],+04
    mov DX,[BP-26]
    mov AX,[BP-28]
    mov CL,[BP-0A]
-   call far A076a0595
+   call far LXRSH@
    and AL,[BP-0C]
    mov DL,[BP-17]
    mov DH,00
    mov BX,DX
-   mov [BX+offset Y2a172d64],AL
+   mov [BX+offset _colortab],AL
    inc byte ptr [BP-17]
 L07d302cd:
    mov AX,0001
@@ -1152,7 +1154,7 @@ L07d302cd:
    jg L07d30293
 L07d302de:
    push [BP-1E]
-   call far A27f10003
+   call far _malloc
    pop CX
    mov [BP-06],DX
    mov [BP-08],AX
@@ -1160,24 +1162,24 @@ L07d302de:
    jnz L07d302fb
    mov AX,0064
    push AX
-   call far A19dd3342
+   call far _rexit
    pop CX
 L07d302fb:
    mov AX,[BP-1E]
    mov BX,[BP+06]
    shl BX,1
-   mov [BX+31B4],AX
+   mov [BX+offset _shm_tbllen],AX
    mov DX,[BP-06]
    mov AX,[BP-08]
    mov BX,[BP+06]
    shl BX,1
    shl BX,1
-   mov [BX+3236],DX
-   mov [BX+3234],AX
+   mov [BX+offset _shm_tbladdr+02],DX
+   mov [BX+offset _shm_tbladdr],AX
    mov AX,[BP-14]
    mov BX,[BP+06]
    shl BX,1
-   mov [BX+3134],AX
+   mov [BX+offset _shm_flags],AX
    mov word ptr [BP-04],0000
    mov AL,[BP-2C]
    mov AH,00
@@ -1194,7 +1196,7 @@ L07d30340:
    push SS
    lea AX,[BP-1B]
    push AX
-   call far A28a9000a
+   call far _memcpy
    add SP,+0A
    inc word ptr [BP+08]
    mov AX,0001
@@ -1204,7 +1206,7 @@ L07d30340:
    push SS
    lea AX,[BP-19]
    push AX
-   call far A28a9000a
+   call far _memcpy
    add SP,+0A
    inc word ptr [BP+08]
    mov AX,0001
@@ -1214,7 +1216,7 @@ L07d30340:
    push SS
    lea AX,[BP-18]
    push AX
-   call far A28a9000a
+   call far _memcpy
    add SP,+0A
    inc word ptr [BP+08]
    les BX,[BP+0C]
@@ -1230,7 +1232,7 @@ L07d30340:
    push [BP+08]
    push [BP-10]
    push BX
-   call far A28a9000a
+   call far _memcpy
    add SP,+0A
    mov AL,[BP-1B]
    mov AH,00
@@ -1244,20 +1246,20 @@ L07d30340:
    jnz L07d303fa
    cmp byte ptr [BP-19],0C
    jnz L07d303fa
-   cmp byte ptr [3B53],04
+   cmp byte ptr [offset _x_ourmode],04
    jnz L07d303fa
    mov AX,0300
    push AX
    push [BP-10]
    push [BP-12]
    push DS
-   mov AX,offset Y2a170194
+   mov AX,offset _vgapal
    push AX
-   call far A28b00059
+   call far _memmove
    add SP,+0A
-   call far A08600703
+   call far _vga_setpal
 L07d303fa:
-   cmp byte ptr [3B53],00
+   cmp byte ptr [offset _x_ourmode],00
    jz L07d30404
 jmp near L07d304cb
 L07d30404:
@@ -1278,7 +1280,7 @@ L07d30404:
    add AX,[BP-04]
    push DX
    push AX
-   call far A28a9000a
+   call far _memcpy
    add SP,+0A
    add word ptr [BP-04],+02
    mov AL,[BP-1A]
@@ -1307,7 +1309,7 @@ L07d3045f:
    mov AL,[ES:BX]
    mov AH,00
    mov BX,AX
-   mov AL,[BX+offset Y2a172d64]
+   mov AL,[BX+offset _colortab]
    mov [BP-0E],AL
    mov AX,SI
    and AL,03
@@ -1348,9 +1350,9 @@ L07d304bf:
    jg L07d3045b
 jmp near L07d30727
 L07d304cb:
-   cmp byte ptr [3B53],02
+   cmp byte ptr [offset _x_ourmode],02
    jz L07d304dc
-   cmp byte ptr [3B53],03
+   cmp byte ptr [offset _x_ourmode],03
    jz L07d304dc
 jmp near L07d30635
 L07d304dc:
@@ -1366,7 +1368,7 @@ L07d304dc:
    add AX,[BP-04]
    push DX
    push AX
-   call far A28a9000a
+   call far _memcpy
    add SP,+0A
    add word ptr [BP-04],+02
    mov AL,[BP-1A]
@@ -1396,7 +1398,7 @@ L07d3052f:
    mov AL,[ES:BX]
    mov AH,00
    mov BX,AX
-   mov AL,[BX+offset Y2a172d64]
+   mov AL,[BX+offset _colortab]
    mov BX,[BP-12]
    add BX,SI
    mov DL,[BP-1B]
@@ -1408,7 +1410,7 @@ L07d3052f:
    mov AL,[ES:BX+01]
    mov AH,00
    mov BX,AX
-   mov AL,[BX+offset Y2a172d64]
+   mov AL,[BX+offset _colortab]
    mov CL,04
    shl AL,CL
    pop DX
@@ -1453,7 +1455,7 @@ L07d305ab:
    mov AL,[ES:BX]
    mov AH,00
    mov BX,AX
-   mov AL,[BX+offset Y2a172d64]
+   mov AL,[BX+offset _colortab]
    mov [BP-0E],AL
    mov AX,[BP-16]
    mov DL,[BP-0E]
@@ -1522,7 +1524,7 @@ L07d30635:
    add AX,[BP-04]
    push DX
    push AX
-   call far A28a9000a
+   call far _memcpy
    add SP,+0A
    add word ptr [BP-04],+02
    mov AL,[BP-1A]
@@ -1552,7 +1554,7 @@ L07d30688:
    mov AL,[ES:BX]
    mov AH,00
    mov BX,AX
-   mov AL,[BX+offset Y2a172d64]
+   mov AL,[BX+offset _colortab]
    mov [BP-0D],AL
    mov AL,[BP-0D]
    les BX,[BP-08]
@@ -1593,7 +1595,7 @@ L07d306d8:
    mov AL,[ES:BX]
    mov AH,00
    mov BX,AX
-   mov AL,[BX+offset Y2a172d64]
+   mov AL,[BX+offset _colortab]
    mov [BP-0D],AL
    mov AL,[BP-0D]
    les BX,[BP-08]
@@ -1622,7 +1624,7 @@ L07d30727:
    jl L07d30739
    mov AX,00C7
    push AX
-   call far A27eb0001
+   call far _exit
    pop CX
 L07d30739:
    inc byte ptr [BP-17]
@@ -1638,14 +1640,14 @@ L07d30747:
    pop BP
 ret far
 
-A07d3074d:
+_shm_do: ;; 07d3074d
    push BP
    mov BP,SP
    sub SP,+08
    push SI
    mov AX,1000
    push AX
-   call far A27f10003
+   call far _malloc
    pop CX
    mov [BP-06],DX
    mov [BP-08],AX
@@ -1653,7 +1655,7 @@ A07d3074d:
    jnz L07d30772
    mov AX,0065
    push AX
-   call far A19dd3342
+   call far _rexit
    pop CX
 L07d30772:
    xor SI,SI
@@ -1661,27 +1663,27 @@ jmp near L07d307b9
 L07d30776:
    mov BX,SI
    shl BX,1
-   cmp word ptr [BX+2EB4],+00
+   cmp word ptr [BX+offset _shm_want],+00
    jnz L07d307b8
    mov BX,SI
    shl BX,1
    shl BX,1
-   mov AX,[BX+3234]
-   or AX,[BX+3236]
+   mov AX,[BX+offset _shm_tbladdr]
+   or AX,[BX+offset _shm_tbladdr+02]
    jz L07d307b8
    mov BX,SI
    shl BX,1
    shl BX,1
-   push [BX+3236]
-   push [BX+3234]
-   call far A29110001
+   push [BX+offset _shm_tbladdr+02]
+   push [BX+offset _shm_tbladdr]
+   call far _free
    pop CX
    pop CX
    mov BX,SI
    shl BX,1
    shl BX,1
-   mov word ptr [BX+3236],0000
-   mov word ptr [BX+3234],0000
+   mov word ptr [BX+offset _shm_tbladdr+02],0000
+   mov word ptr [BX+offset _shm_tbladdr],0000
 L07d307b8:
    inc SI
 L07d307b9:
@@ -1692,36 +1694,36 @@ jmp near L07d3086a
 L07d307c3:
    mov BX,SI
    shl BX,1
-   cmp word ptr [BX+2EB4],+00
+   cmp word ptr [BX+offset _shm_want],+00
    jnz L07d307d1
 jmp near L07d30869
 L07d307d1:
    mov BX,SI
    shl BX,1
    shl BX,1
-   mov AX,[BX+3234]
-   or AX,[BX+3236]
+   mov AX,[BX+offset _shm_tbladdr]
+   or AX,[BX+offset _shm_tbladdr+02]
    jz L07d307e4
 jmp near L07d30869
 L07d307e4:
    mov BX,SI
    shl BX,1
-   cmp word ptr [BX+offset Y2a172c62],+00
+   cmp word ptr [BX+offset _shlen],+00
    jz L07d30869
    xor AX,AX
    push AX
    mov BX,SI
    shl BX,1
    shl BX,1
-   push [BX+offset Y2a172f34+2]
-   push [BX+offset Y2a172f34]
-   push [2D62]
-   call far A2889000d
+   push [BX+offset _shoffset+02]
+   push [BX+offset _shoffset]
+   push [offset _shafile]
+   call far _lseek
    add SP,+08
    mov BX,SI
    shl BX,1
-   push [BX+offset Y2a172c62]
-   call far A27f10003
+   push [BX+offset _shlen]
+   call far _malloc
    pop CX
    mov [BP-02],DX
    mov [BP-04],AX
@@ -1729,16 +1731,16 @@ L07d307e4:
    jnz L07d3082e
    mov AX,0067
    push AX
-   call far A19dd3342
+   call far _rexit
    pop CX
 L07d3082e:
    mov BX,SI
    shl BX,1
-   push [BX+offset Y2a172c62]
+   push [BX+offset _shlen]
    push [BP-02]
    push [BP-04]
-   push [2D62]
-   call far A28600006
+   push [offset _shafile]
+   call far _read
    add SP,+08
    push [BP-06]
    push [BP-08]
@@ -1746,11 +1748,11 @@ L07d3082e:
    push [BP-04]
    push SI
    push CS
-   call near offset A07d3013a
+   call near offset _xlate_table
    add SP,+0A
    push [BP-02]
    push [BP-04]
-   call far A29110001
+   call far _free
    pop CX
    pop CX
 L07d30869:
@@ -1762,7 +1764,7 @@ jmp near L07d307c3
 L07d30872:
    push [BP-06]
    push [BP-08]
-   call far A29110001
+   call far _free
    pop CX
    pop CX
    pop SI
@@ -1770,10 +1772,10 @@ L07d30872:
    pop BP
 ret far
 
-A07d30884:
+_shm_exit: ;; 07d30884
    push SI
-   push [2D62]
-   call far A285a000f
+   push [offset _shafile]
+   call far _close
    pop CX
    xor SI,SI
 jmp near L07d308cb
@@ -1781,22 +1783,22 @@ L07d30893:
    mov BX,SI
    shl BX,1
    shl BX,1
-   mov AX,[BX+3234]
-   or AX,[BX+3236]
+   mov AX,[BX+offset _shm_tbladdr]
+   or AX,[BX+offset _shm_tbladdr+02]
    jz L07d308ca
    mov BX,SI
    shl BX,1
    shl BX,1
-   push [BX+3236]
-   push [BX+3234]
-   call far A29110001
+   push [BX+offset _shm_tbladdr+02]
+   push [BX+offset _shm_tbladdr]
+   call far _free
    pop CX
    pop CX
    mov BX,SI
    shl BX,1
    shl BX,1
-   mov word ptr [BX+3236],0000
-   mov word ptr [BX+3234],0000
+   mov word ptr [BX+offset _shm_tbladdr+02],0000
+   mov word ptr [BX+offset _shm_tbladdr],0000
 L07d308ca:
    inc SI
 L07d308cb:
@@ -1806,7 +1808,7 @@ L07d308cb:
 ret far
 
 Segment 0860 ;; GR.C:GR
-A08600002:
+_pixaddr_cga: ;; 08600002
    push BP
    mov BP,SP
    mov AX,[BP+06]
@@ -1855,7 +1857,7 @@ A08600002:
    pop BP
 ret far
 
-A0860005d:
+_pixaddr_ega: ;; 0860005d
    push BP
    mov BP,SP
    mov AX,[BP+08]
@@ -1873,7 +1875,7 @@ A0860005d:
    pop CX
    add BX,AX
    adc CX,DX
-   mov AX,[3B4F]
+   mov AX,[offset _drawofs]
    cwd
    add BX,AX
    adc CX,DX
@@ -1893,10 +1895,10 @@ A0860005d:
    pop BP
 ret far
 
-A086000a5:
+_pixaddr_vga: ;; 086000a5
    push BP
    mov BP,SP
-   mov AX,[3B4F]
+   mov AX,[offset _drawofs]
    cwd
    push DX
    push AX
@@ -1930,7 +1932,7 @@ A086000a5:
    pop BP
 ret far
 
-A086000eb:
+_drawshape: ;; 086000eb
    push BP
    mov BP,SP
    sub SP,+0E
@@ -1951,7 +1953,7 @@ jmp near L08600125
 L08600117:
    mov BX,SI
    shl BX,1
-   mov AX,[BX+3134]
+   mov AX,[BX+offset _shm_flags]
    and AX,0001
    mov [BP-04],AX
 L08600125:
@@ -1966,42 +1968,42 @@ L08600134:
    mov BX,SI
    shl BX,1
    shl BX,1
-   mov AX,[BX+3234]
-   or AX,[BX+3236]
+   mov AX,[BX+offset _shm_tbladdr]
+   or AX,[BX+offset _shm_tbladdr+02]
    jnz L08600178
    mov BX,SI
    shl BX,1
-   mov word ptr [BX+2EB4],0001
-   call far A07d3074d
+   mov word ptr [BX+offset _shm_want],0001
+   call far _shm_do
    mov BX,SI
    shl BX,1
    shl BX,1
-   mov AX,[BX+3234]
-   or AX,[BX+3236]
+   mov AX,[BX+offset _shm_tbladdr]
+   or AX,[BX+offset _shm_tbladdr+02]
    jnz L08600178
-   mov DX,[3336]
-   mov AX,[3334]
+   mov DX,[offset _LOST+02]
+   mov AX,[offset _LOST]
    mov BX,SI
    shl BX,1
    shl BX,1
-   mov [BX+3236],DX
-   mov [BX+3234],AX
+   mov [BX+offset _shm_tbladdr+02],DX
+   mov [BX+offset _shm_tbladdr],AX
 L08600178:
    mov BX,SI
    shl BX,1
    shl BX,1
-   mov DX,[BX+3236]
-   mov AX,[BX+3234]
-   cmp DX,[3336]
+   mov DX,[BX+offset _shm_tbladdr+02]
+   mov AX,[BX+offset _shm_tbladdr]
+   cmp DX,[offset _LOST+02]
    jnz L08600195
-   cmp AX,[3334]
+   cmp AX,[offset _LOST]
    jnz L08600195
 jmp near L086002ab
 L08600195:
    mov BX,SI
    shl BX,1
    shl BX,1
-   les BX,[BX+3234]
+   les BX,[BX+offset _shm_tbladdr]
    mov AX,[BP-02]
    shl AX,1
    shl AX,1
@@ -2011,7 +2013,7 @@ L08600195:
    mov BX,SI
    shl BX,1
    shl BX,1
-   les BX,[BX+3234]
+   les BX,[BX+offset _shm_tbladdr]
    push ES
    push BX
    les BX,[BP-0E]
@@ -2047,12 +2049,12 @@ jmp near L086002ab
 L0860020a:
    mov AL,[BP-06]
    mov AH,00
-   mul word ptr [3B58]
+   mul word ptr [offset _pixelsperbyte]
    add AX,DI
    jge L0860021a
 jmp near L086002ab
 L0860021a:
-   mov AL,[3B53]
+   mov AL,[offset _x_ourmode]
    mov AH,00
    and AX,00FE
    or AX,AX
@@ -2076,7 +2078,7 @@ L08600232:
    push DI
    push [BP+08]
    push [BP+06]
-   call far A09270002
+   call far _ldrawsh_cga
    add SP,+12
 jmp near L086002ab
 L0860025b:
@@ -2093,7 +2095,7 @@ L0860025b:
    push DI
    push [BP+08]
    push [BP+06]
-   call far A09270270
+   call far _ldrawsh_ega
    add SP,+12
 jmp near L086002ab
 L08600284:
@@ -2110,7 +2112,7 @@ L08600284:
    push DI
    push [BP+08]
    push [BP+06]
-   call far A09270557
+   call far _ldrawsh_vga
    add SP,+12
 L086002ab:
    pop DI
@@ -2119,7 +2121,7 @@ L086002ab:
    pop BP
 ret far
 
-X086002b1:
+_plot: ;; 086002b1
    push BP
    mov BP,SP
    push SI
@@ -2145,7 +2147,7 @@ L086002d8:
    jg L086002e3
 jmp near L08600356
 L086002e3:
-   mov AL,[3B53]
+   mov AL,[offset _x_ourmode]
    mov AH,00
    and AX,00FE
    or AX,AX
@@ -2166,7 +2168,7 @@ L086002fb:
    mov AX,[ES:BX]
    add AX,SI
    push AX
-   call far A0a330075
+   call far _plot_cga
    add SP,+06
 jmp near L08600356
 L0860031b:
@@ -2180,7 +2182,7 @@ L0860031b:
    mov AX,[ES:BX]
    add AX,SI
    push AX
-   call far A0a330094
+   call far _plot_ega
    add SP,+06
 jmp near L08600356
 L0860033b:
@@ -2192,7 +2194,7 @@ L0860033b:
    mov AX,[ES:BX]
    add AX,SI
    push AX
-   call far A0a3300df
+   call far _plot_vga
    add SP,+06
 L08600356:
    pop DI
@@ -2200,10 +2202,10 @@ L08600356:
    pop BP
 ret far
 
-X0860035a:
+_linex: ;; 0860035a ;; (@) Unaccessed.
    push BP
    mov BP,SP
-   mov AL,[3B53]
+   mov AL,[offset _x_ourmode]
    mov AH,00
    and AX,00FE
    or AX,AX
@@ -2215,13 +2217,13 @@ L0860036b:
    push [BP+0A]
    push [BP+08]
    push [BP+06]
-   call far A0a330142
+   call far _line_cga
    mov SP,BP
 L08600381:
    pop BP
 ret far
 
-A08600383:
+_waitsafe: ;; 08600383
 L08600383:
    mov DX,03DA
    in AL,DX
@@ -2229,7 +2231,7 @@ L08600383:
    jz L08600383
 ret far
 
-A0860038c:
+_setcm_cga: ;; 0860038c
    push BP
    mov BP,SP
    sub SP,+0A
@@ -2281,7 +2283,7 @@ L086003f5:
    mov BX,[BP+06]
    mov CL,09
    shl BX,CL
-   add BX,offset Y2a173338
+   add BX,offset _cmtab
    push DS
    pop ES
    mov AX,SI
@@ -2298,7 +2300,7 @@ L08600412:
    pop BP
 ret far
 
-A0860041e:
+_fontcolor_cga: ;; 0860041e
    push BP
    mov BP,SP
    push SI
@@ -2346,7 +2348,7 @@ L08600447:
    mov AX,0001
    push AX
    push CS
-   call near offset A0860038c
+   call near offset _setcm_cga
    add SP,+12
 jmp near L08600497
 L08600479:
@@ -2363,7 +2365,7 @@ L08600479:
    mov AX,0001
    push AX
    push CS
-   call near offset A0860038c
+   call near offset _setcm_cga
    add SP,+12
 L08600497:
    pop DI
@@ -2371,50 +2373,50 @@ L08600497:
    pop BP
 ret far
 
-A0860049b:
+_fontcolor_ega: ;; 0860049b
    push BP
    mov BP,SP
-   mov word ptr [3538],0010
+   mov word ptr [offset _cmtab+1*0200],0010
    mov AX,[BP+08]
-   mov [353A],AX
+   mov [offset _cmtab+1*0200+02],AX
    mov AX,[BP+06]
-   mov [353C],AX
+   mov [offset _cmtab+1*0200+04],AX
    cmp word ptr [BP+0A],-01
    jnz L086004be
-   mov word ptr [353E],0010
+   mov word ptr [offset _cmtab+1*0200+06],0010
 jmp near L086004c4
 L086004be:
    mov AX,[BP+0A]
-   mov [353E],AX
+   mov [offset _cmtab+1*0200+06],AX
 L086004c4:
    pop BP
 ret far
 
-A086004c6:
+_fontcolor_vga: ;; 086004c6
    push BP
    mov BP,SP
-   mov word ptr [3538],00FF
+   mov word ptr [offset _cmtab+1*0200],00FF
    mov AX,[BP+08]
-   mov [353A],AX
+   mov [offset _cmtab+1*0200+02],AX
    mov AX,[BP+06]
-   mov [353C],AX
+   mov [offset _cmtab+1*0200+04],AX
    cmp word ptr [BP+0A],-01
    jnz L086004e9
-   mov word ptr [353E],00FF
+   mov word ptr [offset _cmtab+1*0200+06],00FF
 jmp near L086004ef
 L086004e9:
    mov AX,[BP+0A]
-   mov [353E],AX
+   mov [offset _cmtab+1*0200+06],AX
 L086004ef:
    pop BP
 ret far
 
-A086004f1:
+_fntcolor: ;; 086004f1
    push BP
    mov BP,SP
    push SI
    mov SI,[BP+0A]
-   mov AL,[3B53]
+   mov AL,[offset _x_ourmode]
    mov AH,00
    and AX,00FE
    or AX,AX
@@ -2432,7 +2434,7 @@ L08600510:
    push AX
    push AX
    push CS
-   call near offset A0860041e
+   call near offset _fontcolor_cga
    add SP,+06
 jmp near L08600556
 L08600524:
@@ -2443,7 +2445,7 @@ L08600524:
    mov AX,0003
    push AX
    push CS
-   call near offset A0860041e
+   call near offset _fontcolor_cga
    add SP,+06
 jmp near L08600556
 L08600538:
@@ -2451,7 +2453,7 @@ L08600538:
    push [BP+06]
    push [BP+08]
    push CS
-   call near offset A0860049b
+   call near offset _fontcolor_ega
    add SP,+06
 jmp near L08600556
 L08600548:
@@ -2459,14 +2461,14 @@ L08600548:
    push [BP+06]
    push [BP+08]
    push CS
-   call near offset A086004c6
+   call near offset _fontcolor_vga
    add SP,+06
 L08600556:
    pop SI
    pop BP
 ret far
 
-A08600559:
+_initcolortabs_cga: ;; 08600559
    mov AX,0003
    push AX
    push AX
@@ -2483,7 +2485,7 @@ A08600559:
    push AX
    push AX
    push CS
-   call near offset A0860038c
+   call near offset _setcm_cga
    add SP,+12
    xor AX,AX
    push AX
@@ -2492,7 +2494,7 @@ A08600559:
    mov AX,0003
    push AX
    push CS
-   call near offset A0860041e
+   call near offset _fontcolor_cga
    add SP,+06
    mov AX,0003
    push AX
@@ -2507,7 +2509,7 @@ A08600559:
    mov AX,0002
    push AX
    push CS
-   call near offset A0860038c
+   call near offset _setcm_cga
    add SP,+12
    mov AX,0003
    push AX
@@ -2524,137 +2526,137 @@ A08600559:
    mov AX,0003
    push AX
    push CS
-   call near offset A0860038c
+   call near offset _setcm_cga
    add SP,+12
 ret far
 
-A086005c2:
+_initcolortabs_ega: ;; 086005c2
    push SI
    xor SI,SI
 jmp near L086005e2
 L086005c7:
    mov BX,SI
    shl BX,1
-   mov [BX+offset Y2a173338],SI
+   mov [BX+offset _cmtab],SI
    mov BX,SI
    shl BX,1
-   mov word ptr [BX+3738],0000
+   mov word ptr [BX+offset _cmtab+2*0200],0000
    mov BX,SI
    shl BX,1
-   mov [BX+3938],SI
+   mov [BX+offset _cmtab+2*0200+0200],SI
    inc SI
 L086005e2:
    cmp SI,+10
    jl L086005c7
-   mov word ptr [offset Y2a173338],0010
-   mov word ptr [3738],0010
+   mov word ptr [offset _cmtab],0010
+   mov word ptr [offset _cmtab+2*0200],0010
    pop SI
 ret far
 
-A086005f5:
+_initcolortabs_vga: ;; 086005f5
    push SI
    xor SI,SI
 jmp near L08600615
 L086005fa:
    mov BX,SI
    shl BX,1
-   mov [BX+offset Y2a173338],SI
+   mov [BX+offset _cmtab],SI
    mov BX,SI
    shl BX,1
-   mov word ptr [BX+3738],0000
+   mov word ptr [BX+offset _cmtab+2*0200],0000
    mov BX,SI
    shl BX,1
-   mov [BX+3938],SI
+   mov [BX+offset _cmtab+2*0200+0200],SI
    inc SI
 L08600615:
    cmp SI,0100
    jl L086005fa
-   mov word ptr [offset Y2a173338],00FF
-   mov word ptr [3738],00FF
+   mov word ptr [offset _cmtab],00FF
+   mov word ptr [offset _cmtab+2*0200],00FF
    pop SI
 ret far
 
-A08600629:
-   mov AX,[3B54]
-   mul word ptr [3B4D]
-   mov [3B51],AX
-   mov AX,[3B56]
-   mul word ptr [3B4D]
-   mov [3B4F],AX
+_setpages: ;; 08600629
+   mov AX,[offset _pageshow]
+   mul word ptr [offset _pagelen]
+   mov [offset _showofs],AX
+   mov AX,[offset _pagedraw]
+   mul word ptr [offset _pagelen]
+   mov [offset _drawofs],AX
 ret far
 
-A0860063e:
+_setpagemode: ;; 0860063e
    push BP
    mov BP,SP
    cmp word ptr [BP+06],+00
    jz L08600669
-   test byte ptr [3B53],FE
+   test byte ptr [offset _x_ourmode],FE
    jz L08600669
-   mov word ptr [3B4A],0001
+   mov word ptr [offset _pagemode],0001
    mov AX,0001
-   sub AX,[3B54]
-   mov [3B56],AX
+   sub AX,[offset _pageshow]
+   mov [offset _pagedraw],AX
    push CS
-   call near offset A08600629
-   call far A09270df8
+   call near offset _setpages
+   call far _lcopypage
 jmp near L0860067b
 L08600669:
-   mov word ptr [3B4A],0000
-   mov AX,[3B54]
-   mov [3B56],AX
-   mov AX,[3B51]
-   mov [3B4F],AX
+   mov word ptr [offset _pagemode],0000
+   mov AX,[offset _pageshow]
+   mov [offset _pagedraw],AX
+   mov AX,[offset _showofs]
+   mov [offset _drawofs],AX
 L0860067b:
    pop BP
 ret far
 
-A0860067d:
+_getportnum: ;; 0860067d
    mov BX,segment Y00400063
    mov ES,BX
    mov BX,offset Y00400063
    mov AX,[ES:BX]
 ret far
 
-A08600689:
+_pageflip: ;; 08600689
    push SI
-   test byte ptr [3B53],FE
+   test byte ptr [offset _x_ourmode],FE
    jz L086006e9
-   mov AX,[3B54]
+   mov AX,[offset _pageshow]
    neg AX
    sbb AX,AX
    inc AX
-   mov [3B54],AX
-   mov AX,[3B56]
+   mov [offset _pageshow],AX
+   mov AX,[offset _pagedraw]
    neg AX
    sbb AX,AX
    inc AX
-   mov [3B56],AX
+   mov [offset _pagedraw],AX
    push CS
-   call near offset A08600629
+   call near offset _setpages
    push CS
-   call near offset A0860067d
+   call near offset _getportnum
    mov SI,AX
 L086006b1:
    mov DX,03DA
    in AL,DX
    test AL,08
    jnz L086006b1
-   mov AX,[3B51]
+   mov AX,[offset _showofs]
    and AX,FF00
    add AX,000C
    push AX
    push SI
-   call far A29b7000d
+   call far _outport
    pop CX
    pop CX
-   mov AX,[3B51]
+   mov AX,[offset _showofs]
    and AX,00FF
    mov CL,08
    shl AX,CL
    add AX,000D
    push AX
    push SI
-   call far A29b7000d
+   call far _outport
    pop CX
    pop CX
 L086006e1:
@@ -2666,8 +2668,8 @@ L086006e9:
    pop SI
 ret far
 
-X086006eb:
-   cmp byte ptr [3B53],04
+_wait_vbi: ;; 086006eb ;; (@) Unaccessed.
+   cmp byte ptr [offset _x_ourmode],04
    jnz L08600702
 L086006f2:
    mov DX,03DA
@@ -2682,7 +2684,7 @@ L086006fa:
 L08600702:
 ret far
 
-A08600703:
+_vga_setpal: ;; 08600703
    push BP
    mov BP,SP
    sub SP,+02
@@ -2690,7 +2692,7 @@ A08600703:
    push DI
    xor SI,SI
    mov DI,0100
-   cmp byte ptr [3B53],04
+   cmp byte ptr [offset _x_ourmode],04
    jnz L08600780
    cmp SI,DI
    jg L08600780
@@ -2701,36 +2703,36 @@ A08600703:
    cmp AX,DI
    jg L08600780
    push CS
-   call near offset A08600383
+   call near offset _waitsafe
    mov [BP-02],SI
 jmp near L08600777
 L08600730:
    mov AL,[BP-02]
-   mov DX,[offset Y2a170494]
+   mov DX,[offset _DacWrite]
    out DX,AL
    mov AX,[BP-02]
    mov DX,0003
    mul DX
    mov BX,AX
-   mov AL,[BX+offset Y2a170194]
-   mov DX,[offset Y2a170498]
-   out DX,AL
-   mov AX,[BP-02]
-   mov DX,0003
-   mul DX
-   mov BX,AX
-   inc BX
-   mov AL,[BX+offset Y2a170194]
-   mov DX,[offset Y2a170498]
+   mov AL,[BX+offset _vgapal]
+   mov DX,[offset _DacData]
    out DX,AL
    mov AX,[BP-02]
    mov DX,0003
    mul DX
    mov BX,AX
    inc BX
+   mov AL,[BX+offset _vgapal]
+   mov DX,[offset _DacData]
+   out DX,AL
+   mov AX,[BP-02]
+   mov DX,0003
+   mul DX
+   mov BX,AX
    inc BX
-   mov AL,[BX+offset Y2a170194]
-   mov DX,[offset Y2a170498]
+   inc BX
+   mov AL,[BX+offset _vgapal]
+   mov DX,[offset _DacData]
    out DX,AL
    inc word ptr [BP-02]
 L08600777:
@@ -2745,7 +2747,7 @@ L08600780:
    pop BP
 ret far
 
-X08600786:
+_readpal: ;; 08600786 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    sub SP,+02
@@ -2753,7 +2755,7 @@ X08600786:
    push DI
    xor SI,SI
    mov DI,0100
-   cmp byte ptr [3B53],04
+   cmp byte ptr [offset _x_ourmode],04
    jz L0860079d
 jmp near L0860082e
 L0860079d:
@@ -2791,9 +2793,9 @@ L086007c8:
 jmp near L08600825
 L086007d2:
    mov AL,[BP-02]
-   mov DX,[offset Y2a170496]
+   mov DX,[offset _DacRead]
    out DX,AL
-   mov DX,[offset Y2a170498]
+   mov DX,[offset _DacData]
    in AL,DX
    push AX
    mov AX,[BP-02]
@@ -2803,7 +2805,7 @@ L086007d2:
    add BX,AX
    pop AX
    mov [ES:BX],AL
-   mov DX,[offset Y2a170498]
+   mov DX,[offset _DacData]
    in AL,DX
    push AX
    mov AX,[BP-02]
@@ -2814,7 +2816,7 @@ L086007d2:
    add BX,AX
    pop AX
    mov [ES:BX],AL
-   mov DX,[offset Y2a170498]
+   mov DX,[offset _DacData]
    in AL,DX
    push AX
    mov AX,[BP-02]
@@ -2839,7 +2841,7 @@ L0860082e:
    pop BP
 ret far
 
-A08600834:
+_clrpal: ;; 08600834
    push BP
    mov BP,SP
    sub SP,+02
@@ -2847,7 +2849,7 @@ A08600834:
    push DI
    xor SI,SI
    mov DI,0100
-   cmp byte ptr [3B53],04
+   cmp byte ptr [offset _x_ourmode],04
    jnz L0860089e
    cmp SI,DI
    jle L08600851
@@ -2883,10 +2885,10 @@ L08600873:
 jmp near L08600895
 L0860087d:
    mov AL,[BP-02]
-   mov DX,[offset Y2a170494]
+   mov DX,[offset _DacWrite]
    out DX,AL
    mov AL,00
-   mov DX,[offset Y2a170498]
+   mov DX,[offset _DacData]
    out DX,AL
    mov AL,00
    out DX,AL
@@ -2905,13 +2907,13 @@ L0860089e:
    pop BP
 ret far
 
-A086008a4:
+_fadein: ;; 086008a4
    push BP
    mov BP,SP
    sub SP,0302
    push SI
    push DI
-   cmp byte ptr [3B53],04
+   cmp byte ptr [offset _x_ourmode],04
    jnz L08600904
    xor DI,DI
 jmp near L086008ff
@@ -2919,7 +2921,7 @@ L086008b8:
    xor SI,SI
 jmp near L086008d7
 L086008bc:
-   mov AL,[SI+offset Y2a170194]
+   mov AL,[SI+offset _vgapal]
    mov AH,00
    mov [BP-02],AX
    mul DI
@@ -2927,21 +2929,21 @@ L086008bc:
    sar AX,CL
    mov [BP-02],AX
    mov AL,[BP-02]
-   mov [SS:BP+SI+FCFE],AL
+   mov [SS:BP+SI-0302],AL
    inc SI
 L086008d7:
    cmp SI,0300
    jl L086008bc
    push CS
-   call near offset A08600383
+   call near offset _waitsafe
    mov AL,00
-   mov DX,[offset Y2a170494]
+   mov DX,[offset _DacWrite]
    out DX,AL
    xor SI,SI
 jmp near L086008f7
 L086008ec:
-   mov AL,[SS:BP+SI+FCFE]
-   mov DX,[offset Y2a170498]
+   mov AL,[SS:BP+SI-0302]
+   mov DX,[offset _DacData]
    out DX,AL
    inc SI
 L086008f7:
@@ -2959,14 +2961,14 @@ L08600904:
    pop BP
 ret far
 
-X0860090a:
+_setcolor: ;; 0860090a ;; (@) Unaccessed.
    push BP
    mov BP,SP
    mov AL,[BP+06]
-   mov DX,[offset Y2a170494]
+   mov DX,[offset _DacWrite]
    out DX,AL
    mov AL,[BP+08]
-   mov DX,[offset Y2a170498]
+   mov DX,[offset _DacData]
    out DX,AL
    mov AL,[BP+0A]
    out DX,AL
@@ -2975,13 +2977,13 @@ X0860090a:
    pop BP
 ret far
 
-A08600927:
+_fadeout: ;; 08600927
    push BP
    mov BP,SP
    sub SP,0302
    push SI
    push DI
-   cmp byte ptr [3B53],04
+   cmp byte ptr [offset _x_ourmode],04
    jnz L08600987
    mov DI,003F
 jmp near L08600983
@@ -2989,7 +2991,7 @@ L0860093c:
    xor SI,SI
 jmp near L0860095b
 L08600940:
-   mov AL,[SI+offset Y2a170194]
+   mov AL,[SI+offset _vgapal]
    mov AH,00
    mov [BP-02],AX
    mul DI
@@ -2997,21 +2999,21 @@ L08600940:
    sar AX,CL
    mov [BP-02],AX
    mov AL,[BP-02]
-   mov [SS:BP+SI+FCFE],AL
+   mov [SS:BP+SI-0302],AL
    inc SI
 L0860095b:
    cmp SI,0300
    jl L08600940
    push CS
-   call near offset A08600383
+   call near offset _waitsafe
    mov AL,00
-   mov DX,[offset Y2a170494]
+   mov DX,[offset _DacWrite]
    out DX,AL
    xor SI,SI
 jmp near L0860097b
 L08600970:
-   mov AL,[SS:BP+SI+FCFE]
-   mov DX,[offset Y2a170498]
+   mov AL,[SS:BP+SI-0302]
+   mov DX,[offset _DacData]
    out DX,AL
    inc SI
 L0860097b:
@@ -3029,18 +3031,18 @@ L08600987:
    pop BP
 ret far
 
-A0860098d:
+_gr_config: ;; 0860098d
    push SI
    push DS
    mov AX,offset Y2a17049e
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
 L0860099a:
-   call far A0a69005c
+   call far _k_read
    push AX
-   call far A29ff000e
+   call far _toupper
    pop CX
    mov SI,AX
    cmp SI,+43
@@ -3067,13 +3069,13 @@ jmp near [CS:BX+08]
 Y086009d3:	dw 001b,0043,0045,0056
 		dw L086009f8,L086009e3,L086009ea,L086009f1
 L086009e3:
-   mov byte ptr [3B53],00
+   mov byte ptr [offset _x_ourmode],00
 jmp near L086009fc
 L086009ea:
-   mov byte ptr [3B53],02
+   mov byte ptr [offset _x_ourmode],02
 jmp near L086009fc
 L086009f1:
-   mov byte ptr [3B53],04
+   mov byte ptr [offset _x_ourmode],04
 jmp near L086009fc
 L086009f8:
    xor AX,AX
@@ -3084,7 +3086,7 @@ L086009ff:
    pop SI
 ret far
 
-A08600a01:
+_gr_init: ;; 08600a01
    push BP
    mov BP,SP
    sub SP,+14
@@ -3095,23 +3097,23 @@ A08600a01:
    push AX
    mov AX,0010
    push AX
-   call far A29a2000c
+   call far _intr
    add SP,+06
    mov AX,[BP-14]
    and AX,00FF
-   mov [3B48],AX
-   mov word ptr [3B4A],0000
-   mov word ptr [3B54],0000
-   mov word ptr [3B56],0000
-   mov word ptr [3B51],0000
-   mov word ptr [3B4F],0000
-   mov word ptr [offset Y2a173b38],0000
-   mov word ptr [3B3A],0000
-   mov word ptr [3B3C],0140
-   mov word ptr [3B3E],00C8
-   mov word ptr [3B40],0000
-   mov word ptr [3B42],0000
-   mov AL,[3B53]
+   mov [offset _origmode],AX
+   mov word ptr [offset _pagemode],0000
+   mov word ptr [offset _pageshow],0000
+   mov word ptr [offset _pagedraw],0000
+   mov word ptr [offset _showofs],0000
+   mov word ptr [offset _drawofs],0000
+   mov word ptr [offset _mainvp],0000
+   mov word ptr [offset _mainvp+02],0000
+   mov word ptr [offset _mainvp+04],0140
+   mov word ptr [offset _mainvp+06],00C8
+   mov word ptr [offset _mainvp+08],0000
+   mov word ptr [offset _mainvp+0a],0000
+   mov AL,[offset _x_ourmode]
    mov AH,00
    or AX,AX
    jz L08600a82
@@ -3129,7 +3131,7 @@ L08600a82:
    push AX
    mov AX,0010
    push AX
-   call far A29a2000c
+   call far _intr
    add SP,+06
    mov word ptr [BP-14],0B00
    mov word ptr [BP-12],0001
@@ -3138,19 +3140,19 @@ L08600a82:
    push AX
    mov AX,0010
    push AX
-   call far A29a2000c
+   call far _intr
    add SP,+06
    mov AL,11
    mov DX,03D9
    out DX,AL
    push CS
-   call near offset A08600559
-   mov byte ptr [3B53],00
-   mov word ptr [3B58],0004
+   call near offset _initcolortabs_cga
+   mov byte ptr [offset _x_ourmode],00
+   mov word ptr [offset _pixelsperbyte],0004
 jmp near L08600b4e
 L08600acb:
-   mov word ptr [3B4D],2000
-   mov byte ptr [3B53],02
+   mov word ptr [offset _pagelen],2000
+   mov byte ptr [offset _x_ourmode],02
    mov word ptr [BP-14],1200
    mov word ptr [BP-12],0031
    push SS
@@ -3158,7 +3160,7 @@ L08600acb:
    push AX
    mov AX,0010
    push AX
-   call far A29a2000c
+   call far _intr
    add SP,+06
    xor SI,SI
 jmp near L08600b17
@@ -3174,7 +3176,7 @@ L08600af5:
    push AX
    mov AX,0010
    push AX
-   call far A29a2000c
+   call far _intr
    add SP,+06
    inc SI
 L08600b17:
@@ -3186,10 +3188,10 @@ L08600b17:
    push AX
    mov AX,0010
    push AX
-   call far A29a2000c
+   call far _intr
    add SP,+06
    push CS
-   call near offset A086005c2
+   call near offset _initcolortabs_ega
    xor AX,AX
    push AX
    mov AX,0009
@@ -3197,21 +3199,21 @@ L08600b17:
    mov AX,0001
    push AX
    push CS
-   call near offset A0860049b
+   call near offset _fontcolor_ega
    add SP,+06
-   mov word ptr [3B58],0008
+   mov word ptr [offset _pixelsperbyte],0008
 L08600b4e:
    mov AL,00
    push AX
    push DS
-   mov AX,offset Y2a173b38
+   mov AX,offset _mainvp
    push AX
-   call far A09270e9e
+   call far _clrvp
    add SP,+06
 jmp near L08600c38
 L08600b61:
-   mov word ptr [3B4D],4000
-   mov byte ptr [3B53],04
+   mov word ptr [offset _pagelen],4000
+   mov byte ptr [offset _x_ourmode],04
    xor SI,SI
 jmp near L08600b92
 L08600b70:
@@ -3226,7 +3228,7 @@ L08600b70:
    push AX
    mov AX,0010
    push AX
-   call far A29a2000c
+   call far _intr
    add SP,+06
    inc SI
 L08600b92:
@@ -3239,7 +3241,7 @@ L08600b92:
    push AX
    mov AX,0010
    push AX
-   call far A29a2000c
+   call far _intr
    add SP,+06
    mov word ptr [BP-14],0013
    push SS
@@ -3247,10 +3249,10 @@ L08600b92:
    push AX
    mov AX,0010
    push AX
-   call far A29a2000c
+   call far _intr
    add SP,+06
    push CS
-   call near offset A086005f5
+   call near offset _initcolortabs_vga
    xor AX,AX
    push AX
    mov AX,0022
@@ -3258,65 +3260,65 @@ L08600b92:
    mov AX,002A
    push AX
    push CS
-   call near offset A086004c6
+   call near offset _fontcolor_vga
    add SP,+06
-   mov word ptr [3B58],0001
+   mov word ptr [offset _pixelsperbyte],0001
    push CS
-   call near offset A08600834
+   call near offset _clrpal
    mov AX,0604
    push AX
    mov AX,03C4
    push AX
-   call far A29b7000d
+   call far _outport
    pop CX
    pop CX
    mov AX,4005
    push AX
    mov AX,03CE
    push AX
-   call far A29b7000d
+   call far _outport
    pop CX
    pop CX
    mov AX,0014
    push AX
    mov AX,03D4
    push AX
-   call far A29b7000d
+   call far _outport
    pop CX
    pop CX
    mov AX,E317
    push AX
    mov AX,03D4
    push AX
-   call far A29b7000d
+   call far _outport
    pop CX
    pop CX
    mov AL,00
    push AX
    push DS
-   mov AX,offset Y2a173b38
+   mov AX,offset _mainvp
    push AX
-   call far A09270e9e
+   call far _clrvp
    add SP,+06
    push CS
-   call near offset A08600703
+   call near offset _vga_setpal
 L08600c38:
    mov AX,0001
    push AX
-   call far A27f10003
+   call far _malloc
    pop CX
-   mov [3336],DX
-   mov [3334],AX
+   mov [offset _LOST+02],DX
+   mov [offset _LOST],AX
    pop SI
    mov SP,BP
    pop BP
 ret far
 
-A08600c4e:
+_gr_exit: ;; 08600c4e
    push BP
    mov BP,SP
    sub SP,+14
-   mov AX,[3B48]
+   mov AX,[offset _origmode]
    add AX,0000
    mov [BP-14],AX
    push SS
@@ -3324,14 +3326,14 @@ A08600c4e:
    push AX
    mov AX,0010
    push AX
-   call far A29a2000c
+   call far _intr
    add SP,+06
    mov SP,BP
    pop BP
 ret far
 
 Segment 0927 ;; GAMEGRL.C:GRL
-A09270002:
+_ldrawsh_cga: ;; 09270002
    push BP
    mov BP,SP
    sub SP,+1C
@@ -3460,7 +3462,7 @@ L0927012f:
    push AX
    push [BP-10]
    push [BP-12]
-   call far A08600002
+   call far _pixaddr_cga
    add SP,+0C
    push DS
    push ES
@@ -3495,7 +3497,7 @@ L09270171:
    push AX
    push [BP-10]
    push [BP-12]
-   call far A08600002
+   call far _pixaddr_cga
    add SP,+0C
    mov AL,08
    sub AL,[BP-13]
@@ -3563,7 +3565,7 @@ L09270210:
    inc word ptr [BP+12]
    mov BH,[BP+16]
    shl BX,1
-   mov BX,[BX+offset Y2a173338]
+   mov BX,[BX+offset _cmtab]
    mov AL,BH
    xor BH,BH
    xor AH,AH
@@ -3603,7 +3605,7 @@ L0927026a:
    pop BP
 ret far
 
-A09270270:
+_ldrawsh_ega: ;; 09270270
    push BP
    mov BP,SP
    sub SP,+20
@@ -3748,7 +3750,7 @@ L092703d0:
    push AX
    push [BP-16]
    push [BP-18]
-   call far A0860005d
+   call far _pixaddr_ega
    add SP,+0C
    push DS
    push ES
@@ -3810,7 +3812,7 @@ L09270442:
    push AX
    push [BP-16]
    push [BP-18]
-   call far A0860005d
+   call far _pixaddr_ega
    add SP,+0C
    mov AX,[BP+0A]
    neg AX
@@ -3824,31 +3826,31 @@ L09270442:
    push AX
    mov AX,03C4
    push AX
-   call far A29b7000d
+   call far _outport
    add SP,+04
    mov AX,0A05
    push AX
    mov AX,03CE
    push AX
-   call far A29b7000d
+   call far _outport
    add SP,+04
    mov AX,0F01
    push AX
    mov AX,03CE
    push AX
-   call far A29b7000d
+   call far _outport
    add SP,+04
    mov AX,0003
    push AX
    mov AX,03CE
    push AX
-   call far A29b7000d
+   call far _outport
    add SP,+04
    mov AX,0007
    push AX
    mov AX,03CE
    push AX
-   call far A29b7000d
+   call far _outport
    add SP,+04
 jmp near L09270549
 X092704d6:
@@ -3878,7 +3880,7 @@ L092704f6:
    and BX,+0F
    mov BH,[BP+16]
    shl BX,1
-   mov CX,[BX+offset Y2a173338]
+   mov CX,[BX+offset _cmtab]
    cmp CL,10
    jz L09270529
    mov AL,08
@@ -3913,7 +3915,7 @@ L09270551:
    pop BP
 ret far
 
-A09270557:
+_ldrawsh_vga: ;; 09270557
    push BP
    mov BP,SP
    sub SP,+20
@@ -4048,31 +4050,31 @@ L092706a0:
    push AX
    push [BP-16]
    push [BP-18]
-   call far A086000a5
+   call far _pixaddr_vga
    add SP,+0C
    mov AX,4005
    push AX
    mov AX,03CE
    push AX
-   call far A29b7000d
+   call far _outport
    add SP,+04
    mov AX,0001
    push AX
    mov AX,03CE
    push AX
-   call far A29b7000d
+   call far _outport
    add SP,+04
    mov AX,0003
    push AX
    mov AX,03CE
    push AX
-   call far A29b7000d
+   call far _outport
    add SP,+04
    mov AX,FF08
    push AX
    mov AX,03CE
    push AX
-   call far A29b7000d
+   call far _outport
    add SP,+04
    push DS
    push ES
@@ -4119,7 +4121,7 @@ L09270737:
    push AX
    push [BP-16]
    push [BP-18]
-   call far A086000a5
+   call far _pixaddr_vga
    add SP,+0C
    mov AX,[BP+0A]
    neg AX
@@ -4133,7 +4135,7 @@ L09270737:
    push AX
    mov AX,03CE
    push AX
-   call far A29b7000d
+   call far _outport
    add SP,+04
 jmp near L09270826
 L0927078a:
@@ -4187,7 +4189,7 @@ L092707e1:
    mov BX,[ES:DI]
    mov BH,[BP+16]
    shl BX,1
-   mov CX,[BX+offset Y2a173338]
+   mov CX,[BX+offset _cmtab]
    cmp CL,FF
    jz L0927080c
    mov AL,02
@@ -4220,7 +4222,7 @@ L0927082f:
    pop BP
 ret far
 
-X09270835:
+_ldrawsh_mcga: ;; 09270835 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    sub SP,+18
@@ -4322,7 +4324,7 @@ L09270928:
    push AX
    push [BP-0E]
    push [BP-10]
-   call far A086000a5
+   call far _pixaddr_vga
    add SP,+0C
    push DS
    push ES
@@ -4356,7 +4358,7 @@ L09270966:
    push AX
    push [BP-0E]
    push [BP-10]
-   call far A086000a5
+   call far _pixaddr_vga
    add SP,+0C
    mov AX,[BP+0A]
    neg AX
@@ -4384,7 +4386,7 @@ L092709b0:
    mov BL,[ES:DI]
    mov BH,[BP+16]
    shl BX,1
-   mov AL,[BX+offset Y2a173338]
+   mov AL,[BX+offset _cmtab]
    xor AH,AH
    cmp AL,FF
    jz L092709d5
@@ -4410,7 +4412,7 @@ L092709f2:
    pop BP
 ret far
 
-A092709f8:
+_scroll: ;; 092709f8
    push BP
    mov BP,SP
    sub SP,+16
@@ -4531,7 +4533,7 @@ L09270b1d:
    mov [BP+0A],AX
    mov word ptr [BP-0A],FFFF
 L09270b34:
-   mov AL,[3B53]
+   mov AL,[offset _x_ourmode]
    mov AH,00
    and AX,00FE
    cmp AX,0006
@@ -4554,7 +4556,7 @@ L09270b5b:
    push AX
    push [BP+0C]
    push [BP+0A]
-   call far A08600002
+   call far _pixaddr_cga
    add SP,+0C
    push SS
    lea AX,[BP-01]
@@ -4568,7 +4570,7 @@ L09270b5b:
    mov AX,[BP+0A]
    add AX,[BP+12]
    push AX
-   call far A08600002
+   call far _pixaddr_cga
    add SP,+0C
    mov AX,[BP-08]
    dec AX
@@ -4643,7 +4645,7 @@ L09270c21:
    push AX
    push [BP+0C]
    push [BP+0A]
-   call far A0860005d
+   call far _pixaddr_ega
    add SP,+0C
    push SS
    lea AX,[BP-01]
@@ -4657,7 +4659,7 @@ L09270c21:
    mov AX,[BP+0A]
    add AX,[BP+12]
    push AX
-   call far A0860005d
+   call far _pixaddr_ega
    add SP,+0C
    mov AX,[BP-08]
    mov DX,0028
@@ -4667,19 +4669,19 @@ L09270c21:
    push AX
    mov AX,03CE
    push AX
-   call far A29b7000d
+   call far _outport
    add SP,+04
    mov AX,0F02
    push AX
    mov AX,03C4
    push AX
-   call far A29b7000d
+   call far _outport
    add SP,+04
    mov AX,0104
    push AX
    mov AX,03CE
    push AX
-   call far A29b7000d
+   call far _outport
    add SP,+04
    push ES
    push DS
@@ -4728,7 +4730,7 @@ L09270cde:
    push AX
    push [BP+0C]
    push [BP+0A]
-   call far A086000a5
+   call far _pixaddr_vga
    add SP,+0C
    push SS
    lea AX,[BP-01]
@@ -4742,19 +4744,19 @@ L09270cde:
    mov AX,[BP+0A]
    add AX,[BP+12]
    push AX
-   call far A086000a5
+   call far _pixaddr_vga
    add SP,+0C
    mov AX,4905
    push AX
    mov AX,03CE
    push AX
-   call far A29b7000d
+   call far _outport
    add SP,+04
    mov AX,0F02
    push AX
    mov AX,03C4
    push AX
-   call far A29b7000d
+   call far _outport
    add SP,+04
    push ES
    push DS
@@ -4794,7 +4796,7 @@ L09270d7c:
    push AX
    push [BP+0C]
    push [BP+0A]
-   call far A086000a5
+   call far _pixaddr_vga
    add SP,+0C
    push SS
    lea AX,[BP-01]
@@ -4808,7 +4810,7 @@ L09270d7c:
    mov AX,[BP+0A]
    add AX,[BP+12]
    push AX
-   call far A086000a5
+   call far _pixaddr_vga
    add SP,+0C
    mov AX,[BP-08]
    mov DX,0140
@@ -4844,15 +4846,15 @@ L09270df2:
    pop BP
 ret far
 
-A09270df8:
+_lcopypage: ;; 09270df8
    push SI
    push DI
-   mov AL,[3B53]
+   mov AL,[offset _x_ourmode]
    mov AH,00
    and AX,00FE
    cmp AX,0002
    jz L09270e17
-   mov AL,[3B53]
+   mov AL,[offset _x_ourmode]
    mov AH,00
    and AX,00FE
    cmp AX,0004
@@ -4861,7 +4863,7 @@ jmp near L09270e70
 X09270e16:
    nop
 L09270e17:
-   mov AL,[3B53]
+   mov AL,[offset _x_ourmode]
    mov AH,00
    and AX,00FE
    cmp AX,0002
@@ -4870,7 +4872,7 @@ L09270e17:
    push AX
    mov AX,03CE
    push AX
-   call far A29b7000d
+   call far _outport
    add SP,+04
 jmp near L09270e46
 L09270e36:
@@ -4878,21 +4880,21 @@ L09270e36:
    push AX
    mov AX,03CE
    push AX
-   call far A29b7000d
+   call far _outport
    add SP,+04
 L09270e46:
    mov AX,0F02
    push AX
    mov AX,03C4
    push AX
-   call far A29b7000d
+   call far _outport
    add SP,+04
    push ES
    push DS
    cld
-   mov CX,[3B4D]
-   mov SI,[3B51]
-   mov DI,[3B4F]
+   mov CX,[offset _pagelen]
+   mov SI,[offset _showofs]
+   mov DI,[offset _drawofs]
    mov AX,A000
    mov ES,AX
    mov DS,AX
@@ -4904,7 +4906,7 @@ L09270e70:
    pop SI
 ret far
 
-A09270e73:
+_scrollvp: ;; 09270e73
    push BP
    mov BP,SP
    push [BP+0C]
@@ -4920,18 +4922,18 @@ A09270e73:
    push [BP+08]
    push [BP+06]
    push CS
-   call near offset A092709f8
+   call near offset _scroll
    mov SP,BP
    pop BP
 ret far
 
-A09270e9e:
+_clrvp: ;; 09270e9e
    push BP
    mov BP,SP
    sub SP,+0C
    push SI
    push DI
-   mov AL,[3B53]
+   mov AL,[offset _x_ourmode]
    mov AH,00
    and AX,00FE
    cmp AX,0006
@@ -4979,7 +4981,7 @@ L09270ecd:
    push [ES:BX+02]
    les BX,[BP+06]
    push [ES:BX]
-   call far A08600002
+   call far _pixaddr_cga
    add SP,+0C
    les BX,[BP+06]
    test word ptr [ES:BX+02],0001
@@ -5018,7 +5020,7 @@ L09270f6a:
    push [ES:BX+02]
    les BX,[BP+06]
    push [ES:BX]
-   call far A0860005d
+   call far _pixaddr_ega
    add SP,+0C
    les BX,[BP+06]
    mov AX,[ES:BX+06]
@@ -5033,31 +5035,31 @@ L09270f6a:
    push AX
    mov AX,03CE
    push AX
-   call far A29b7000d
+   call far _outport
    add SP,+04
    mov AX,0F01
    push AX
    mov AX,03CE
    push AX
-   call far A29b7000d
+   call far _outport
    add SP,+04
    mov AX,0003
    push AX
    mov AX,03CE
    push AX
-   call far A29b7000d
+   call far _outport
    add SP,+04
    mov AX,FF08
    push AX
    mov AX,03CE
    push AX
-   call far A29b7000d
+   call far _outport
    add SP,+04
    mov AX,0F02
    push AX
    mov AX,03C4
    push AX
-   call far A29b7000d
+   call far _outport
    add SP,+04
    push ES
    cld
@@ -5083,7 +5085,7 @@ L09271012:
    push [ES:BX+02]
    les BX,[BP+06]
    push [ES:BX]
-   call far A086000a5
+   call far _pixaddr_vga
    add SP,+0C
    les BX,[BP+06]
    mov AX,[ES:BX+06]
@@ -5098,31 +5100,31 @@ L09271012:
    push AX
    mov AX,03CE
    push AX
-   call far A29b7000d
+   call far _outport
    add SP,+04
    mov AX,0001
    push AX
    mov AX,03CE
    push AX
-   call far A29b7000d
+   call far _outport
    add SP,+04
    mov AX,4005
    push AX
    mov AX,03CE
    push AX
-   call far A29b7000d
+   call far _outport
    add SP,+04
    mov AX,FF08
    push AX
    mov AX,03CE
    push AX
-   call far A29b7000d
+   call far _outport
    add SP,+04
    mov AX,0F02
    push AX
    mov AX,03C4
    push AX
-   call far A29b7000d
+   call far _outport
    add SP,+04
    push ES
    cld
@@ -5150,6 +5152,7 @@ ret far
 Y092710bf:	byte
 
 Segment 0a33 ;; GRASM.ASM:GRASM
+;; (@) Unnamed far calls: A0a330000, A0a330024, A0a330047
 A0a330000:
    mov CL,BL
    xchg AH,AL
@@ -5180,7 +5183,7 @@ A0a330024:
    shr BX,1
    shr BX,1
    add BX,AX
-   add BX,[3B4F]
+   add BX,[offset _drawofs]
    mov AX,A000
    mov ES,AX
    and CL,07
@@ -5197,7 +5200,7 @@ A0a330047:
    shr BX,1
    shr BX,1
    add BX,AX
-   add BX,[3B4F]
+   add BX,[offset _drawofs]
    mov AX,A000
    mov ES,AX
    and CL,03
@@ -5214,7 +5217,7 @@ X0a330065:
    mov ES,AX
 ret far
 
-A0a330075:
+_plot_cga: ;; 0a330075
    push BP
    mov BP,SP
    mov AX,[BP+08]
@@ -5229,7 +5232,7 @@ A0a330075:
    pop BP
 ret far
 
-A0a330094:
+_plot_ega: ;; 0a330094
    push BP
    mov BP,SP
    mov AX,[BP+08]
@@ -5266,7 +5269,7 @@ X0a3300c7:
    pop BP
 ret far
 
-A0a3300df:
+_plot_vga: ;; 0a3300df
    push BP
    mov BP,SP
    mov AX,[BP+08]
@@ -5289,7 +5292,7 @@ A0a3300df:
    pop BP
 ret far
 
-A0a33010e:
+_readpix_vga: ;; 0a33010e
    push BP
    mov BP,SP
    mov AX,[BP+08]
@@ -5312,10 +5315,10 @@ A0a33010e:
    mov AL,[ES:BX]
    mov SP,BP
    pop BP
-   mov [offset Y2a173b4c],AL
+   mov [offset _pixvalue],AL
 ret far
 
-A0a330142:
+_line_cga: ;; 0a330142
    push BP
    mov BP,SP
    sub SP,+08
@@ -5423,7 +5426,7 @@ L0a3301fe:
    shr BX,CL
    mov CX,AX
    sub CX,BX
-   mov BX,02D8
+   mov BX,offset Y0a3302d8
    mov AL,[BP+0E]
    xlat
    or DH,DH
@@ -5515,7 +5518,7 @@ ret far
 
 Y0a3302d8:	db 00,55,aa,ff
 
-X0a3302dc:
+_drawsh_cga: ;; 0a3302dc ;; (@) Unaccessed.
    push BP
    mov BP,SP
    sub SP,+02
@@ -5591,7 +5594,7 @@ L0a330360:
 ret far
 
 Segment 0a69 ;; KEYBOARD.C:KEYBOARD
-A0a690007:
+_k_pressed: ;; 0a690007
    push BP
    mov BP,SP
    sub SP,+14
@@ -5601,7 +5604,7 @@ A0a690007:
    push AX
    mov AX,0016
    push AX
-   call far A29a2000c
+   call far _intr
    add SP,+06
    mov AX,[BP-02]
    mov CL,06
@@ -5633,7 +5636,7 @@ L0a690058:
    pop BP
 ret far
 
-A0a69005c:
+_k_read: ;; 0a69005c
    push BP
    mov BP,SP
    sub SP,+14
@@ -5643,7 +5646,7 @@ A0a69005c:
    push AX
    mov AX,0016
    push AX
-   call far A29a2000c
+   call far _intr
    add SP,+06
    mov AX,[BP-14]
    mov CL,08
@@ -5666,7 +5669,7 @@ L0a690091:
    pop BP
 ret far
 
-A0a6900a1:
+_k_status: ;; 0a6900a1
    push BP
    mov BP,SP
    sub SP,+14
@@ -5676,96 +5679,96 @@ A0a6900a1:
    push AX
    mov AX,0016
    push AX
-   call far A29a2000c
+   call far _intr
    add SP,+06
    mov AL,[BP-14]
    and AL,01
-   mov [3D6B],AL
+   mov [offset _k_rshift],AL
    mov AX,[BP-14]
    shr AX,1
    and AL,01
-   mov [3D6C],AL
+   mov [offset _k_lshift],AL
    mov AX,[BP-14]
    shr AX,1
    shr AX,1
    and AL,01
-   mov [3B66],AL
+   mov [offset _k_ctrl],AL
    mov AX,[BP-14]
    shr AX,1
    shr AX,1
    shr AX,1
    and AL,01
-   mov [3B67],AL
+   mov [offset _k_alt],AL
    mov AX,[BP-14]
    mov CL,05
    shr AX,CL
    and AL,01
-   mov [3D6A],AL
-   mov AL,[3D6B]
-   or AL,[3D6C]
-   mov [3D69],AL
+   mov [offset _k_numlock],AL
+   mov AL,[offset _k_rshift]
+   or AL,[offset _k_lshift]
+   mov [offset _k_shift],AL
    mov SP,BP
    pop BP
 ret far
 
-A0a690103:
+_installhandler: ;; 0a690103
    push BP
    mov BP,SP
-   mov word ptr [3B60],segment Y0040001a
-   mov word ptr [3B5E],offset Y0040001a
-   mov word ptr [3B64],segment Y0040001c
-   mov word ptr [3B62],offset Y0040001c
+   mov word ptr [offset _bhead+02],segment Y0040001a
+   mov word ptr [offset _bhead],offset Y0040001a
+   mov word ptr [offset _btail+02],segment Y0040001c
+   mov word ptr [offset _btail],offset Y0040001c
    xor AX,AX
    push AX
    mov AX,0200
    push AX
    push DS
-   mov AX,offset Y2a173b68
+   mov AX,offset _keydown
    push AX
-   call far A28ac0026
+   call far _memset
    mov SP,BP
    mov AX,0009
    push AX
-   call far A29840008
+   call far _getvect
    pop CX
-   mov [3B5C],DX
-   mov [3B5A],AX
+   mov [offset _oldint9+02],DX
+   mov [offset _oldint9],AX
    mov AL,[BP+06]
-   mov [3D68],AL
-   mov AX,segment A0c7a000a
+   mov [offset _bioscall],AL
+   mov AX,segment _handler
    push AX
-   mov AX,offset A0c7a000a
+   mov AX,offset _handler
    push AX
    mov AX,0009
    push AX
-   call far A2984001a
+   call far _setvect
    mov SP,BP
    pop BP
 ret far
 
-A0a69015d:
-   push [3B5C]
-   push [3B5A]
+_removehandler: ;; 0a69015d
+   push [offset _oldint9+02]
+   push [offset _oldint9]
    mov AX,0009
    push AX
-   call far A2984001a
+   call far _setvect
    add SP,+06
 ret far
 
-X0a690172:
-   mov byte ptr [3D68],00
+_disablebios: ;; 0a690172 ;; (@) Unaccessed.
+   mov byte ptr [offset _bioscall],00
 ret far
 
-X0a690178:
-   les BX,[3B62]
+_enablebios: ;; 0a690178 ;; (@) Unaccessed.
+   les BX,[offset _btail]
    mov AX,[ES:BX]
-   les BX,[3B5E]
+   les BX,[offset _bhead]
    mov [ES:BX],AX
-   mov byte ptr [3D68],01
+   mov byte ptr [offset _bioscall],01
 ret far
 
-X0a69018c:
-   cmp byte ptr [3D68],00
+_biosstatus: ;; 0a69018c ;; (@) Unaccessed.
+   cmp byte ptr [offset _bioscall],00
    jnz L0a690197
    xor AX,AX
 jmp near L0a69019a
@@ -5775,7 +5778,7 @@ L0a69019a:
 ret far
 
 Segment 0a82 ;; WIN.C:WIN
-A0a82000b:
+_defwin: ;; 0a82000b
    push BP
    mov BP,SP
    push SI
@@ -5792,7 +5795,7 @@ A0a82000b:
    add AX,0018
    push DX
    push AX
-   call far A0a820a83
+   call far _initvp
    add SP,+06
    mov AX,DI
    shl AX,1
@@ -5829,7 +5832,7 @@ L0a82006f:
    add AX,0028
    push DX
    push AX
-   call far A0a820a83
+   call far _initvp
    add SP,+06
    mov AX,DI
    shl AX,1
@@ -5876,7 +5879,7 @@ L0a8200ed:
    add AX,0038
    push DX
    push AX
-   call far A0a820a83
+   call far _initvp
    add SP,+06
    mov AX,DI
    shl AX,1
@@ -5904,7 +5907,7 @@ L0a8200ed:
    add AX,0048
    push DX
    push AX
-   call far A0a820a83
+   call far _initvp
    add SP,+06
    mov AX,DI
    shl AX,1
@@ -5965,7 +5968,7 @@ L0a8200ed:
    pop BP
 ret far
 
-A0a8201e8:
+_drawwin: ;; 0a8201e8
    push BP
    mov BP,SP
    push SI
@@ -5975,7 +5978,7 @@ A0a8201e8:
    add AX,0018
    push DX
    push AX
-   call far A0a820aa4
+   call far _clearvp
    pop CX
    pop CX
    les BX,[BP+06]
@@ -5993,7 +5996,7 @@ L0a82020c:
    add AX,0018
    push DX
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
    xor AX,AX
    push AX
@@ -6008,7 +6011,7 @@ L0a82020c:
    add AX,0018
    push DX
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
    les BX,[BP+06]
    mov AX,[ES:BX+0C]
@@ -6023,7 +6026,7 @@ L0a82020c:
    add AX,0018
    push DX
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
    les BX,[BP+06]
    mov AX,[ES:BX+0C]
@@ -6039,7 +6042,7 @@ L0a82020c:
    add AX,0018
    push DX
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
    mov SI,0001
 jmp near L0a8202ea
@@ -6058,7 +6061,7 @@ L0a82029c:
    add AX,0018
    push DX
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
    les BX,[BP+06]
    mov AX,[ES:BX+0C]
@@ -6076,7 +6079,7 @@ L0a82029c:
    add AX,0018
    push DX
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
    inc SI
 L0a8202ea:
@@ -6103,7 +6106,7 @@ L0a8202fd:
    add AX,0018
    push DX
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
    mov AX,SI
    shl AX,1
@@ -6121,7 +6124,7 @@ L0a8202fd:
    add AX,0018
    push DX
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
    inc SI
 L0a82034b:
@@ -6154,7 +6157,7 @@ L0a820361:
    add AX,0028
    push DX
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
    inc DI
 L0a82038b:
@@ -6182,7 +6185,7 @@ L0a8203a9:
    add AX,0018
    push DX
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
    les BX,[BP+06]
    mov AX,[ES:BX+0C]
@@ -6198,7 +6201,7 @@ L0a8203a9:
    add AX,0018
    push DX
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
    les BX,[BP+06]
    mov AX,[ES:BX+0C]
@@ -6213,7 +6216,7 @@ L0a8203a9:
    add AX,0018
    push DX
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
    xor SI,SI
 jmp near L0a820488
@@ -6252,7 +6255,7 @@ L0a820433:
    add AX,0018
    push DX
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
    les BX,[BP+06]
    mov AX,[ES:BX+0C]
@@ -6270,7 +6273,7 @@ L0a820433:
    add AX,0018
    push DX
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
 L0a820487:
    inc SI
@@ -6293,7 +6296,7 @@ L0a820496:
    add AX,0018
    push DX
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
    xor SI,SI
 jmp near L0a82051a
@@ -6314,7 +6317,7 @@ L0a8204bb:
    add AX,0018
    push DX
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
    or SI,SI
    jz L0a8204f5
@@ -6337,7 +6340,7 @@ L0a8204f5:
    add AX,0018
    push DX
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
 L0a820519:
    inc SI
@@ -6360,7 +6363,7 @@ L0a82051a:
    add AX,0018
    push DX
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
    les BX,[BP+06]
    mov AX,[ES:BX+0C]
@@ -6376,7 +6379,7 @@ L0a82051a:
    add AX,0018
    push DX
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
 L0a820577:
    les BX,[BP+06]
@@ -6396,7 +6399,7 @@ L0a820584:
    add AX,0018
    push DX
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
    xor SI,SI
 jmp near L0a8205e4
@@ -6424,7 +6427,7 @@ L0a8205b8:
    add AX,0018
    push DX
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
 L0a8205e3:
    inc SI
@@ -6446,7 +6449,7 @@ L0a8205e4:
    add AX,0018
    push DX
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
    les BX,[BP+06]
    cmp word ptr [ES:BX+14],+00
@@ -6465,7 +6468,7 @@ L0a820622:
    add AX,0018
    push DX
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
    xor SI,SI
 jmp near L0a820673
@@ -6486,7 +6489,7 @@ L0a820647:
    add AX,0018
    push DX
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
    inc SI
 L0a820673:
@@ -6507,7 +6510,7 @@ L0a820673:
    add AX,0018
    push DX
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
 L0a8206a4:
    pop DI
@@ -6515,7 +6518,7 @@ L0a8206a4:
    pop BP
 ret far
 
-A0a8206a8:
+_undrawwin: ;; 0a8206a8
    push BP
    mov BP,SP
    mov DX,[BP+08]
@@ -6523,22 +6526,22 @@ A0a8206a8:
    add AX,0018
    push DX
    push AX
-   call far A0a820aa4
+   call far _clearvp
    mov SP,BP
    pop BP
 ret far
 
-A0a8206bf:
+_wprint: ;; 0a8206bf
    push BP
    mov BP,SP
    push SI
    push DI
    les BX,[BP+06]
    mov AX,[ES:BX+0C]
-   cmp AX,[3D6E]
+   cmp AX,[offset _curhi]
    jnz L0a8206db
    mov AX,[ES:BX+0E]
-   cmp AX,[3D72]
+   cmp AX,[offset _curback]
    jz L0a8206f2
 L0a8206db:
    les BX,[BP+06]
@@ -6546,7 +6549,7 @@ L0a8206db:
    push [ES:BX+0C]
    push [BP+08]
    push BX
-   call far A0a820abc
+   call far _fontcolor
    add SP,+08
 L0a8206f2:
    mov AX,[BP+0E]
@@ -6587,13 +6590,13 @@ L0a820715:
    push DX
    push [BP+08]
    push [BP+06]
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
    inc DI
 L0a820745:
    push [BP+12]
    push [BP+10]
-   call far A28a20004
+   call far _strlen
    pop CX
    pop CX
    cmp AX,DI
@@ -6604,7 +6607,7 @@ L0a820756:
    pop BP
 ret far
 
-A0a82075a:
+_wgetkey: ;; 0a82075a
    push BP
    mov BP,SP
    sub SP,+02
@@ -6612,18 +6615,18 @@ A0a82075a:
    mov byte ptr [BP-01],00
 jmp near L0a8207a4
 L0a820767:
-   les BX,[0C74]
+   les BX,[offset _myclock]
    mov SI,[ES:BX]
 L0a82076e:
-   les BX,[0C74]
+   les BX,[offset _myclock]
    mov AX,[ES:BX]
    cmp AX,SI
    jz L0a82076e
-   mov AL,[3D74]
+   mov AL,[offset _cursorchar]
    and AL,07
    inc AL
-   mov [3D74],AL
-   mov AL,[3D74]
+   mov [offset _cursorchar],AL
+   mov AL,[offset _cursorchar]
    mov [BP-02],AL
    push SS
    lea AX,[BP-02]
@@ -6634,10 +6637,10 @@ L0a82076e:
    push [BP+08]
    push [BP+06]
    push CS
-   call near offset A0a8206bf
+   call near offset _wprint
    add SP,+0E
 L0a8207a4:
-   call far A0a690007
+   call far _k_pressed
    or AX,AX
    jz L0a820767
    push DS
@@ -6649,15 +6652,15 @@ L0a8207a4:
    push [BP+08]
    push [BP+06]
    push CS
-   call near offset A0a8206bf
+   call near offset _wprint
    add SP,+0E
-   call far A0a69005c
+   call far _k_read
    pop SI
    mov SP,BP
    pop BP
 ret far
 
-A0a8207d2:
+_winput: ;; 0a8207d2
    push BP
    mov BP,SP
    sub SP,+06
@@ -6687,7 +6690,7 @@ L0a8207f7:
    push [BP+08]
    push [BP+06]
    push CS
-   call near offset A0a8206bf
+   call near offset _wprint
    add SP,+0E
    mov byte ptr [BP-01],00
 L0a820817:
@@ -6695,7 +6698,7 @@ L0a820817:
    push [BP+0C]
    push [BP+12]
    push [BP+10]
-   call far A28a20004
+   call far _strlen
    pop CX
    pop CX
    mul DI
@@ -6704,7 +6707,7 @@ L0a820817:
    push [BP+08]
    push [BP+06]
    push CS
-   call near offset A0a82075a
+   call near offset _wgetkey
    add SP,+0A
    mov [BP-06],AX
    cmp AX,0020
@@ -6738,14 +6741,14 @@ L0a820860:
    push [BP+08]
    push [BP+06]
    push CS
-   call near offset A0a8206bf
+   call near offset _wprint
    add SP,+0E
    les BX,[BP+10]
    mov byte ptr [ES:BX],00
 L0a820893:
    push [BP+12]
    push [BP+10]
-   call far A28a20004
+   call far _strlen
    pop CX
    pop CX
    cmp AX,[BP+14]
@@ -6754,7 +6757,7 @@ jmp near L0a82092d
 L0a8208a8:
    push [BP+12]
    push [BP+10]
-   call far A28a20004
+   call far _strlen
    pop CX
    pop CX
    mov [BP-04],AX
@@ -6779,7 +6782,7 @@ L0a8208a8:
    push [BP+08]
    push [BP+06]
    push CS
-   call near offset A0a8206bf
+   call near offset _wprint
    add SP,+0E
 jmp near L0a82092d
 L0a8208f8:
@@ -6790,14 +6793,14 @@ L0a8208f8:
 L0a820905:
    push [BP+12]
    push [BP+10]
-   call far A28a20004
+   call far _strlen
    pop CX
    pop CX
    or AX,AX
    jbe L0a82092d
    push [BP+12]
    push [BP+10]
-   call far A28a20004
+   call far _strlen
    pop CX
    pop CX
    dec AX
@@ -6818,7 +6821,7 @@ L0a82093e:
    pop BP
 ret far
 
-X0a820944:
+_wprintc: ;; 0a820944 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    push SI
@@ -6843,7 +6846,7 @@ L0a820963:
    push [BP+0A]
    push [BP+10]
    push [BP+0E]
-   call far A28a20004
+   call far _strlen
    pop CX
    pop CX
    mul SI
@@ -6855,13 +6858,13 @@ L0a820963:
    push [BP+08]
    push BX
    push CS
-   call near offset A0a8206bf
+   call near offset _wprint
    add SP,+0E
    pop SI
    pop BP
 ret far
 
-A0a820998:
+_titlewin: ;; 0a820998
    push BP
    mov BP,SP
    push [BP+0C]
@@ -6872,7 +6875,7 @@ A0a820998:
    push AX
    push [BP+0C]
    push [BP+0A]
-   call far A28a20004
+   call far _strlen
    pop CX
    pop CX
    shl AX,1
@@ -6894,12 +6897,12 @@ A0a820998:
    push DX
    push AX
    push CS
-   call near offset A0a8206bf
+   call near offset _wprint
    mov SP,BP
    pop BP
 ret far
 
-A0a8209e6:
+_titletop: ;; 0a8209e6
    push BP
    mov BP,SP
    push [BP+0C]
@@ -6910,7 +6913,7 @@ A0a8209e6:
    push AX
    push [BP+0C]
    push [BP+0A]
-   call far A28a20004
+   call far _strlen
    pop CX
    pop CX
    mov DX,0003
@@ -6931,12 +6934,12 @@ A0a8209e6:
    push DX
    push AX
    push CS
-   call near offset A0a8206bf
+   call near offset _wprint
    mov SP,BP
    pop BP
 ret far
 
-A0a820a31:
+_titlebot: ;; 0a820a31
    push BP
    mov BP,SP
    push [BP+0C]
@@ -6949,7 +6952,7 @@ A0a820a31:
    push AX
    push [BP+0C]
    push [BP+0A]
-   call far A28a20004
+   call far _strlen
    pop CX
    pop CX
    mov DX,0003
@@ -6970,12 +6973,12 @@ A0a820a31:
    push DX
    push AX
    push CS
-   call near offset A0a8206bf
+   call near offset _wprint
    mov SP,BP
    pop BP
 ret far
 
-A0a820a83:
+_initvp: ;; 0a820a83
    push BP
    mov BP,SP
    les BX,[BP+06]
@@ -6987,7 +6990,7 @@ A0a820a83:
    pop BP
 ret far
 
-A0a820aa4:
+_clearvp: ;; 0a820aa4
    push BP
    mov BP,SP
    les BX,[BP+06]
@@ -6995,12 +6998,12 @@ A0a820aa4:
    push AX
    push [BP+08]
    push BX
-   call far A09270e9e
+   call far _clrvp
    mov SP,BP
    pop BP
 ret far
 
-A0a820abc:
+_fontcolor: ;; 0a820abc
    push BP
    mov BP,SP
    sub SP,+02
@@ -7014,7 +7017,7 @@ A0a820abc:
    sub AX,DX
    neg AX
    mov SI,AX
-   mov AL,[3B53]
+   mov AL,[offset _x_ourmode]
    mov AH,00
    and AX,00FE
    cmp AX,0002
@@ -7073,13 +7076,13 @@ L0a820b4b:
    push DI
    push [BP-02]
    push SI
-   call far A086004f1
+   call far _fntcolor
    add SP,+06
    les BX,[BP+06]
    mov [ES:BX+0C],SI
    mov [ES:BX+0E],DI
-   mov [3D6E],SI
-   mov [3D72],DI
+   mov [offset _curhi],SI
+   mov [offset _curback],DI
    pop DI
    pop SI
    mov SP,BP
@@ -7087,7 +7090,7 @@ L0a820b4b:
 ret far
 
 Segment 0b39 ;; GAMECTRL.C:GAMECTRL
-A0b390001:
+_buttona1: ;; 0b390001
    mov DX,0201
    in AL,DX
    test AL,10
@@ -7099,7 +7102,7 @@ L0b39000e:
 L0b390010:
 ret far
 
-A0b390011:
+_buttona2: ;; 0b390011
    mov DX,0201
    in AL,DX
    test AL,20
@@ -7111,24 +7114,24 @@ L0b39001e:
 L0b390020:
 ret far
 
-A0b390021:
+_readspeed: ;; 0b390021
    push SI
-   mov word ptr [offset Y2a1704c0+2],0000
-   mov word ptr [offset Y2a1704c0],0000
-   les BX,[0C74]
+   mov word ptr [offset _systime+02],0000
+   mov word ptr [offset _systime],0000
+   les BX,[offset _myclock]
    mov AL,[ES:BX]
    cbw
    mov SI,AX
 L0b390038:
-   les BX,[0C74]
+   les BX,[offset _myclock]
    mov AL,[ES:BX]
    cbw
    cmp AX,SI
    jz L0b390038
 L0b390044:
-   add word ptr [offset Y2a1704c0],+01
-   adc word ptr [offset Y2a1704c0+2],+00
-   les BX,[0C74]
+   add word ptr [offset _systime],+01
+   adc word ptr [offset _systime+02],+00
+   les BX,[offset _myclock]
    mov AL,[ES:BX]
    cbw
    sub AX,SI
@@ -7138,15 +7141,15 @@ L0b390044:
    mov AX,0004
    push DX
    push AX
-   push [offset Y2a1704c0+2]
-   push [offset Y2a1704c0]
-   call far A076a04f2
-   mov [offset Y2a1704c0+2],DX
-   mov [offset Y2a1704c0],AX
+   push [offset _systime+02]
+   push [offset _systime]
+   call far LDIV@
+   mov [offset _systime+02],DX
+   mov [offset _systime],AX
    pop SI
 ret far
 
-A0b39007a:
+_readjoy: ;; 0b39007a
    push BP
    mov BP,SP
    push SI
@@ -7213,7 +7216,7 @@ L0b3900f7:
    pop BP
 ret far
 
-A0b3900fa:
+_caldir: ;; 0b3900fa
    push BP
    mov BP,SP
    push SI
@@ -7222,7 +7225,7 @@ A0b3900fa:
    mov SI,DI
    push [BP+08]
    push [BP+06]
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
 L0b390110:
@@ -7231,37 +7234,37 @@ L0b390110:
    push [BP+0C]
    push [BP+0A]
    push CS
-   call near offset A0b39007a
+   call near offset _readjoy
    add SP,+08
-   call far A0a690007
+   call far _k_pressed
    or AX,AX
    jz L0b390133
-   call far A0a69005c
+   call far _k_read
    mov SI,AX
 L0b390133:
    cmp SI,+1B
    jz L0b390140
    push CS
-   call near offset A0b390001
+   call near offset _buttona1
    or AX,AX
    jz L0b390110
 L0b390140:
    mov AX,0019
    push AX
-   call far A29790002
+   call far _delay
    pop CX
    cmp SI,+1B
    jz L0b39016f
    mov DI,0001
 L0b390152:
-   call far A0a690007
+   call far _k_pressed
    or AX,AX
    jz L0b390162
-   call far A0a69005c
+   call far _k_read
    mov SI,AX
 L0b390162:
    push CS
-   call near offset A0b390001
+   call near offset _buttona1
    or AX,AX
    jz L0b39016f
    cmp SI,+1B
@@ -7269,12 +7272,12 @@ L0b390162:
 L0b39016f:
    mov AX,0019
    push AX
-   call far A29790002
+   call far _delay
    pop CX
    push DS
    mov AX,offset Y2a1704d4
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    mov AX,DI
@@ -7283,7 +7286,7 @@ L0b39016f:
    pop BP
 ret far
 
-A0b39018b:
+_joypresent: ;; 0b39018b
    push BP
    mov BP,SP
    sub SP,+04
@@ -7294,16 +7297,16 @@ A0b39018b:
    lea AX,[BP-04]
    push AX
    push CS
-   call near offset A0b39007a
+   call near offset _readjoy
    add SP,+08
    cmp word ptr [BP-04],+00
    jle L0b3901bf
    cmp word ptr [BP-02],+00
    jle L0b3901bf
    mov AX,[BP-04]
-   mov [3EC8],AX
+   mov [offset _joyxsense],AX
    mov AX,[BP-02]
-   mov [3ECA],AX
+   mov [offset _joyysense],AX
    mov AX,0001
 jmp near L0b3901c1
 L0b3901bf:
@@ -7313,75 +7316,75 @@ L0b3901c1:
    pop BP
 ret far
 
-A0b3901c5:
+_calibratejoy: ;; 0b3901c5
    push SI
 L0b3901c6:
-   mov word ptr [3E9E],0000
+   mov word ptr [offset _joyflag],0000
    push DS
    mov AX,offset Y2a1704d7
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
-   mov AX,offset Y2a173d86
+   mov AX,offset _joyyc
    push AX
    push DS
-   mov AX,offset Y2a173d84
+   mov AX,offset _joyxc
    push AX
    push DS
    mov AX,offset Y2a170509
    push AX
    push CS
-   call near offset A0b3900fa
+   call near offset _caldir
    add SP,+0C
    or AX,AX
    jnz L0b3901f5
 jmp near L0b39029a
 L0b3901f5:
    push DS
-   mov AX,offset Y2a173e98
+   mov AX,offset _joyyu
    push AX
    push DS
-   mov AX,offset Y2a173d90
+   mov AX,offset _joyxl
    push AX
    push DS
    mov AX,offset Y2a17052e
    push AX
    push CS
-   call near offset A0b3900fa
+   call near offset _caldir
    add SP,+0C
    or AX,AX
    jnz L0b390212
 jmp near L0b39029a
 L0b390212:
    push DS
-   mov AX,offset Y2a173d88
+   mov AX,offset _joyyd
    push AX
    push DS
-   mov AX,offset Y2a173e92
+   mov AX,offset _joyxr
    push AX
    push DS
    mov AX,offset Y2a170566
    push AX
    push CS
-   call near offset A0b3900fa
+   call near offset _caldir
    add SP,+0C
    or AX,AX
    jz L0b39029a
-   mov AX,[3D84]
-   sub [3D90],AX
-   sub [3E92],AX
-   mov AX,[3D86]
-   sub [3E98],AX
-   sub [3D88],AX
-   cmp word ptr [3D90],-01
+   mov AX,[offset _joyxc]
+   sub [offset _joyxl],AX
+   sub [offset _joyxr],AX
+   mov AX,[offset _joyyc]
+   sub [offset _joyyu],AX
+   sub [offset _joyyd],AX
+   cmp word ptr [offset _joyxl],-01
    jge L0b390263
-   cmp word ptr [3E92],+01
+   cmp word ptr [offset _joyxr],+01
    jle L0b390263
-   cmp word ptr [3E98],-01
+   cmp word ptr [offset _joyyu],-01
    jge L0b390263
-   cmp word ptr [3D88],+01
+   cmp word ptr [offset _joyyd],+01
    jle L0b390263
    mov AX,0001
 jmp near L0b39029c
@@ -7389,23 +7392,23 @@ L0b390263:
    push DS
    mov AX,offset Y2a17059f
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
 L0b39026f:
-   call far A0a690007
+   call far _k_pressed
    or AX,AX
    jz L0b39026f
    push DS
    mov AX,offset Y2a1705c8
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
-   call far A0a69005c
+   call far _k_read
    mov SI,AX
    push SI
-   call far A29ff000e
+   call far _toupper
    pop CX
    cmp AX,0059
    jnz L0b39029a
@@ -7416,29 +7419,29 @@ L0b39029c:
    pop SI
 ret far
 
-A0b39029e:
+_checkctrl: ;; 0b39029e
    push BP
    mov BP,SP
    sub SP,+06
    push SI
    push DI
    mov SI,[BP+06]
-   cmp word ptr [3ECC],+00
+   cmp word ptr [offset _macplay],+00
    jz L0b3902b8
-   call far A0b390919
+   call far _getmac
 jmp near L0b390511
 L0b3902b8:
-   mov word ptr [3D7A],0000
-   mov word ptr [3D7C],0000
-   mov word ptr [3D7E],0000
-   mov word ptr [3D80],0000
+   mov word ptr [offset _dx1],0000
+   mov word ptr [offset _dy1],0000
+   mov word ptr [offset _fire1],0000
+   mov word ptr [offset _flow1],0000
 L0b3902d0:
-   mov word ptr [3D8A],0000
-   call far A0a690007
+   mov word ptr [offset _key],0000
+   call far _k_pressed
    or AX,AX
    jz L0b390320
-   call far A0a69005c
-   mov [3D8A],AX
+   call far _k_read
+   mov [offset _key],AX
    or AX,AX
    jnz L0b3902f0
    mov AX,0001
@@ -7447,7 +7450,7 @@ L0b3902f0:
    xor AX,AX
 L0b3902f2:
    push AX
-   cmp word ptr [3D8A],+01
+   cmp word ptr [offset _key],+01
    jnz L0b3902ff
    mov AX,0001
 jmp near L0b390301
@@ -7457,7 +7460,7 @@ L0b390301:
    pop DX
    or DX,AX
    push DX
-   cmp word ptr [3D8A],+02
+   cmp word ptr [offset _key],+02
    jnz L0b390311
    mov AX,0001
 jmp near L0b390313
@@ -7467,14 +7470,14 @@ L0b390313:
    pop DX
    or DX,AX
    jz L0b390320
-   call far A0a69005c
-   mov [3D8A],AX
+   call far _k_read
+   mov [offset _key],AX
 L0b390320:
-   cmp word ptr [3D8A],+00
+   cmp word ptr [offset _key],+00
    jnz L0b39032a
 jmp near L0b3903ae
 L0b39032a:
-   mov AX,[3D8A]
+   mov AX,[offset _key]
    mov CX,0008
    mov BX,offset Y0b390342
 L0b390333:
@@ -7493,49 +7496,49 @@ L0b390362:
    jz L0b390369
 jmp near L0b3902d0
 L0b390369:
-   mov word ptr [3D7A],0000
-   mov word ptr [3D7C],FFFF
+   mov word ptr [offset _dx1],0000
+   mov word ptr [offset _dy1],FFFF
 jmp near L0b3903ae
 L0b390377:
    or SI,SI
    jz L0b39037e
 jmp near L0b3902d0
 L0b39037e:
-   mov word ptr [3D7A],FFFF
+   mov word ptr [offset _dx1],FFFF
 jmp near L0b390393
 L0b390386:
    or SI,SI
    jz L0b39038d
 jmp near L0b3902d0
 L0b39038d:
-   mov word ptr [3D7A],0001
+   mov word ptr [offset _dx1],0001
 L0b390393:
-   mov word ptr [3D7C],0000
+   mov word ptr [offset _dy1],0000
 jmp near L0b3903ae
 L0b39039b:
    or SI,SI
    jz L0b3903a2
 jmp near L0b3902d0
 L0b3903a2:
-   mov word ptr [3D7A],0000
-   mov word ptr [3D7C],0001
+   mov word ptr [offset _dx1],0000
+   mov word ptr [offset _dy1],0001
 L0b3903ae:
-   call far A0a6900a1
-   mov AL,[3D69]
+   call far _k_status
+   mov AL,[offset _k_shift]
    cbw
-   mov [3D7E],AX
-   mov AL,[3B67]
+   mov [offset _fire1],AX
+   mov AL,[offset _k_alt]
    cbw
-   mov [3D82],AX
-   cmp word ptr [3D7A],+00
+   mov [offset _fire2],AX
+   cmp word ptr [offset _dx1],+00
    jz L0b3903cb
 jmp near L0b390473
 L0b3903cb:
-   cmp word ptr [3D7C],+00
+   cmp word ptr [offset _dy1],+00
    jz L0b3903d5
 jmp near L0b390473
 L0b3903d5:
-   cmp word ptr [3E9E],+00
+   cmp word ptr [offset _joyflag],+00
    jnz L0b3903df
 jmp near L0b390473
 L0b3903df:
@@ -7546,16 +7549,16 @@ L0b3903df:
    lea AX,[BP-06]
    push AX
    push CS
-   call near offset A0b39007a
+   call near offset _readjoy
    add SP,+08
    mov DI,[BP-06]
-   sub DI,[3D84]
+   sub DI,[offset _joyxc]
    mov AX,[BP-04]
-   sub AX,[3D86]
+   sub AX,[offset _joyyc]
    mov [BP-02],AX
    mov AX,DI
    shl AX,1
-   cmp AX,[3E92]
+   cmp AX,[offset _joyxr]
    jle L0b390410
    mov AX,0001
 jmp near L0b390412
@@ -7565,7 +7568,7 @@ L0b390412:
    push AX
    mov AX,DI
    shl AX,1
-   cmp AX,[3D90]
+   cmp AX,[offset _joyxl]
    jge L0b390422
    mov AX,0001
 jmp near L0b390424
@@ -7574,10 +7577,10 @@ L0b390422:
 L0b390424:
    pop DX
    sub DX,AX
-   mov [3D7A],DX
+   mov [offset _dx1],DX
    mov AX,[BP-02]
    shl AX,1
-   cmp AX,[3D88]
+   cmp AX,[offset _joyyd]
    jle L0b39043b
    mov AX,0001
 jmp near L0b39043d
@@ -7587,7 +7590,7 @@ L0b39043d:
    push AX
    mov AX,[BP-02]
    shl AX,1
-   cmp AX,[3E98]
+   cmp AX,[offset _joyyu]
    jge L0b39044e
    mov AX,0001
 jmp near L0b390450
@@ -7596,76 +7599,76 @@ L0b39044e:
 L0b390450:
    pop DX
    sub DX,AX
-   mov [3D7C],DX
+   mov [offset _dy1],DX
    push CS
-   call near offset A0b390001
+   call near offset _buttona1
    or AX,AX
    jz L0b390465
-   mov word ptr [3D7E],0001
+   mov word ptr [offset _fire1],0001
 L0b390465:
    push CS
-   call near offset A0b390011
+   call near offset _buttona2
    or AX,AX
    jz L0b390473
-   mov word ptr [3D82],0001
+   mov word ptr [offset _fire2],0001
 L0b390473:
-   cmp word ptr [3D7A],+00
+   cmp word ptr [offset _dx1],+00
    jnz L0b3904cd
-   cmp word ptr [3D7C],+00
+   cmp word ptr [offset _dy1],+00
    jnz L0b3904cd
    or SI,SI
    jz L0b3904cd
-   cmp byte ptr [3BB3],00
+   cmp byte ptr [offset _keydown+0*0100+004b],00
    jnz L0b390493
-   cmp byte ptr [3CB3],00
+   cmp byte ptr [offset _keydown+1*0100+004b],00
    jz L0b390497
 L0b390493:
-   dec word ptr [3D7A]
+   dec word ptr [offset _dx1]
 L0b390497:
-   cmp byte ptr [3BB5],00
+   cmp byte ptr [offset _keydown+0*0100+004d],00
    jnz L0b3904a5
-   cmp byte ptr [3CB5],00
+   cmp byte ptr [offset _keydown+1*0100+004d],00
    jz L0b3904a9
 L0b3904a5:
-   inc word ptr [3D7A]
+   inc word ptr [offset _dx1]
 L0b3904a9:
-   cmp byte ptr [3BB0],00
+   cmp byte ptr [offset _keydown+0*0100+0048],00
    jnz L0b3904b7
-   cmp byte ptr [3CB0],00
+   cmp byte ptr [offset _keydown+1*0100+0048],00
    jz L0b3904bb
 L0b3904b7:
-   dec word ptr [3D7C]
+   dec word ptr [offset _dy1]
 L0b3904bb:
-   cmp byte ptr [3BB8],00
+   cmp byte ptr [offset _keydown+0*0100+0050],00
    jnz L0b3904c9
-   cmp byte ptr [3CB8],00
+   cmp byte ptr [offset _keydown+1*0100+0050],00
    jz L0b3904cd
 L0b3904c9:
-   inc word ptr [3D7C]
+   inc word ptr [offset _dy1]
 L0b3904cd:
-   cmp word ptr [3D7E],+00
+   cmp word ptr [offset _fire1],+00
    jz L0b3904dd
-   mov AX,[3EA2]
-   xor [3D7E],AX
+   mov AX,[offset _fire1off]
+   xor [offset _fire1],AX
 jmp near L0b3904e3
 L0b3904dd:
-   mov word ptr [3EA2],0000
+   mov word ptr [offset _fire1off],0000
 L0b3904e3:
-   cmp word ptr [3D82],+00
+   cmp word ptr [offset _fire2],+00
    jz L0b3904f3
-   mov AX,[3EA4]
-   xor [3D82],AX
+   mov AX,[offset _fire2off]
+   xor [offset _fire2],AX
 jmp near L0b3904f9
 L0b3904f3:
-   mov word ptr [3EA4],0000
+   mov word ptr [offset _fire2off],0000
 L0b3904f9:
-   mov AX,[3D7A]
-   mov [3D8C],AX
-   mov AX,[3D7C]
-   mov [3D8E],AX
-   cmp word ptr [3EC6],+00
+   mov AX,[offset _dx1]
+   mov [offset _dx1old],AX
+   mov AX,[offset _dy1]
+   mov [offset _dy1old],AX
+   cmp word ptr [offset _macrecord],+00
    jz L0b390511
-   call far A0b390713
+   call far _recmac
 L0b390511:
    pop DI
    pop SI
@@ -7673,11 +7676,11 @@ L0b390511:
    pop BP
 ret far
 
-A0b390517:
+_checkctrl0: ;; 0b390517
    push BP
    mov BP,SP
 L0b39051a:
-   les BX,[0C74]
+   les BX,[offset _myclock]
    mov AL,[ES:BX]
    cbw
    cmp AX,[offset Y2a1704c8]
@@ -7687,37 +7690,37 @@ L0b39051a:
    mov [offset Y2a1704c8],AX
    push [BP+06]
    push CS
-   call near offset A0b39029e
+   call near offset _checkctrl
    pop CX
    pop BP
 ret far
 
-X0b390539:
+_sensectrlmode: ;; 0b390539 ;; (@) Unaccessed.
    push CS
-   call near offset A0b39018b
-   mov [3E9E],AX
+   call near offset _joypresent
+   mov [offset _joyflag],AX
 ret far
 
-A0b390541:
+_gc_config: ;; 0b390541
    push SI
    mov SI,0020
    push CS
-   call near offset A0b39018b
+   call near offset _joypresent
    or AX,AX
    jz L0b3905a1
    push DS
    mov AX,offset Y2a1705cb
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
 L0b390559:
-   call far A0a690007
+   call far _k_pressed
    or AX,AX
    jz L0b390559
-   call far A0a69005c
+   call far _k_read
    push AX
-   call far A29ff000e
+   call far _toupper
    pop CX
    mov SI,AX
    cmp SI,+4B
@@ -7730,18 +7733,18 @@ L0b39057f:
    push DS
    mov AX,offset Y2a1705f8
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
-   mov word ptr [3E9E],0000
+   mov word ptr [offset _joyflag],0000
    mov AX,SI
    cmp AX,004A
    jz L0b39059a
 jmp near L0b3905a1
 L0b39059a:
    push CS
-   call near offset A0b3901c5
-   mov [3E9E],AX
+   call near offset _calibratejoy
+   mov [offset _joyflag],AX
 L0b3905a1:
    cmp SI,+1B
    jz L0b3905ab
@@ -7753,181 +7756,181 @@ L0b3905ad:
    pop SI
 ret far
 
-A0b3905af:
+_getkey: ;; 0b3905af
 L0b3905af:
    xor AX,AX
    push AX
    push CS
-   call near offset A0b39029e
+   call near offset _checkctrl
    pop CX
-   cmp word ptr [3D8A],+00
+   cmp word ptr [offset _key],+00
    jz L0b3905af
 ret far
 
-A0b3905bf:
-   mov word ptr [3ECC],0000
-   mov word ptr [3EC6],0000
-   mov AX,[offset Y2a1704c4]
-   or AX,[offset Y2a1704c4+2]
+_stopmac: ;; 0b3905bf
+   mov word ptr [offset _macplay],0000
+   mov word ptr [offset _macrecord],0000
+   mov AX,[offset _macptr]
+   or AX,[offset _macptr+02]
    jz L0b3905ef
-   push [offset Y2a1704c4+2]
-   push [offset Y2a1704c4]
-   call far A29110001
+   push [offset _macptr+02]
+   push [offset _macptr]
+   call far _free
    pop CX
    pop CX
-   mov word ptr [offset Y2a1704c4+2],0000
-   mov word ptr [offset Y2a1704c4],0000
+   mov word ptr [offset _macptr+02],0000
+   mov word ptr [offset _macptr],0000
 L0b3905ef:
-   mov word ptr [3EA0],0000
-   mov word ptr [3E9A],0001
+   mov word ptr [offset _macofs],0000
+   mov word ptr [offset _mactime],0001
    mov AX,3039
    push AX
-   call far A29b90005
+   call far _srand
    pop CX
 ret far
 
-A0b390606:
+_playmac: ;; 0b390606
    push BP
    mov BP,SP
    push SI
    push CS
-   call near offset A0b3905bf
-   mov word ptr [3ED0],0000
+   call near offset _stopmac
+   mov word ptr [offset _macaborted],0000
    mov AX,8000
    push AX
    push [BP+08]
    push [BP+06]
-   call far A28530005
+   call far __open
    add SP,+06
    mov SI,AX
    or SI,SI
    jl L0b39068e
    push SI
-   call far A294b000a
+   call far _filelength
    pop CX
-   mov [3E9C],AX
+   mov [offset _maclen],AX
    push AX
-   call far A27f10003
+   call far _malloc
    pop CX
-   mov [offset Y2a1704c4+2],DX
-   mov [offset Y2a1704c4],AX
+   mov [offset _macptr+02],DX
+   mov [offset _macptr],AX
    or AX,DX
    jz L0b39067b
-   push [3E9C]
+   push [offset _maclen]
    push DX
-   push [offset Y2a1704c4]
+   push [offset _macptr]
    push SI
-   call far A286c000b
+   call far __read
    add SP,+08
    or AX,AX
    jl L0b39066c
-   mov word ptr [3ECC],0001
-   mov word ptr [C23C],0000
+   mov word ptr [offset _macplay],0001
+   mov word ptr [offset _gamecount],0000
 jmp near L0b390687
 L0b39066c:
-   push [offset Y2a1704c4+2]
-   push [offset Y2a1704c4]
-   call far A29110001
+   push [offset _macptr+02]
+   push [offset _macptr]
+   call far _free
    pop CX
    pop CX
 L0b39067b:
-   mov word ptr [offset Y2a1704c4+2],0000
-   mov word ptr [offset Y2a1704c4],0000
+   mov word ptr [offset _macptr+02],0000
+   mov word ptr [offset _macptr],0000
 L0b390687:
    push SI
-   call far A285e0000
+   call far __close
    pop CX
 L0b39068e:
    pop SI
    pop BP
 ret far
 
-A0b390691:
+_recordmac: ;; 0b390691
    push BP
    mov BP,SP
    push CS
-   call near offset A0b3905bf
+   call near offset _stopmac
    mov AX,1F40
    push AX
-   call far A27f10003
+   call far _malloc
    pop CX
-   mov [offset Y2a1704c4+2],DX
-   mov [offset Y2a1704c4],AX
+   mov [offset _macptr+02],DX
+   mov [offset _macptr],AX
    or AX,DX
    jz L0b3906d1
-   mov word ptr [3EA0],0000
-   mov word ptr [3EC6],0001
+   mov word ptr [offset _macofs],0000
+   mov word ptr [offset _macrecord],0001
    push [BP+08]
    push [BP+06]
    push DS
-   mov AX,offset Y2a173ea6
+   mov AX,offset _macfname
    push AX
-   call far A28a70001
+   call far _strcpy
    mov SP,BP
-   mov word ptr [C23C],0000
+   mov word ptr [offset _gamecount],0000
 L0b3906d1:
    pop BP
 ret far
 
-A0b3906d3:
+_macrecend: ;; 0b3906d3
    push SI
-   cmp word ptr [3EC6],+00
+   cmp word ptr [offset _macrecord],+00
    jz L0b390711
    xor AX,AX
    push AX
    push DS
-   mov AX,offset Y2a173ea6
+   mov AX,offset _macfname
    push AX
-   call far A29430036
+   call far __creat
    add SP,+06
    mov SI,AX
    or SI,SI
    jl L0b39070d
-   push [3EA0]
-   push [offset Y2a1704c4+2]
-   push [offset Y2a1704c4]
+   push [offset _macofs]
+   push [offset _macptr+02]
+   push [offset _macptr]
    push SI
-   call far A28850001
+   call far __write
    add SP,+08
    push SI
-   call far A285e0000
+   call far __close
    pop CX
 L0b39070d:
    push CS
-   call near offset A0b3905bf
+   call near offset _stopmac
 L0b390711:
    pop SI
 ret far
 
-A0b390713:
+_recmac: ;; 0b390713
    push BP
    mov BP,SP
    sub SP,+04
-   cmp word ptr [3D8A],+5B
+   cmp word ptr [offset _key],+5B
    jnz L0b39072c
-   mov word ptr [3E9A],0000
-   mov word ptr [3D8A],0000
+   mov word ptr [offset _mactime],0000
+   mov word ptr [offset _key],0000
 L0b39072c:
-   cmp word ptr [3D8A],+5D
+   cmp word ptr [offset _key],+5D
    jnz L0b39073f
-   mov word ptr [3E9A],0001
-   mov word ptr [3D8A],0000
+   mov word ptr [offset _mactime],0001
+   mov word ptr [offset _key],0000
 L0b39073f:
-   cmp word ptr [3D8A],+7D
+   cmp word ptr [offset _key],+7D
    jnz L0b390749
 jmp near L0b390911
 L0b390749:
-   cmp word ptr [3EA0],+00
+   cmp word ptr [offset _macofs],+00
    jnz L0b39076e
    mov word ptr [offset Y2a1704ca],0000
    mov word ptr [offset Y2a1704cc],0000
    mov word ptr [offset Y2a1704ce],0000
    mov word ptr [offset Y2a1704d0],0000
-   mov AX,[C23C]
+   mov AX,[offset _gamecount]
    mov [offset Y2a1704d2],AX
 L0b39076e:
    mov AX,[offset Y2a1704ca]
-   cmp AX,[3D7A]
+   cmp AX,[offset _dx1]
    jz L0b39077c
    mov AX,0001
 jmp near L0b39077e
@@ -7936,7 +7939,7 @@ L0b39077c:
 L0b39077e:
    push AX
    mov AX,[offset Y2a1704cc]
-   cmp AX,[3D7C]
+   cmp AX,[offset _dy1]
    jz L0b39078d
    mov AX,0001
 jmp near L0b39078f
@@ -7948,7 +7951,7 @@ L0b39078f:
    or DL,AL
    push DX
    mov AX,[offset Y2a1704ce]
-   cmp AX,[3D7E]
+   cmp AX,[offset _fire1]
    jz L0b3907a3
    mov AX,0001
 jmp near L0b3907a5
@@ -7961,7 +7964,7 @@ L0b3907a5:
    or DL,AL
    push DX
    mov AX,[offset Y2a1704d0]
-   cmp AX,[3D82]
+   cmp AX,[offset _fire2]
    jz L0b3907bb
    mov AX,0001
 jmp near L0b3907bd
@@ -7974,9 +7977,9 @@ L0b3907bd:
    pop DX
    or DL,AL
    push DX
-   cmp word ptr [3D8A],+00
+   cmp word ptr [offset _key],+00
    jle L0b3907da
-   cmp word ptr [3D8A],+7F
+   cmp word ptr [offset _key],+7F
    jg L0b3907da
    mov AX,0001
 jmp near L0b3907dc
@@ -7992,267 +7995,267 @@ L0b3907dc:
    jnz L0b3907ef
 jmp near L0b390909
 L0b3907ef:
-   cmp word ptr [3EA0],+00
+   cmp word ptr [offset _macofs],+00
    jz L0b39085b
-   cmp word ptr [3E9A],+00
+   cmp word ptr [offset _mactime],+00
    jnz L0b390804
    mov word ptr [BP-04],0001
 jmp near L0b39080e
 L0b390804:
-   mov AX,[C23C]
+   mov AX,[offset _gamecount]
    sub AX,[offset Y2a1704d2]
    mov [BP-04],AX
 L0b39080e:
    cmp word ptr [BP-04],0080
    jge L0b39082b
    mov AL,[BP-04]
-   mov DX,[3EA0]
-   les BX,[offset Y2a1704c4]
+   mov DX,[offset _macofs]
+   les BX,[offset _macptr]
    add BX,DX
    mov [ES:BX],AL
-   inc word ptr [3EA0]
+   inc word ptr [offset _macofs]
 jmp near L0b39085b
 L0b39082b:
    mov AL,[BP-04]
    and AL,7F
    or AL,80
-   mov DX,[3EA0]
-   les BX,[offset Y2a1704c4]
+   mov DX,[offset _macofs]
+   les BX,[offset _macptr]
    add BX,DX
    mov [ES:BX],AL
-   inc word ptr [3EA0]
+   inc word ptr [offset _macofs]
    mov AX,[BP-04]
    mov CL,07
    sar AX,CL
-   mov DX,[3EA0]
-   mov BX,[offset Y2a1704c4]
+   mov DX,[offset _macofs]
+   mov BX,[offset _macptr]
    add BX,DX
    mov [ES:BX],AL
-   inc word ptr [3EA0]
+   inc word ptr [offset _macofs]
 L0b39085b:
    mov AL,[BP-01]
-   mov DX,[3EA0]
-   les BX,[offset Y2a1704c4]
+   mov DX,[offset _macofs]
+   les BX,[offset _macptr]
    add BX,DX
    mov [ES:BX],AL
-   inc word ptr [3EA0]
+   inc word ptr [offset _macofs]
    test byte ptr [BP-01],01
    jz L0b390889
-   mov AL,[3D7A]
-   mov DX,[3EA0]
-   mov BX,[offset Y2a1704c4]
+   mov AL,[offset _dx1]
+   mov DX,[offset _macofs]
+   mov BX,[offset _macptr]
    add BX,DX
    mov [ES:BX],AL
-   inc word ptr [3EA0]
+   inc word ptr [offset _macofs]
 L0b390889:
    test byte ptr [BP-01],02
    jz L0b3908a3
-   mov AL,[3D7C]
-   mov DX,[3EA0]
-   les BX,[offset Y2a1704c4]
+   mov AL,[offset _dy1]
+   mov DX,[offset _macofs]
+   les BX,[offset _macptr]
    add BX,DX
    mov [ES:BX],AL
-   inc word ptr [3EA0]
+   inc word ptr [offset _macofs]
 L0b3908a3:
    test byte ptr [BP-01],04
    jz L0b3908bd
-   mov AL,[3D7E]
-   mov DX,[3EA0]
-   les BX,[offset Y2a1704c4]
+   mov AL,[offset _fire1]
+   mov DX,[offset _macofs]
+   les BX,[offset _macptr]
    add BX,DX
    mov [ES:BX],AL
-   inc word ptr [3EA0]
+   inc word ptr [offset _macofs]
 L0b3908bd:
    test byte ptr [BP-01],08
    jz L0b3908d7
-   mov AL,[3D82]
-   mov DX,[3EA0]
-   les BX,[offset Y2a1704c4]
+   mov AL,[offset _fire2]
+   mov DX,[offset _macofs]
+   les BX,[offset _macptr]
    add BX,DX
    mov [ES:BX],AL
-   inc word ptr [3EA0]
+   inc word ptr [offset _macofs]
 L0b3908d7:
    test byte ptr [BP-01],10
    jz L0b3908f1
-   mov AL,[3D8A]
-   mov DX,[3EA0]
-   les BX,[offset Y2a1704c4]
+   mov AL,[offset _key]
+   mov DX,[offset _macofs]
+   les BX,[offset _macptr]
    add BX,DX
    mov [ES:BX],AL
-   inc word ptr [3EA0]
+   inc word ptr [offset _macofs]
 L0b3908f1:
-   mov AX,[3D7A]
+   mov AX,[offset _dx1]
    mov [offset Y2a1704ca],AX
-   mov AX,[3D7C]
+   mov AX,[offset _dy1]
    mov [offset Y2a1704cc],AX
-   mov AX,[3D7E]
+   mov AX,[offset _fire1]
    mov [offset Y2a1704ce],AX
-   mov AX,[3D82]
+   mov AX,[offset _fire2]
    mov [offset Y2a1704d0],AX
 L0b390909:
-   cmp word ptr [3EA0],7530
+   cmp word ptr [offset _macofs],7530
    jb L0b390915
 L0b390911:
    push CS
-   call near offset A0b3906d3
+   call near offset _macrecend
 L0b390915:
    mov SP,BP
    pop BP
 ret far
 
-A0b390919:
+_getmac: ;; 0b390919
    push BP
    mov BP,SP
    sub SP,+02
    push SI
-   call far A0a690007
+   call far _k_pressed
    or AX,AX
    jz L0b39094d
-   call far A0a69005c
+   call far _k_read
    mov SI,AX
-   cmp word ptr [3ECE],+00
+   cmp word ptr [offset _macabort],+00
    jz L0b390943
-   cmp word ptr [3ECE],+01
+   cmp word ptr [offset _macabort],+01
    jnz L0b39094d
    cmp SI,+1B
    jnz L0b39094d
 L0b390943:
    push CS
-   call near offset A0b3905bf
-   mov word ptr [3ED0],0001
+   call near offset _stopmac
+   mov word ptr [offset _macaborted],0001
 L0b39094d:
-   mov word ptr [3D8A],0000
-   cmp word ptr [3EA0],+00
+   mov word ptr [offset _key],0000
+   cmp word ptr [offset _macofs],+00
    jnz L0b39097e
-   mov word ptr [3D7A],0000
-   mov word ptr [3D7C],0000
-   mov word ptr [3D7E],0000
-   mov word ptr [3D82],0000
-   mov AX,[C23C]
-   mov [3D76],AX
-   mov word ptr [3D78],0000
+   mov word ptr [offset _dx1],0000
+   mov word ptr [offset _dy1],0000
+   mov word ptr [offset _fire1],0000
+   mov word ptr [offset _fire2],0000
+   mov AX,[offset _gamecount]
+   mov [offset Y2a173d76],AX
+   mov word ptr [offset Y2a173d78],0000
 L0b39097e:
-   mov AX,[C23C]
-   sub AX,[3D76]
-   cmp AX,[3D78]
+   mov AX,[offset _gamecount]
+   sub AX,[offset Y2a173d76]
+   cmp AX,[offset Y2a173d78]
    jge L0b39098e
 jmp near L0b390a5d
 L0b39098e:
-   mov AX,[3EA0]
-   les BX,[offset Y2a1704c4]
+   mov AX,[offset _macofs]
+   les BX,[offset _macptr]
    add BX,AX
    mov AL,[ES:BX]
    mov [BP-01],AL
-   inc word ptr [3EA0]
+   inc word ptr [offset _macofs]
    test byte ptr [BP-01],01
    jz L0b3909bb
-   mov AX,[3EA0]
-   mov BX,[offset Y2a1704c4]
+   mov AX,[offset _macofs]
+   mov BX,[offset _macptr]
    add BX,AX
    mov AL,[ES:BX]
    cbw
-   mov [3D7A],AX
-   inc word ptr [3EA0]
+   mov [offset _dx1],AX
+   inc word ptr [offset _macofs]
 L0b3909bb:
    test byte ptr [BP-01],02
    jz L0b3909d5
-   mov AX,[3EA0]
-   les BX,[offset Y2a1704c4]
+   mov AX,[offset _macofs]
+   les BX,[offset _macptr]
    add BX,AX
    mov AL,[ES:BX]
    cbw
-   mov [3D7C],AX
-   inc word ptr [3EA0]
+   mov [offset _dy1],AX
+   inc word ptr [offset _macofs]
 L0b3909d5:
    test byte ptr [BP-01],04
    jz L0b3909ef
-   mov AX,[3EA0]
-   les BX,[offset Y2a1704c4]
+   mov AX,[offset _macofs]
+   les BX,[offset _macptr]
    add BX,AX
    mov AL,[ES:BX]
    cbw
-   mov [3D7E],AX
-   inc word ptr [3EA0]
+   mov [offset _fire1],AX
+   inc word ptr [offset _macofs]
 L0b3909ef:
    test byte ptr [BP-01],08
    jz L0b390a09
-   mov AX,[3EA0]
-   les BX,[offset Y2a1704c4]
+   mov AX,[offset _macofs]
+   les BX,[offset _macptr]
    add BX,AX
    mov AL,[ES:BX]
    cbw
-   mov [3D82],AX
-   inc word ptr [3EA0]
+   mov [offset _fire2],AX
+   inc word ptr [offset _macofs]
 L0b390a09:
    test byte ptr [BP-01],10
    jz L0b390a23
-   mov AX,[3EA0]
-   les BX,[offset Y2a1704c4]
+   mov AX,[offset _macofs]
+   les BX,[offset _macptr]
    add BX,AX
    mov AL,[ES:BX]
    cbw
-   mov [3D8A],AX
-   inc word ptr [3EA0]
+   mov [offset _key],AX
+   inc word ptr [offset _macofs]
 L0b390a23:
-   mov AX,[3EA0]
-   les BX,[offset Y2a1704c4]
+   mov AX,[offset _macofs]
+   les BX,[offset _macptr]
    add BX,AX
    mov AL,[ES:BX]
    cbw
-   mov [3D78],AX
-   inc word ptr [3EA0]
+   mov [offset Y2a173d78],AX
+   inc word ptr [offset _macofs]
    or AX,AX
    jge L0b390a5d
-   mov AX,[3EA0]
-   mov BX,[offset Y2a1704c4]
+   mov AX,[offset _macofs]
+   mov BX,[offset _macptr]
    add BX,AX
    mov AL,[ES:BX]
    cbw
    mov CL,07
    shl AX,CL
-   mov DX,[3D78]
+   mov DX,[offset Y2a173d78]
    and DX,007F
    add AX,DX
-   mov [3D78],AX
-   inc word ptr [3EA0]
+   mov [offset Y2a173d78],AX
+   inc word ptr [offset _macofs]
 L0b390a5d:
-   mov AX,[3EA0]
-   cmp AX,[3E9C]
+   mov AX,[offset _macofs]
+   cmp AX,[offset _maclen]
    jb L0b390a6a
    push CS
-   call near offset A0b3905bf
+   call near offset _stopmac
 L0b390a6a:
    pop SI
    mov SP,BP
    pop BP
 ret far
 
-A0b390a6f:
-   mov word ptr [3D7A],0000
-   mov word ptr [3D7C],0000
-   mov word ptr [3D7E],0000
-   mov word ptr [3EA2],0000
-   mov word ptr [3D8C],0000
-   mov word ptr [3D8E],0000
-   mov word ptr [3E94],0000
-   mov word ptr [3E96],0000
-   mov byte ptr [3D92],00
-   mov word ptr [3ECC],0000
-   mov word ptr [3EC6],0000
-   mov word ptr [3ECE],0001
-   mov word ptr [3E9E],0000
+_gc_init: ;; 0b390a6f
+   mov word ptr [offset _dx1],0000
+   mov word ptr [offset _dy1],0000
+   mov word ptr [offset _fire1],0000
+   mov word ptr [offset _fire1off],0000
+   mov word ptr [offset _dx1old],0000
+   mov word ptr [offset _dy1old],0000
+   mov word ptr [offset _dx1hold],0000
+   mov word ptr [offset _dy1hold],0000
+   mov byte ptr [offset _keybuf],00
+   mov word ptr [offset _macplay],0000
+   mov word ptr [offset _macrecord],0000
+   mov word ptr [offset _macabort],0001
+   mov word ptr [offset _joyflag],0000
    mov AL,01
    push AX
-   call far A0a690103
+   call far _installhandler
    pop CX
 ret far
 
-A0b390ac6:
-   call far A0a69015d
+_gc_exit: ;; 0b390ac6
+   call far _removehandler
 ret far
 
 Segment 0be5 ;; UNCRUNCH:UNCRUNCH
-A0be5000c:
+_uncrunch: ;; 0be5000c
    push BP
    mov BP,SP
    push DS
@@ -8335,7 +8338,7 @@ L0be5007d:
 ret far
 
 Segment 0bed ;; CONFIG.C:CONFIG
-A0bed0007:
+_cfg_getpath: ;; 0bed0007
    push BP
    mov BP,SP
    push SI
@@ -8349,7 +8352,7 @@ L0bed000f:
    add BX,AX
    push [ES:BX+02]
    push [ES:BX]
-   call far A29fd0009
+   call far _strupr
    pop CX
    pop CX
    mov AX,SI
@@ -8380,9 +8383,9 @@ L0bed000f:
    push DX
    push AX
    push DS
-   mov AX,offset Y2a1705fc
+   mov AX,offset _path
    push AX
-   call far A28a70001
+   call far _strcpy
    add SP,+08
 L0bed0074:
    inc SI
@@ -8393,79 +8396,79 @@ L0bed0075:
    pop BP
 ret far
 
-A0bed007d:
+_cfg_init: ;; 0bed007d
    push BP
    mov BP,SP
    sub SP,+10
    push SI
-   call far A294f000f
+   call far _clrscr
    push DS
    mov AX,offset Y2a170640
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a170661
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a17068c
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
-   mov AX,offset Y2a1718aa
+   mov AX,offset _pgmname
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a170690
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a1706b2
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
-   mov AX,offset Y2a1718aa
+   mov AX,offset _pgmname
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a1706b6
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a1706d7
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
-   mov AX,offset Y2a1718aa
+   mov AX,offset _pgmname
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a1706db
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
-   call far A0b390021
+   call far _readspeed
    xor SI,SI
 jmp near L0bed0236
 L0bed0117:
@@ -8476,7 +8479,7 @@ L0bed0117:
    add BX,AX
    push [ES:BX+02]
    push [ES:BX]
-   call far A29fd0009
+   call far _strupr
    pop CX
    pop CX
    push DS
@@ -8489,7 +8492,7 @@ L0bed0117:
    add BX,AX
    push [ES:BX+02]
    push [ES:BX]
-   call far A28a3000f
+   call far _strcmp
    add SP,+08
    or AX,AX
    jnz L0bed0180
@@ -8498,17 +8501,17 @@ L0bed0117:
    push SS
    lea AX,[BP-10]
    push AX
-   push [offset Y2a1704c0+2]
-   push [offset Y2a1704c0]
-   call far A288c00db
+   push [offset _systime+02]
+   push [offset _systime]
+   call far _ltoa
    add SP,+0A
    push SS
    lea AX,[BP-10]
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
-   call far A0b3905af
+   call far _getkey
 jmp near L0bed0235
 L0bed0180:
    push DS
@@ -8521,12 +8524,12 @@ L0bed0180:
    add BX,AX
    push [ES:BX+02]
    push [ES:BX]
-   call far A28a3000f
+   call far _strcmp
    add SP,+08
    or AX,AX
    jnz L0bed01b2
-   mov word ptr [0C88],0000
-   mov word ptr [0C8A],0000
+   mov word ptr [offset _vocflag],0000
+   mov word ptr [offset _musicflag],0000
 jmp near L0bed0235
 L0bed01b2:
    push DS
@@ -8539,7 +8542,7 @@ L0bed01b2:
    add BX,AX
    push [ES:BX+02]
    push [ES:BX]
-   call far A28a3000f
+   call far _strcmp
    add SP,+08
    or AX,AX
    jz L0bed0235
@@ -8553,13 +8556,13 @@ L0bed01b2:
    add BX,AX
    push [ES:BX+02]
    push [ES:BX]
-   call far A28a3000f
+   call far _strcmp
    add SP,+08
    or AX,AX
    jnz L0bed020c
-   mov word ptr [0C88],0000
-   mov word ptr [0C8A],0000
-   mov word ptr [offset Y2a17063c],0001
+   mov word ptr [offset _vocflag],0000
+   mov word ptr [offset _musicflag],0000
+   mov word ptr [offset _nosnd],0001
 jmp near L0bed0235
 L0bed020c:
    push DS
@@ -8572,11 +8575,11 @@ L0bed020c:
    add BX,AX
    push [ES:BX+02]
    push [ES:BX]
-   call far A28a3000f
+   call far _strcmp
    add SP,+08
    or AX,AX
    jnz L0bed0235
-   mov word ptr [offset Y2a17063e],0001
+   mov word ptr [offset _cfgdemo],0001
 L0bed0235:
    inc SI
 L0bed0236:
@@ -8589,46 +8592,46 @@ L0bed023e:
    pop BP
 ret far
 
-A0bed0243:
+_doconfig: ;; 0bed0243
    push BP
    mov BP,SP
    sub SP,+10
    push SI
-   mov SI,[offset Y2a173ed2]
+   mov SI,[offset _cf]
    or SI,SI
    jz L0bed0255
 jmp near L0bed02d4
 L0bed0255:
-   mov AL,[3EE2]
-   mov [3B53],AL
-   call far A0b39018b
-   mov [3E9E],AX
+   mov AL,[offset _cf+10]
+   mov [offset _x_ourmode],AL
+   call far _joypresent
+   mov [offset _joyflag],AX
    or AX,AX
    jnz L0bed026f
-   mov word ptr [3ED4],0000
+   mov word ptr [offset _cf+02],0000
 jmp near L0bed02ba
 L0bed026f:
-   cmp word ptr [3ED4],+00
+   cmp word ptr [offset _cf+02],+00
    jz L0bed02ba
-   mov AX,[3ED6]
-   mov [3D90],AX
-   mov AX,[3ED8]
-   mov [3D84],AX
-   mov AX,[3EDA]
-   mov [3E92],AX
-   mov AX,[3EDC]
-   mov [3E98],AX
-   mov AX,[3EDE]
-   mov [3D86],AX
-   mov AX,[3EE0]
-   mov [3D88],AX
+   mov AX,[offset _cf+04]
+   mov [offset _joyxl],AX
+   mov AX,[offset _cf+06]
+   mov [offset _joyxc],AX
+   mov AX,[offset _cf+08]
+   mov [offset _joyxr],AX
+   mov AX,[offset _cf+0a]
+   mov [offset _joyyu],AX
+   mov AX,[offset _cf+0c]
+   mov [offset _joyyc],AX
+   mov AX,[offset _cf+0e]
+   mov [offset _joyyd],AX
    xor AX,AX
    push AX
-   call far A0b39029e
+   call far _checkctrl
    pop CX
-   cmp word ptr [3D7A],+00
+   cmp word ptr [offset _dx1],+00
    jnz L0bed02b1
-   cmp word ptr [3D7C],+00
+   cmp word ptr [offset _dy1],+00
    jz L0bed02b6
 L0bed02b1:
    mov AX,0001
@@ -8638,37 +8641,37 @@ L0bed02b6:
 L0bed02b8:
    or SI,AX
 L0bed02ba:
-   cmp word ptr [0C8A],+00
+   cmp word ptr [offset _musicflag],+00
    jnz L0bed02c7
-   mov word ptr [3EE4],0000
+   mov word ptr [offset _cf+12],0000
 L0bed02c7:
-   cmp word ptr [0C88],+00
+   cmp word ptr [offset _vocflag],+00
    jnz L0bed02d4
-   mov word ptr [3EE6],0000
+   mov word ptr [offset _cf+14],0000
 L0bed02d4:
    or SI,SI
    jz L0bed02db
 jmp near L0bed03f6
 L0bed02db:
-   call far A294f000f
+   call far _clrscr
    push DS
    mov AX,offset Y2a170716
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a170719
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
-   cmp word ptr [3EE6],+00
+   cmp word ptr [offset _cf+14],+00
    jz L0bed030d
    push DS
    mov AX,offset Y2a170730
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
 jmp near L0bed0319
@@ -8676,16 +8679,16 @@ L0bed030d:
    push DS
    mov AX,offset Y2a17075d
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
 L0bed0319:
-   cmp word ptr [3EE4],+00
+   cmp word ptr [offset _cf+12],+00
    jz L0bed032e
    push DS
    mov AX,offset Y2a17077e
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
 jmp near L0bed033a
@@ -8693,16 +8696,16 @@ L0bed032e:
    push DS
    mov AX,offset Y2a1707a9
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
 L0bed033a:
-   cmp word ptr [3ED4],+00
+   cmp word ptr [offset _cf+02],+00
    jz L0bed034f
    push DS
    mov AX,offset Y2a1707c6
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
 jmp near L0bed035b
@@ -8710,32 +8713,32 @@ L0bed034f:
    push DS
    mov AX,offset Y2a1707d7
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
 L0bed035b:
-   cmp byte ptr [3B53],00
+   cmp byte ptr [offset _x_ourmode],00
    jnz L0bed037c
    push DS
    mov AX,offset Y2a1707e9
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a170811
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
 jmp near L0bed039d
 L0bed037c:
-   cmp byte ptr [3B53],02
+   cmp byte ptr [offset _x_ourmode],02
    jnz L0bed0391
    push DS
    mov AX,offset Y2a170833
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
 jmp near L0bed039d
@@ -8743,34 +8746,34 @@ L0bed0391:
    push DS
    mov AX,offset Y2a17084f
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
 L0bed039d:
    push DS
    mov AX,offset Y2a17086c
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a17086f
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a170892
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
 L0bed03c1:
-   call far A0b3905af
-   push [3D8A]
-   call far A29ff000e
+   call far _getkey
+   push [offset _key]
+   call far _toupper
    pop CX
-   mov [3D8A],AX
+   mov [offset _key],AX
    cmp AX,000D
    jz L0bed03e2
    cmp AX,0043
@@ -8778,11 +8781,11 @@ L0bed03c1:
    cmp AX,001B
    jnz L0bed03c1
 L0bed03e2:
-   cmp word ptr [3D8A],+43
+   cmp word ptr [offset _key],+43
    jnz L0bed03ec
    mov SI,0001
 L0bed03ec:
-   cmp word ptr [3D8A],+1B
+   cmp word ptr [offset _key],+1B
    jnz L0bed03f6
 jmp near L0bed0662
 L0bed03f6:
@@ -8790,130 +8793,130 @@ L0bed03f6:
    jnz L0bed03fd
 jmp near L0bed0666
 L0bed03fd:
-   call far A294f000f
-   cmp word ptr [0C88],+00
+   call far _clrscr
+   cmp word ptr [offset _vocflag],+00
    jnz L0bed0445
-   cmp word ptr [0C8A],+00
+   cmp word ptr [offset _musicflag],+00
    jnz L0bed0445
    push DS
    mov AX,offset Y2a1708b4
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a1708b7
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a1708ea
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a1708f9
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
-   call far A0b3905af
+   call far _getkey
 L0bed0445:
-   cmp word ptr [0C88],+00
+   cmp word ptr [offset _vocflag],+00
    jz L0bed04a1
-   cmp word ptr [offset Y2a1704c0+2],+00
+   cmp word ptr [offset _systime+02],+00
    jg L0bed04a1
    jl L0bed045d
-   cmp word ptr [offset Y2a1704c0],0FA0
+   cmp word ptr [offset _systime],0FA0
    jnb L0bed04a1
 L0bed045d:
    push DS
    mov AX,offset Y2a170917
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a17091c
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a170952
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a170989
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a17099a
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
-   call far A0b3905af
+   call far _getkey
 jmp near L0bed0563
 L0bed04a1:
-   cmp word ptr [0C88],+00
+   cmp word ptr [offset _vocflag],+00
    jnz L0bed04ab
 jmp near L0bed0563
 L0bed04ab:
    push DS
    mov AX,offset Y2a1709b8
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a1709e5
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a170a17
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a170a44
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a170a78
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a170aaa
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a170adb
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
 L0bed04ff:
-   call far A0b3905af
-   push [3D8A]
-   call far A29ff000e
+   call far _getkey
+   push [offset _key]
+   call far _toupper
    pop CX
-   mov [3D8A],AX
+   mov [offset _key],AX
    cmp AX,007E
    jnz L0bed053a
    mov AX,000A
@@ -8921,69 +8924,69 @@ L0bed04ff:
    push SS
    lea AX,[BP-10]
    push AX
-   call far A290e000c
+   call far _coreleft
    push DX
    push AX
-   call far A288c00db
+   call far _ltoa
    add SP,+0A
    push SS
    lea AX,[BP-10]
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
 L0bed053a:
-   cmp word ptr [3D8A],+1B
+   cmp word ptr [offset _key],+1B
    jnz L0bed0544
 jmp near L0bed0662
 L0bed0544:
-   cmp word ptr [3D8A],+59
+   cmp word ptr [offset _key],+59
    jz L0bed0552
-   cmp word ptr [3D8A],+4E
+   cmp word ptr [offset _key],+4E
    jnz L0bed04ff
 L0bed0552:
-   cmp word ptr [3D8A],+59
+   cmp word ptr [offset _key],+59
    jnz L0bed055e
    mov AX,0001
 jmp near L0bed0560
 L0bed055e:
    xor AX,AX
 L0bed0560:
-   mov [3EE6],AX
+   mov [offset _cf+14],AX
 L0bed0563:
-   cmp word ptr [0C8A],+00
+   cmp word ptr [offset _musicflag],+00
    jz L0bed05d4
-   call far A294f000f
+   call far _clrscr
    push DS
    mov AX,offset Y2a170af8
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a170aff
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a170b30
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a170b4c
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
 L0bed059f:
-   call far A0b3905af
-   push [3D8A]
-   call far A29ff000e
+   call far _getkey
+   push [offset _key]
+   call far _toupper
    pop CX
-   mov [3D8A],AX
+   mov [offset _key],AX
    cmp AX,001B
    jnz L0bed05b9
 jmp near L0bed0662
@@ -8993,114 +8996,114 @@ L0bed05b9:
    cmp AX,004E
    jnz L0bed059f
 L0bed05c3:
-   cmp word ptr [3D8A],+59
+   cmp word ptr [offset _key],+59
    jnz L0bed05cf
    mov AX,0001
 jmp near L0bed05d1
 L0bed05cf:
    xor AX,AX
 L0bed05d1:
-   mov [3EE4],AX
+   mov [offset _cf+12],AX
 L0bed05d4:
-   call far A294f000f
+   call far _clrscr
    push DS
    mov AX,offset Y2a170b73
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
-   call far A0b390541
+   call far _gc_config
    or AX,AX
    jz L0bed0662
-   mov AX,[3E9E]
-   mov [3ED4],AX
-   call far A294f000f
+   mov AX,[offset _joyflag]
+   mov [offset _cf+02],AX
+   call far _clrscr
    push DS
    mov AX,offset Y2a170b76
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a170b79
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a170ba0
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a170bbc
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a170bd9
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a170bf7
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a170bfa
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a170c28
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
-   call far A0860098d
+   call far _gr_config
    or AX,AX
    jnz L0bed0666
 L0bed0662:
    xor AX,AX
 jmp near L0bed06ca
 L0bed0666:
-   cmp word ptr [offset Y2a1704c0+2],+00
+   cmp word ptr [offset _systime+02],+00
    jg L0bed0683
    jl L0bed0677
-   cmp word ptr [offset Y2a1704c0],0FA0
+   cmp word ptr [offset _systime],0FA0
    jnb L0bed0683
 L0bed0677:
-   mov word ptr [0C88],0000
-   mov word ptr [3EE6],0000
+   mov word ptr [offset _vocflag],0000
+   mov word ptr [offset _cf+14],0000
 L0bed0683:
-   mov word ptr [offset Y2a173ed2],0000
-   mov AX,[3ED4]
-   mov [3E9E],AX
-   mov AX,[3D90]
-   mov [3ED6],AX
-   mov AX,[3D84]
-   mov [3ED8],AX
-   mov AX,[3E92]
-   mov [3EDA],AX
-   mov AX,[3E98]
-   mov [3EDC],AX
-   mov AX,[3D86]
-   mov [3EDE],AX
-   mov AX,[3D88]
-   mov [3EE0],AX
-   mov AL,[3B53]
+   mov word ptr [offset _cf],0000
+   mov AX,[offset _cf+02]
+   mov [offset _joyflag],AX
+   mov AX,[offset _joyxl]
+   mov [offset _cf+04],AX
+   mov AX,[offset _joyxc]
+   mov [offset _cf+06],AX
+   mov AX,[offset _joyxr]
+   mov [offset _cf+08],AX
+   mov AX,[offset _joyyu]
+   mov [offset _cf+0a],AX
+   mov AX,[offset _joyyc]
+   mov [offset _cf+0c],AX
+   mov AX,[offset _joyyd]
+   mov [offset _cf+0e],AX
+   mov AL,[offset _x_ourmode]
    mov AH,00
-   mov [3EE2],AX
-   mov AX,[3EE6]
-   mov [0C88],AX
-   mov AX,[3EE4]
-   mov [0C8A],AX
+   mov [offset _cf+10],AX
+   mov AX,[offset _cf+14]
+   mov [offset _vocflag],AX
+   mov AX,[offset _cf+12]
+   mov [offset _musicflag],AX
    mov AX,0001
 L0bed06ca:
    pop SI
@@ -9109,7 +9112,7 @@ L0bed06ca:
 ret far
 
 Segment 0c59 ;; PIXWRITE.C:PIXWRITE
-A0c59000f:
+_pixwrite: ;; 0c59000f
    push BP
    mov BP,SP
    sub SP,+74
@@ -9121,7 +9124,7 @@ A0c59000f:
    lea AX,[BP-70]
    push AX
    push [BP+06]
-   call far A288c008e
+   call far _itoa
    add SP,+08
    push DS
    mov AX,offset Y2a170c4c
@@ -9129,7 +9132,7 @@ A0c59000f:
    push SS
    lea AX,[BP-60]
    push AX
-   call far A28a70001
+   call far _strcpy
    add SP,+08
    push SS
    lea AX,[BP-70]
@@ -9137,7 +9140,7 @@ A0c59000f:
    push SS
    lea AX,[BP-60]
    push AX
-   call far A289e0002
+   call far _strcat
    add SP,+08
    push DS
    mov AX,offset Y2a170c54
@@ -9145,22 +9148,22 @@ A0c59000f:
    push SS
    lea AX,[BP-60]
    push AX
-   call far A289e0002
+   call far _strcat
    add SP,+08
    xor AX,AX
    push AX
    push SS
    lea AX,[BP-60]
    push AX
-   call far A29430036
+   call far __creat
    add SP,+06
    mov DI,AX
    cmp DI,-01
    jz L0c5900ca
-   mov AX,[3B56]
+   mov AX,[offset _pagedraw]
    mov [BP-74],AX
-   mov AX,[3B54]
-   mov [3B56],AX
+   mov AX,[offset _pageshow]
+   mov [offset _pagedraw],AX
    mov word ptr [BP-72],0000
 jmp near L0c5900b6
 L0c59008b:
@@ -9169,16 +9172,16 @@ jmp near L0c5900ad
 L0c59008f:
    push [BP-72]
    push SI
-   call far A0a33010e
+   call far _readpix_vga
    pop CX
    pop CX
    mov AX,0001
    push AX
    push DS
-   mov AX,offset Y2a173b4c
+   mov AX,offset _pixvalue
    push AX
    push DI
-   call far A286e000b
+   call far _write
    add SP,+08
    inc SI
 L0c5900ad:
@@ -9189,9 +9192,9 @@ L0c5900b6:
    cmp word ptr [BP-72],00C8
    jl L0c59008b
    mov AX,[BP-74]
-   mov [3B56],AX
+   mov [offset _pagedraw],AX
    push DI
-   call far A285e0000
+   call far __close
    pop CX
 L0c5900ca:
    push DS
@@ -9200,7 +9203,7 @@ L0c5900ca:
    push SS
    lea AX,[BP-60]
    push AX
-   call far A28a70001
+   call far _strcpy
    add SP,+08
    push SS
    lea AX,[BP-70]
@@ -9208,7 +9211,7 @@ L0c5900ca:
    push SS
    lea AX,[BP-60]
    push AX
-   call far A289e0002
+   call far _strcat
    add SP,+08
    push DS
    mov AX,offset Y2a170c61
@@ -9216,14 +9219,14 @@ L0c5900ca:
    push SS
    lea AX,[BP-60]
    push AX
-   call far A289e0002
+   call far _strcat
    add SP,+08
    xor AX,AX
    push AX
    push SS
    lea AX,[BP-60]
    push AX
-   call far A29430036
+   call far __creat
    add SP,+06
    mov DI,AX
    cmp DI,-01
@@ -9242,12 +9245,12 @@ L0c59011f:
    mov DX,0003
    mul DX
    mov BX,AX
-   mov AL,[BX+offset Y2a170194]
+   mov AL,[BX+offset _vgapal]
    mov AH,00
    shl AX,1
    shl AX,1
    push AX
-   call far A288c008e
+   call far _itoa
    add SP,+08
    mov AX,000A
    push AX
@@ -9258,12 +9261,12 @@ L0c59011f:
    mov DX,0003
    mul DX
    mov BX,AX
-   mov AL,[BX+offset Y2a170194+1]
+   mov AL,[BX+offset _vgapal+01]
    mov AH,00
    shl AX,1
    shl AX,1
    push AX
-   call far A288c008e
+   call far _itoa
    add SP,+08
    mov AX,000A
    push AX
@@ -9274,12 +9277,12 @@ L0c59011f:
    mov DX,0003
    mul DX
    mov BX,AX
-   mov AL,[BX+offset Y2a170194+2]
+   mov AL,[BX+offset _vgapal+02]
    mov AH,00
    shl AX,1
    shl AX,1
    push AX
-   call far A288c008e
+   call far _itoa
    add SP,+08
    push DS
    mov AX,offset Y2a170c66
@@ -9287,7 +9290,7 @@ L0c59011f:
    push SS
    lea AX,[BP-40]
    push AX
-   call far A289e0002
+   call far _strcat
    add SP,+08
    push SS
    lea AX,[BP-20]
@@ -9295,7 +9298,7 @@ L0c59011f:
    push SS
    lea AX,[BP-40]
    push AX
-   call far A289e0002
+   call far _strcat
    add SP,+08
    push DS
    mov AX,offset Y2a170c68
@@ -9303,7 +9306,7 @@ L0c59011f:
    push SS
    lea AX,[BP-40]
    push AX
-   call far A289e0002
+   call far _strcat
    add SP,+08
    push SS
    lea AX,[BP-10]
@@ -9311,7 +9314,7 @@ L0c59011f:
    push SS
    lea AX,[BP-40]
    push AX
-   call far A289e0002
+   call far _strcat
    add SP,+08
    push DS
    mov AX,offset Y2a170c6a
@@ -9319,12 +9322,12 @@ L0c59011f:
    push SS
    lea AX,[BP-40]
    push AX
-   call far A289e0002
+   call far _strcat
    add SP,+08
    push SS
    lea AX,[BP-40]
    push AX
-   call far A28a20004
+   call far _strlen
    pop CX
    pop CX
    push AX
@@ -9332,7 +9335,7 @@ L0c59011f:
    lea AX,[BP-40]
    push AX
    push DI
-   call far A286e000b
+   call far _write
    add SP,+08
    inc SI
 L0c590204:
@@ -9341,7 +9344,7 @@ L0c590204:
 jmp near L0c59011f
 L0c59020d:
    push DI
-   call far A285e0000
+   call far __close
    pop CX
 L0c590214:
    pop DI
@@ -9351,7 +9354,7 @@ L0c590214:
 ret far
 
 Segment 0c7a ;; KEYINTR.ASM:KEYINTR
-A0c7a000a:
+_handler: ;; 0c7a000a
    cli
    push AX
    push BX
@@ -9370,17 +9373,17 @@ L0c7a001f:
    test AL,80
    jnz L0c7a002d
    mov BX,AX
-   mov byte ptr [BX+offset Y2a173b68],01
+   mov byte ptr [BX+offset _keydown],01
 jmp near L0c7a0036
 X0c7a002c:
    nop
 L0c7a002d:
    and AL,7F
    mov BX,AX
-   mov byte ptr [BX+offset Y2a173b68],00
+   mov byte ptr [BX+offset _keydown],00
 L0c7a0036:
    pushf
-   call far [3B5A]
+   call far [offset _oldint9]
    pop BP
    pop DS
    pop BX
@@ -9388,7 +9391,7 @@ L0c7a0036:
 iret
 
 Segment 0c7e ;; MUSIC.C:MUSIC
-X0c7e0000:
+_testintr: ;; 0c7e0000 ;; (@) Unaccessed.
    push AX
    push BX
 X0c7e0002:
@@ -9402,9 +9405,9 @@ X0c7e0002:
    mov BP,segment A2a170000
    mov DS,BP
    pushf
-   call far A0d7e0008
+   call far _spkr_intr
    pushf
-   call far [0C92]
+   call far [offset _oldint8]
    pop BP
    pop DI
    pop SI
@@ -9416,19 +9419,19 @@ X0c7e0002:
    pop AX
 iret
 
-A0c7e0023:
+_getvoc: ;; 0c7e0023
    push BP
    mov BP,SP
    sub SP,+08
-   call far A29f50038
+   call far _nosound
    mov BX,[BP+06]
    shl BX,1
-   cmp word ptr [BX+offset Y2a17402e],+00
+   cmp word ptr [BX+offset _voclen],+00
    jnz L0c7e003d
 jmp near L0c7e0189
 L0c7e003d:
    mov BX,[BP+06]
-   cmp byte ptr [BX+3FFC],FF
+   cmp byte ptr [BX+offset _vocnum],FF
    jz L0c7e004a
 jmp near L0c7e0189
 L0c7e004a:
@@ -9439,17 +9442,17 @@ L0c7e004a:
 jmp near L0c7e0090
 L0c7e0060:
    mov BX,[BP-06]
-   cmp byte ptr [BX+3FFC],FF
+   cmp byte ptr [BX+offset _vocnum],FF
    jz L0c7e008d
    inc word ptr [BP-08]
    mov BX,[BP-06]
    shl BX,1
-   mov AX,[BX+3F34]
+   mov AX,[BX+offset _vocused]
    cmp AX,[BP-02]
    jnb L0c7e008d
    mov BX,[BP-06]
    shl BX,1
-   mov AX,[BX+3F34]
+   mov AX,[BX+offset _vocused]
    mov [BP-02],AX
    mov AX,[BP-06]
    mov [BP-04],AX
@@ -9461,64 +9464,64 @@ L0c7e0090:
    cmp word ptr [BP-08],+04
    jl L0c7e00b4
    mov BX,[BP-04]
-   mov AL,[BX+3FFC]
+   mov AL,[BX+offset _vocnum]
    mov BX,[BP+06]
-   mov [BX+3FFC],AL
+   mov [BX+offset _vocnum],AL
    mov BX,[BP-04]
-   mov byte ptr [BX+3FFC],FF
+   mov byte ptr [BX+offset _vocnum],FF
 jmp near L0c7e00be
 L0c7e00b4:
    mov AL,[BP-08]
    mov BX,[BP+06]
-   mov [BX+3FFC],AL
+   mov [BX+offset _vocnum],AL
 L0c7e00be:
    mov BX,[BP+06]
-   mov AL,[BX+3FFC]
+   mov AL,[BX+offset _vocnum]
    cbw
    mov [BP-08],AX
    mov AX,0020
    push AX
    push DS
-   mov AX,offset Y2a170c9a
+   mov AX,offset _vochdr
    push AX
    mov AX,[BP-08]
    mov DX,1800
    mul DX
-   mov CX,[3F2E]
-   mov BX,[3F2C]
+   mov CX,[offset _memvoc+02]
+   mov BX,[offset _memvoc]
    add BX,AX
    push CX
    push BX
-   call far A28a9000a
+   call far _memcpy
    add SP,+0A
    mov BX,[BP+06]
    shl BX,1
-   mov AL,[BX+offset Y2a17402e]
+   mov AL,[BX+offset _voclen]
    push AX
    mov AX,[BP-08]
    mov DX,1800
    mul DX
-   les BX,[3F2C]
+   les BX,[offset _memvoc]
    add BX,AX
    pop AX
    mov [ES:BX+1B],AL
    mov BX,[BP+06]
    shl BX,1
-   mov AX,[BX+offset Y2a17402e]
+   mov AX,[BX+offset _voclen]
    mov CL,08
    sar AX,CL
    push AX
    mov AX,[BP-08]
    mov DX,1800
    mul DX
-   les BX,[3F2C]
+   les BX,[offset _memvoc]
    add BX,AX
    pop AX
    mov [ES:BX+1C],AL
    mov AX,[BP-08]
    mov DX,1800
    mul DX
-   les BX,[3F2C]
+   les BX,[offset _memvoc]
    add BX,AX
    mov byte ptr [ES:BX+1E],60
    xor AX,AX
@@ -9526,58 +9529,58 @@ L0c7e00be:
    mov BX,[BP+06]
    shl BX,1
    shl BX,1
-   push [BX+offset Y2a1742e6+2]
-   push [BX+offset Y2a1742e6]
-   push [0C8C]
-   call far A2889000d
+   push [BX+offset _vocposn+02]
+   push [BX+offset _vocposn]
+   push [offset _vocfilehandle]
+   call far _lseek
    add SP,+08
    mov BX,[BP+06]
    shl BX,1
-   push [BX+offset Y2a17402e]
+   push [BX+offset _voclen]
    mov AX,[BP-08]
    mov DX,1800
    mul DX
-   mov CX,[3F2E]
-   mov BX,[3F2C]
+   mov CX,[offset _memvoc+02]
+   mov BX,[offset _memvoc]
    add BX,AX
    add BX,+20
    push CX
    push BX
-   push [0C8C]
-   call far A28600006
+   push [offset _vocfilehandle]
+   call far _read
    add SP,+08
 L0c7e0189:
    mov SP,BP
    pop BP
 ret far
 
-A0c7e018d:
+_snd_init: ;; 0c7e018d
    push BP
    mov BP,SP
    sub SP,+02
-   mov word ptr [43B0],0000
-   mov word ptr [4458],0000
-   mov word ptr [4094],0000
-   mov word ptr [4092],0000
+   mov word ptr [offset _clockrate],0000
+   mov word ptr [offset _clockcount],0000
+   mov word ptr [offset _textmsg+02],0000
+   mov word ptr [offset _textmsg],0000
    mov word ptr [BP-02],0000
 jmp near L0c7e01f1
 L0c7e01b2:
    mov BX,[BP-02]
    shl BX,1
    shl BX,1
-   mov word ptr [BX+offset Y2a1742e6+2],FFFF
-   mov word ptr [BX+offset Y2a1742e6],FFFF
+   mov word ptr [BX+offset _vocposn+02],FFFF
+   mov word ptr [BX+offset _vocposn],FFFF
    mov BX,[BP-02]
    shl BX,1
-   mov word ptr [BX+offset Y2a17402e],0000
+   mov word ptr [BX+offset _voclen],0000
    mov BX,[BP-02]
    shl BX,1
-   mov word ptr [BX+offset Y2a173f98],0000
+   mov word ptr [BX+offset _vocrate],0000
    mov BX,[BP-02]
-   mov byte ptr [BX+3FFC],FF
+   mov byte ptr [BX+offset _vocnum],FF
    mov BX,[BP-02]
    shl BX,1
-   mov word ptr [BX+3F34],0000
+   mov word ptr [BX+offset _vocused],0000
    inc word ptr [BP-02]
 L0c7e01f1:
    cmp word ptr [BP-02],+32
@@ -9588,154 +9591,154 @@ L0c7e01fe:
    mov BX,[BP-02]
    shl BX,1
    shl BX,1
-   mov word ptr [BX+4098],0000
-   mov word ptr [BX+4096],0000
+   mov word ptr [BX+offset _soundmac+02],0000
+   mov word ptr [BX+offset _soundmac],0000
    inc word ptr [BP-02]
 L0c7e0214:
    cmp word ptr [BP-02],0080
    jl L0c7e01fe
-   call far A276006d7
+   call far _StartWorx
    mov AX,0008
    push AX
-   call far A29840008
+   call far _getvect
    pop CX
-   mov [0C98],DX
-   mov [0C96],AX
-   mov AX,segment A0d7e00cc
+   mov [offset _worxint8+02],DX
+   mov [offset _worxint8],AX
+   mov AX,segment _WorxBugInt8
    push AX
-   mov AX,offset A0d7e00cc
+   mov AX,offset _WorxBugInt8
    push AX
    mov AX,0008
    push AX
-   call far A2984001a
+   call far _setvect
    add SP,+06
-   cmp word ptr [0C8A],+00
+   cmp word ptr [offset _musicflag],+00
    jz L0c7e0254
-   call far A2760028a
-   mov [0C8A],AX
+   call far _AdlibDetect
+   mov [offset _musicflag],AX
 L0c7e0254:
-   cmp word ptr [0C8A],+00
+   cmp word ptr [offset _musicflag],+00
    jnz L0c7e0261
-   mov word ptr [0C88],0000
+   mov word ptr [offset _vocflag],0000
 L0c7e0261:
    les BX,[BP+06]
    cmp byte ptr [ES:BX],00
    jnz L0c7e0273
-   mov word ptr [0C88],0000
+   mov word ptr [offset _vocflag],0000
 jmp near L0c7e0300
 L0c7e0273:
    mov AX,8001
    push AX
    push [BP+08]
    push [BP+06]
-   call far A28530005
+   call far __open
    add SP,+06
-   mov [0C8C],AX
-   cmp word ptr [0C8C],-01
+   mov [offset _vocfilehandle],AX
+   cmp word ptr [offset _vocfilehandle],-01
    jnz L0c7e0297
-   mov word ptr [0C88],0000
+   mov word ptr [offset _vocflag],0000
 jmp near L0c7e0300
 L0c7e0297:
    mov AX,00C8
    push AX
    push DS
-   mov AX,offset Y2a1742e6
+   mov AX,offset _vocposn
    push AX
-   push [0C8C]
-   call far A28600006
+   push [offset _vocfilehandle]
+   call far _read
    add SP,+08
    mov AX,0064
    push AX
    push DS
-   mov AX,offset Y2a17402e
+   mov AX,offset _voclen
    push AX
-   push [0C8C]
-   call far A28600006
+   push [offset _vocfilehandle]
+   call far _read
    add SP,+08
    mov AX,0064
    push AX
    push DS
-   mov AX,offset Y2a173f98
+   mov AX,offset _vocrate
    push AX
-   push [0C8C]
-   call far A28600006
+   push [offset _vocfilehandle]
+   call far _read
    add SP,+08
    mov AX,00A0
    push AX
    push DS
-   mov AX,offset Y2a1743b4
+   mov AX,offset _textposn
    push AX
-   push [0C8C]
-   call far A28600006
+   push [offset _vocfilehandle]
+   call far _read
    add SP,+08
    mov AX,0050
    push AX
    push DS
-   mov AX,offset Y2a174296
+   mov AX,offset _textlen
    push AX
-   push [0C8C]
-   call far A28600006
+   push [offset _vocfilehandle]
+   call far _read
    add SP,+08
 L0c7e0300:
    mov SP,BP
    pop BP
 ret far
 
-A0c7e0304:
+_snd_play: ;; 0c7e0304
    push BP
    mov BP,SP
-   cmp word ptr [0C88],+00
+   cmp word ptr [offset _vocflag],+00
    jnz L0c7e0311
 jmp near L0c7e0390
 L0c7e0311:
-   cmp word ptr [0C70],+00
+   cmp word ptr [offset _soundf],+00
    jnz L0c7e031b
 jmp near L0c7e0390
 L0c7e031b:
-   call far A27600775
+   call far _VOCPlaying
    or AX,AX
    jz L0c7e032d
    mov AX,[BP+06]
-   cmp AX,[3F30]
+   cmp AX,[offset _oldpri]
    jl L0c7e038e
 L0c7e032d:
    mov BX,[BP+08]
-   cmp byte ptr [BX+13C8],00
+   cmp byte ptr [BX+offset _mirrortab],00
    jz L0c7e0342
    mov BX,[BP+08]
-   mov AL,[BX+13C8]
+   mov AL,[BX+offset _mirrortab]
    cbw
    mov [BP+08],AX
 L0c7e0342:
    push [BP+08]
    push CS
-   call near offset A0c7e0023
+   call near offset _getvoc
    pop CX
    mov BX,[BP+08]
-   cmp byte ptr [BX+3FFC],FF
+   cmp byte ptr [BX+offset _vocnum],FF
    jz L0c7e0388
    mov AX,007F
    push AX
    mov BX,[BP+08]
-   mov AL,[BX+3FFC]
+   mov AL,[BX+offset _vocnum]
    cbw
    mov DX,1800
    mul DX
-   mov CX,[3F2E]
-   mov BX,[3F2C]
+   mov CX,[offset _memvoc+02]
+   mov BX,[offset _memvoc]
    add BX,AX
    push CX
    push BX
-   call far A2760054f
+   call far _PlayVOCBlock
    mov SP,BP
-   mov AX,[0C7C]
+   mov AX,[offset _vocuse]
    mov BX,[BP+08]
    shl BX,1
-   mov [BX+3F34],AX
-   inc word ptr [0C7C]
+   mov [BX+offset _vocused],AX
+   inc word ptr [offset _vocuse]
 L0c7e0388:
    mov AX,[BP+06]
-   mov [3F30],AX
+   mov [offset _oldpri],AX
 L0c7e038e:
 jmp near L0c7e03d3
 L0c7e0390:
@@ -9744,59 +9747,59 @@ L0c7e0390:
    mov BX,[BP+08]
    shl BX,1
    shl BX,1
-   mov AX,[BX+4096]
-   or AX,[BX+4098]
+   mov AX,[BX+offset _soundmac]
+   or AX,[BX+offset _soundmac+02]
    jz L0c7e03d3
-   mov AX,[0C7E]
-   or AX,[0C80]
+   mov AX,[offset _freq]
+   or AX,[offset _freq+02]
    jz L0c7e03d3
-   mov AX,[0C82]
-   or AX,[0C84]
+   mov AX,[offset _dur]
+   or AX,[offset _dur+02]
    jz L0c7e03d3
    mov BX,[BP+08]
    shl BX,1
    shl BX,1
-   push [BX+4098]
-   push [BX+4096]
+   push [BX+offset _soundmac+02]
+   push [BX+offset _soundmac]
    push [BP+06]
-   call far A0c7e0dfe
+   call far _soundadd
    mov SP,BP
 L0c7e03d3:
    pop BP
 ret far
 
-A0c7e03d5:
+_snd_do: ;; 0c7e03d5
    push BP
    mov BP,SP
    sub SP,+06
-   call far A29f50038
-   cmp word ptr [offset Y2a17063c],+00
+   call far _nosound
+   cmp word ptr [offset _nosnd],+00
    jnz L0c7e03f5
-   cmp word ptr [0C8A],+00
+   cmp word ptr [offset _musicflag],+00
    jnz L0c7e03f5
-   cmp word ptr [0C88],+00
+   cmp word ptr [offset _vocflag],+00
    jz L0c7e03fd
 L0c7e03f5:
-   mov word ptr [43B0],0000
+   mov word ptr [offset _clockrate],0000
 jmp near L0c7e040a
 L0c7e03fd:
-   cmp word ptr [0C88],+00
+   cmp word ptr [offset _vocflag],+00
    jnz L0c7e040a
-   mov word ptr [43B0],0040
+   mov word ptr [offset _clockrate],0040
 L0c7e040a:
-   cmp word ptr [0C8A],+00
+   cmp word ptr [offset _musicflag],+00
    jz L0c7e041e
    mov AL,0F
    push AX
    mov AL,0F
    push AX
-   call far A276001ec
+   call far _SetFMVolume
    pop CX
    pop CX
 L0c7e041e:
-   cmp word ptr [0C88],+00
+   cmp word ptr [offset _vocflag],+00
    jz L0c7e045a
-   call far A276002df
+   call far _DSPReset
    or AX,AX
    jz L0c7e0433
    mov AX,0001
@@ -9804,54 +9807,54 @@ jmp near L0c7e0435
 L0c7e0433:
    xor AX,AX
 L0c7e0435:
-   mov [0C78],AX
-   mov AX,[0C78]
-   mov [0C88],AX
-   cmp word ptr [0C88],+00
+   mov [offset _SetDSP],AX
+   mov AX,[offset _SetDSP]
+   mov [offset _vocflag],AX
+   cmp word ptr [offset _vocflag],+00
    jnz L0c7e044d
-   mov word ptr [0C6E],0001
+   mov word ptr [offset _soundoff],0001
 jmp near L0c7e045a
 L0c7e044d:
    mov AL,0F
    push AX
    mov AL,0F
    push AX
-   call far A2760015e
+   call far _SetMasterVolume
    pop CX
    pop CX
 L0c7e045a:
-   cmp word ptr [0C88],+00
+   cmp word ptr [offset _vocflag],+00
    jz L0c7e0475
    mov AX,7800
    push AX
-   call far A27f10003
+   call far _malloc
    pop CX
-   mov [3F2E],DX
-   mov [3F2C],AX
+   mov [offset _memvoc+02],DX
+   mov [offset _memvoc],AX
 jmp near L0c7e05a3
 L0c7e0475:
-   mov word ptr [3F2E],0000
-   mov word ptr [3F2C],0000
+   mov word ptr [offset _memvoc+02],0000
+   mov word ptr [offset _memvoc],0000
    mov AX,2080
    push AX
-   call far A27f10003
+   call far _malloc
    pop CX
-   mov [0C80],DX
-   mov [0C7E],AX
+   mov [offset _freq+02],DX
+   mov [offset _freq],AX
    mov AX,2080
    push AX
-   call far A27f10003
+   call far _malloc
    pop CX
-   mov [0C84],DX
-   mov [0C82],AX
+   mov [offset _dur+02],DX
+   mov [offset _dur],AX
    xor AX,AX
    push AX
-   mov AX,[0C86]
+   mov AX,[offset _headersize]
    cwd
    push DX
    push AX
-   push [0C8C]
-   call far A2889000d
+   push [offset _vocfilehandle]
+   call far _lseek
    add SP,+08
    mov word ptr [BP-04],0000
 jmp near L0c7e0544
@@ -9861,46 +9864,46 @@ L0c7e04c0:
    push SS
    lea AX,[BP-06]
    push AX
-   push [0C8C]
-   call far A28600006
+   push [offset _vocfilehandle]
+   call far _read
    add SP,+08
    cmp word ptr [BP-06],+00
    jz L0c7e052e
    push [BP-06]
-   call far A27f10003
+   call far _malloc
    pop CX
    mov BX,[BP-04]
    shl BX,1
    shl BX,1
-   mov [BX+4098],DX
-   mov [BX+4096],AX
+   mov [BX+offset _soundmac+02],DX
+   mov [BX+offset _soundmac],AX
    mov BX,[BP-04]
    shl BX,1
    shl BX,1
-   mov AX,[BX+4096]
-   or AX,[BX+4098]
+   mov AX,[BX+offset _soundmac]
+   or AX,[BX+offset _soundmac+02]
    jnz L0c7e050e
    mov AX,009A
    push AX
-   call far A19dd3342
+   call far _rexit
    pop CX
 L0c7e050e:
    push [BP-06]
    mov BX,[BP-04]
    shl BX,1
    shl BX,1
-   push [BX+4098]
-   push [BX+4096]
-   push [0C8C]
-   call far A28600006
+   push [BX+offset _soundmac+02]
+   push [BX+offset _soundmac]
+   push [offset _vocfilehandle]
+   call far _read
    add SP,+08
 jmp near L0c7e0541
 L0c7e052e:
    mov BX,[BP-04]
    shl BX,1
    shl BX,1
-   mov word ptr [BX+4098],0000
-   mov word ptr [BX+4096],0000
+   mov word ptr [BX+offset _soundmac+02],0000
+   mov word ptr [BX+offset _soundmac],0000
 L0c7e0541:
    inc word ptr [BP-04]
 L0c7e0544:
@@ -9910,60 +9913,60 @@ jmp near L0c7e04c0
 L0c7e054e:
    mov AX,28F0
    push AX
-   call far A27f10003
+   call far _malloc
    pop CX
-   mov [3F2A],DX
-   mov [3F28],AX
+   mov [offset _SOUNDS+02],DX
+   mov [offset _SOUNDS],AX
    mov AX,8001
    push AX
    push DS
    mov AX,offset Y2a170dda
    push AX
-   call far A28530005
+   call far __open
    add SP,+06
    mov [BP-02],AX
    cmp word ptr [BP-02],-01
    jnz L0c7e0583
    mov AX,009B
    push AX
-   call far A19dd3342
+   call far _rexit
    pop CX
 L0c7e0583:
    mov AX,28A0
    push AX
-   push [3F2A]
-   push [3F28]
+   push [offset _SOUNDS+02]
+   push [offset _SOUNDS]
    push [BP-02]
-   call far A286c000b
+   call far __read
    add SP,+08
    push [BP-02]
-   call far A285a000f
+   call far _close
    pop CX
 L0c7e05a3:
-   cmp word ptr [43B0],+00
+   cmp word ptr [offset _clockrate],+00
    jnz L0c7e05b8
-   mov word ptr [43B0],0001
-   mov word ptr [0C6E],0001
+   mov word ptr [offset _clockrate],0001
+   mov word ptr [offset _soundoff],0001
 jmp near L0c7e060d
 L0c7e05b8:
-   cmp word ptr [43B0],+01
+   cmp word ptr [offset _clockrate],+01
    jbe L0c7e060d
-   mov word ptr [0C6E],0000
+   mov word ptr [offset _soundoff],0000
    mov AX,0008
    push AX
-   call far A29840008
+   call far _getvect
    pop CX
-   mov [0C94],DX
-   mov [0C92],AX
-   mov AX,segment A0d7e0008
+   mov [offset _oldint8+02],DX
+   mov [offset _oldint8],AX
+   mov AX,segment _spkr_intr
    push AX
-   mov AX,offset A0d7e0008
+   mov AX,offset _spkr_intr
    push AX
    mov AX,0008
    push AX
-   call far A2984001a
+   call far _setvect
    add SP,+06
-   mov AX,[43B0]
+   mov AX,[offset _clockrate]
    xor DX,DX
    push DX
    push AX
@@ -9971,65 +9974,65 @@ L0c7e05b8:
    xor AX,AX
    push DX
    push AX
-   call far A076a04f2
+   call far LDIV@
    push AX
    mov AX,0002
    push AX
    xor AX,AX
    push AX
-   call far A0c7e0aec
+   call far _timerset
    add SP,+06
 L0c7e060d:
    mov SP,BP
    pop BP
 ret far
 
-A0c7e0611:
+_text_get: ;; 0c7e0611
    push BP
    mov BP,SP
-   mov word ptr [4094],0000
-   mov word ptr [4092],0000
+   mov word ptr [offset _textmsg+02],0000
+   mov word ptr [offset _textmsg],0000
    mov BX,[BP+06]
    shl BX,1
-   cmp word ptr [BX+offset Y2a174296],+00
+   cmp word ptr [BX+offset _textlen],+00
    jz L0c7e0697
    mov BX,[BP+06]
    shl BX,1
-   mov AX,[BX+offset Y2a174296]
-   mov [4456],AX
-   push [4456]
-   call far A27f10003
+   mov AX,[BX+offset _textlen]
+   mov [offset _textmsglen],AX
+   push [offset _textmsglen]
+   call far _malloc
    pop CX
-   mov [4094],DX
-   mov [4092],AX
-   mov AX,[4092]
-   or AX,[4094]
+   mov [offset _textmsg+02],DX
+   mov [offset _textmsg],AX
+   mov AX,[offset _textmsg]
+   or AX,[offset _textmsg+02]
    jz L0c7e0697
    xor AX,AX
    push AX
    mov BX,[BP+06]
    shl BX,1
    shl BX,1
-   push [BX+offset Y2a1743b4+2]
-   push [BX+offset Y2a1743b4]
-   push [0C8C]
-   call far A2889000d
+   push [BX+offset _textposn+02]
+   push [BX+offset _textposn]
+   push [offset _vocfilehandle]
+   call far _lseek
    mov SP,BP
-   push [4456]
-   push [4094]
-   push [4092]
-   push [0C8C]
-   call far A28600006
+   push [offset _textmsglen]
+   push [offset _textmsg+02]
+   push [offset _textmsg]
+   push [offset _vocfilehandle]
+   call far _read
    mov SP,BP
    cmp AX,FFFF
    jnz L0c7e0697
-   mov word ptr [4094],0000
-   mov word ptr [4092],0000
+   mov word ptr [offset _textmsg+02],0000
+   mov word ptr [offset _textmsg],0000
 L0c7e0697:
    pop BP
 ret far
 
-A0c7e0699:
+_snd_exit: ;; 0c7e0699
    push BP
    mov BP,SP
    sub SP,+02
@@ -10039,24 +10042,24 @@ A0c7e0699:
    push AX
    xor AX,AX
    push AX
-   call far A0c7e0aec
+   call far _timerset
    add SP,+06
-   call far A29f50038
-   mov AX,[0C7E]
-   or AX,[0C80]
+   call far _nosound
+   mov AX,[offset _freq]
+   or AX,[offset _freq+02]
    jz L0c7e06ce
-   push [0C80]
-   push [0C7E]
-   call far A29110001
+   push [offset _freq+02]
+   push [offset _freq]
+   call far _free
    pop CX
    pop CX
 L0c7e06ce:
-   mov AX,[0C82]
-   or AX,[0C84]
+   mov AX,[offset _dur]
+   or AX,[offset _dur+02]
    jz L0c7e06e6
-   push [0C84]
-   push [0C82]
-   call far A29110001
+   push [offset _dur+02]
+   push [offset _dur]
+   call far _free
    pop CX
    pop CX
 L0c7e06e6:
@@ -10066,15 +10069,15 @@ L0c7e06ed:
    mov BX,[BP-02]
    shl BX,1
    shl BX,1
-   mov AX,[BX+4096]
-   or AX,[BX+4098]
+   mov AX,[BX+offset _soundmac]
+   or AX,[BX+offset _soundmac+02]
    jz L0c7e0714
    mov BX,[BP-02]
    shl BX,1
    shl BX,1
-   push [BX+4098]
-   push [BX+4096]
-   call far A29110001
+   push [BX+offset _soundmac+02]
+   push [BX+offset _soundmac]
+   call far _free
    pop CX
    pop CX
 L0c7e0714:
@@ -10082,96 +10085,96 @@ L0c7e0714:
 L0c7e0717:
    cmp word ptr [BP-02],0080
    jl L0c7e06ed
-   push [3F2E]
-   push [3F2C]
-   call far A29110001
+   push [offset _memvoc+02]
+   push [offset _memvoc]
+   call far _free
    pop CX
    pop CX
-   cmp word ptr [0C8C],+00
+   cmp word ptr [offset _vocfilehandle],+00
    jl L0c7e073e
-   push [0C8C]
-   call far A285a000f
+   push [offset _vocfilehandle]
+   call far _close
    pop CX
 L0c7e073e:
-   mov AX,[0C92]
-   or AX,[0C94]
+   mov AX,[offset _oldint8]
+   or AX,[offset _oldint8+02]
    jz L0c7e075b
-   push [0C94]
-   push [0C92]
+   push [offset _oldint8+02]
+   push [offset _oldint8]
    mov AX,0008
    push AX
-   call far A2984001a
+   call far _setvect
    add SP,+06
 L0c7e075b:
-   cmp word ptr [0C78],+00
+   cmp word ptr [offset _SetDSP],+00
    jz L0c7e0767
-   call far A276002c4
+   call far _DSPClose
 L0c7e0767:
-   push [0C98]
-   push [0C96]
+   push [offset _worxint8+02]
+   push [offset _worxint8]
    mov AX,0008
    push AX
-   call far A2984001a
+   call far _setvect
    add SP,+06
-   call far A27600066
+   call far _CloseWorx
    mov SP,BP
    pop BP
 ret far
 
-A0c7e0784:
+_sb_update: ;; 0c7e0784
 ret far
 
-A0c7e0785:
+_sb_playing: ;; 0c7e0785
    mov AX,0001
 jmp near L0c7e078a
 L0c7e078a:
 ret far
 
-A0c7e078b:
-   cmp word ptr [0C8A],+00
+_sb_shutup: ;; 0c7e078b
+   cmp word ptr [offset _musicflag],+00
    jz L0c7e07b2
-   call far A27600707
-   push [0C90]
-   push [0C8E]
-   call far A29110001
+   call far _StopSequence
+   push [offset _song+02]
+   push [offset _song]
+   call far _free
    pop CX
    pop CX
-   mov word ptr [0C90],0000
-   mov word ptr [0C8E],0000
+   mov word ptr [offset _song+02],0000
+   mov word ptr [offset _song],0000
 L0c7e07b2:
 ret far
 
-A0c7e07b3:
+_sb_playtune: ;; 0c7e07b3
    push BP
    mov BP,SP
-   cmp word ptr [0C8A],+00
+   cmp word ptr [offset _musicflag],+00
    jnz L0c7e07bf
 jmp near L0c7e07f9
 L0c7e07bf:
    push CS
-   call near offset A0c7e078b
+   call near offset _sb_shutup
    push [BP+08]
    push [BP+06]
-   call far A2760037e
+   call far _GetSequence
    mov SP,BP
-   mov [0C90],DX
-   mov [0C8E],AX
-   mov AX,[0C8E]
-   or AX,[0C90]
+   mov [offset _song+02],DX
+   mov [offset _song],AX
+   mov AX,[offset _song]
+   or AX,[offset _song+02]
    jz L0c7e07f9
    mov AX,0001
    push AX
-   call far A2760067f
+   call far _SetLoopMode
    pop CX
-   push [0C90]
-   push [0C8E]
-   call far A276005a3
+   push [offset _song+02]
+   push [offset _song]
+   call far _PlayCMFBlock
    mov SP,BP
 L0c7e07f9:
    pop BP
 ret far
 
-X0c7e07fb:
+_sampadd1: ;; 0c7e07fb ;; (@) Unaccessed.
    push BP
    mov BP,SP
    sub SP,+12
@@ -10179,11 +10182,11 @@ X0c7e07fb:
    mov CL,07
    shl AX,CL
    shl AX,1
-   les BX,[3F28]
+   les BX,[offset _SOUNDS]
    add BX,AX
    mov [BP-02],ES
    mov [BP-04],BX
-   cmp word ptr [0C6E],+00
+   cmp word ptr [offset _soundoff],+00
    jz L0c7e0820
 jmp near L0c7e08cc
 L0c7e0820:
@@ -10191,11 +10194,11 @@ L0c7e0820:
    mov BX,[BP+0C]
    add BX,+10
    shl BX,1
-   mov AX,[BX+0CBA]
+   mov AX,[BX+offset _notetable]
    cwd
    mov [BP-06],DX
    mov [BP-08],AX
-   mov word ptr [0C72],0001
+   mov word ptr [offset _makesound],0001
 L0c7e083e:
    mov AX,[BP-12]
    shl AX,1
@@ -10210,9 +10213,9 @@ L0c7e083e:
    jnz L0c7e0873
    cmp word ptr [BP-0C],-01
    jnz L0c7e0873
-   mov AX,[43B2]
+   mov AX,[offset _soundlen]
    shl AX,1
-   les BX,[0C7E]
+   les BX,[offset _freq]
    add BX,AX
    mov word ptr [ES:BX],FFFF
 jmp near L0c7e08a3
@@ -10221,29 +10224,29 @@ L0c7e0873:
    mov AX,[BP-0C]
    mov CX,[BP-06]
    mov BX,[BP-08]
-   call far A076a0390
+   call far LXMUL@
    mov CL,0A
-   call far A076a0595
+   call far LXRSH@
    mov [BP-0E],DX
    mov [BP-10],AX
    mov AX,[BP-10]
-   mov DX,[43B2]
+   mov DX,[offset _soundlen]
    shl DX,1
-   les BX,[0C7E]
+   les BX,[offset _freq]
    add BX,DX
    mov [ES:BX],AX
 L0c7e08a3:
    mov AX,[BP+0A]
-   mov DX,[43B2]
+   mov DX,[offset _soundlen]
    shl DX,1
-   les BX,[0C82]
+   les BX,[offset _dur]
    add BX,DX
    mov [ES:BX],AX
-   inc word ptr [43B2]
+   inc word ptr [offset _soundlen]
    mov AX,[BP-12]
    cmp AX,[BP+08]
    jge L0c7e08cc
-   cmp word ptr [43B2],1000
+   cmp word ptr [offset _soundlen],1000
    jge L0c7e08cc
 jmp near L0c7e083e
 L0c7e08cc:
@@ -10251,21 +10254,21 @@ L0c7e08cc:
    pop BP
 ret far
 
-X0c7e08d0:
+_soundadd1: ;; 0c7e08d0 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    sub SP,+0A
    mov word ptr [BP-06],FFFF
-   cmp word ptr [0C6E],+00
+   cmp word ptr [offset _soundoff],+00
    jz L0c7e08e5
 jmp near L0c7e0adc
 L0c7e08e5:
-   cmp word ptr [0C72],+00
+   cmp word ptr [offset _makesound],+00
    jz L0c7e0905
    mov AX,[BP+06]
-   cmp AX,[445C]
+   cmp AX,[offset _notepriority]
    jl L0c7e08fc
-   cmp word ptr [445C],-01
+   cmp word ptr [offset _notepriority],-01
    jnz L0c7e0905
 L0c7e08fc:
    cmp word ptr [BP+06],-01
@@ -10274,16 +10277,16 @@ jmp near L0c7e0adc
 L0c7e0905:
    cmp word ptr [BP+06],+00
    jge L0c7e0912
-   cmp word ptr [0C72],+00
+   cmp word ptr [offset _makesound],+00
    jnz L0c7e092a
 L0c7e0912:
-   mov word ptr [0C72],0000
-   mov word ptr [4454],0000
-   mov word ptr [43B2],0000
-   mov word ptr [445A],0000
+   mov word ptr [offset _makesound],0000
+   mov word ptr [offset _soundptr],0000
+   mov word ptr [offset _soundlen],0000
+   mov word ptr [offset _soundcount],0000
 L0c7e092a:
    mov AX,[BP+06]
-   mov [445C],AX
+   mov [offset _notepriority],AX
    mov word ptr [BP-0A],0000
 L0c7e0935:
    les BX,[BP+08]
@@ -10314,26 +10317,26 @@ L0c7e0954:
    jnz L0c7e09b5
    mov BX,[BP-08]
    shl BX,1
-   mov AX,[BX+0CBA]
-   mov DX,[43B2]
+   mov AX,[BX+offset _notetable]
+   mov DX,[offset _soundlen]
    shl DX,1
-   les BX,[0C7E]
+   les BX,[offset _freq]
    add BX,DX
    mov [ES:BX],AX
    mov AX,[BP-04]
-   mul word ptr [43B0]
-   mov DX,[43B2]
+   mul word ptr [offset _clockrate]
+   mov DX,[offset _soundlen]
    shl DX,1
-   les BX,[0C82]
+   les BX,[offset _dur]
    add BX,DX
    mov [ES:BX],AX
-   inc word ptr [43B2]
-   mov word ptr [0C72],0001
+   inc word ptr [offset _soundlen]
+   mov word ptr [offset _makesound],0001
 jmp near L0c7e0ac5
 L0c7e09b5:
    mov AX,[BP-06]
    shl AX,1
-   les BX,[3F28]
+   les BX,[offset _SOUNDS]
    add BX,AX
    cmp word ptr [ES:BX+2800],+01
    jge L0c7e09cd
@@ -10342,7 +10345,7 @@ jmp near L0c7e09dd
 L0c7e09cd:
    mov AX,[BP-06]
    shl AX,1
-   les BX,[3F28]
+   les BX,[offset _SOUNDS]
    add BX,AX
    mov AX,[ES:BX+2800]
 L0c7e09dd:
@@ -10350,7 +10353,7 @@ L0c7e09dd:
    shl AX,CL
    push AX
    mov AX,[BP-04]
-   mul word ptr [43B0]
+   mul word ptr [offset _clockrate]
    pop DX
    sub AX,DX
    mov [BP-02],AX
@@ -10359,7 +10362,7 @@ L0c7e09dd:
    push [BP-08]
    mov AX,[BP-06]
    shl AX,1
-   les BX,[3F28]
+   les BX,[offset _SOUNDS]
    add BX,AX
    cmp word ptr [ES:BX+2800],+01
    jge L0c7e0a10
@@ -10368,7 +10371,7 @@ jmp near L0c7e0a20
 L0c7e0a10:
    mov AX,[BP-06]
    shl AX,1
-   les BX,[3F28]
+   les BX,[offset _SOUNDS]
    add BX,AX
    mov AX,[ES:BX+2800]
 L0c7e0a20:
@@ -10376,26 +10379,26 @@ L0c7e0a20:
    mov AX,0080
    push AX
    push [BP-06]
-   call far A0c7e0b1b
+   call far _sampadd
    add SP,+08
-   mov AX,[43B2]
+   mov AX,[offset _soundlen]
    shl AX,1
-   les BX,[0C7E]
+   les BX,[offset _freq]
    add BX,AX
    mov word ptr [ES:BX],FFFF
    mov AX,[BP-02]
-   mov DX,[43B2]
+   mov DX,[offset _soundlen]
    shl DX,1
-   les BX,[0C82]
+   les BX,[offset _dur]
    add BX,DX
    mov [ES:BX],AX
-   inc word ptr [43B2]
+   inc word ptr [offset _soundlen]
 jmp near L0c7e0ac5
 L0c7e0a58:
    push [BP-08]
    mov AX,[BP-06]
    shl AX,1
-   les BX,[3F28]
+   les BX,[offset _SOUNDS]
    add BX,AX
    cmp word ptr [ES:BX+2800],+01
    jge L0c7e0a73
@@ -10404,17 +10407,17 @@ jmp near L0c7e0a83
 L0c7e0a73:
    mov AX,[BP-06]
    shl AX,1
-   les BX,[3F28]
+   les BX,[offset _SOUNDS]
    add BX,AX
    mov AX,[ES:BX+2800]
 L0c7e0a83:
    push AX
    mov AX,[BP-04]
-   mul word ptr [43B0]
+   mul word ptr [offset _clockrate]
    push AX
    mov AX,[BP-06]
    shl AX,1
-   les BX,[3F28]
+   les BX,[offset _SOUNDS]
    add BX,AX
    cmp word ptr [ES:BX+2800],+01
    jge L0c7e0aa4
@@ -10423,7 +10426,7 @@ jmp near L0c7e0ab4
 L0c7e0aa4:
    mov AX,[BP-06]
    shl AX,1
-   les BX,[3F28]
+   les BX,[offset _SOUNDS]
    add BX,AX
    mov BX,[ES:BX+2800]
 L0c7e0ab4:
@@ -10432,14 +10435,14 @@ L0c7e0ab4:
    div BX
    push AX
    push [BP-06]
-   call far A0c7e0b1b
+   call far _sampadd
    add SP,+08
 L0c7e0ac5:
    les BX,[BP+08]
    add BX,[BP-0A]
    cmp byte ptr [ES:BX],00
    jz L0c7e0adc
-   cmp word ptr [43B2],1000
+   cmp word ptr [offset _soundlen],1000
    jge L0c7e0adc
 jmp near L0c7e0935
 L0c7e0adc:
@@ -10447,12 +10450,12 @@ L0c7e0adc:
    pop BP
 ret far
 
-X0c7e0ae0:
-   mov word ptr [0C72],0000
-   call far A29f50038
+_soundstop: ;; 0c7e0ae0 ;; (@) Unaccessed.
+   mov word ptr [offset _makesound],0000
+   call far _nosound
 ret far
 
-A0c7e0aec:
+_timerset: ;; 0c7e0aec
    push BP
    mov BP,SP
    mov AL,[BP+06]
@@ -10476,7 +10479,7 @@ A0c7e0aec:
    pop BP
 ret far
 
-A0c7e0b1b:
+_sampadd: ;; 0c7e0b1b
    push BP
    mov BP,SP
    sub SP,+12
@@ -10484,11 +10487,11 @@ A0c7e0b1b:
    mov CL,07
    shl AX,CL
    shl AX,1
-   les BX,[3F28]
+   les BX,[offset _SOUNDS]
    add BX,AX
    mov [BP-10],ES
    mov [BP-12],BX
-   cmp word ptr [0C6E],+00
+   cmp word ptr [offset _soundoff],+00
    jz L0c7e0b40
 jmp near L0c7e0bec
 L0c7e0b40:
@@ -10496,11 +10499,11 @@ L0c7e0b40:
    mov BX,[BP+0C]
    add BX,+10
    shl BX,1
-   mov AX,[BX+0CBA]
+   mov AX,[BX+offset _notetable]
    cwd
    mov [BP-02],DX
    mov [BP-04],AX
-   mov word ptr [0C72],0001
+   mov word ptr [offset _makesound],0001
 L0c7e0b5e:
    mov AX,[BP-0E]
    shl AX,1
@@ -10515,9 +10518,9 @@ L0c7e0b5e:
    jnz L0c7e0b93
    cmp word ptr [BP-08],-01
    jnz L0c7e0b93
-   mov AX,[43B2]
+   mov AX,[offset _soundlen]
    shl AX,1
-   les BX,[0C7E]
+   les BX,[offset _freq]
    add BX,AX
    mov word ptr [ES:BX],FFFF
 jmp near L0c7e0bc3
@@ -10526,29 +10529,29 @@ L0c7e0b93:
    mov AX,[BP-08]
    mov CX,[BP-02]
    mov BX,[BP-04]
-   call far A076a0390
+   call far LXMUL@
    mov CL,0A
-   call far A076a0595
+   call far LXRSH@
    mov [BP-0A],DX
    mov [BP-0C],AX
    mov AX,[BP-0C]
-   mov DX,[43B2]
+   mov DX,[offset _soundlen]
    shl DX,1
-   les BX,[0C7E]
+   les BX,[offset _freq]
    add BX,DX
    mov [ES:BX],AX
 L0c7e0bc3:
    mov AX,[BP+0A]
-   mov DX,[43B2]
+   mov DX,[offset _soundlen]
    shl DX,1
-   les BX,[0C82]
+   les BX,[offset _dur]
    add BX,DX
    mov [ES:BX],AX
-   inc word ptr [43B2]
+   inc word ptr [offset _soundlen]
    mov AX,[BP-0E]
    cmp AX,[BP+08]
    jge L0c7e0bec
-   cmp word ptr [43B2],1000
+   cmp word ptr [offset _soundlen],1000
    jge L0c7e0bec
 jmp near L0c7e0b5e
 L0c7e0bec:
@@ -10556,21 +10559,21 @@ L0c7e0bec:
    pop BP
 ret far
 
-X0c7e0bf0:
+_soundadd2: ;; 0c7e0bf0 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    sub SP,+0A
    mov word ptr [BP-06],FFFF
-   cmp word ptr [0C6E],+00
+   cmp word ptr [offset _soundoff],+00
    jz L0c7e0c05
 jmp near L0c7e0dfa
 L0c7e0c05:
-   cmp word ptr [0C72],+00
+   cmp word ptr [offset _makesound],+00
    jz L0c7e0c25
    mov AX,[BP+06]
-   cmp AX,[445C]
+   cmp AX,[offset _notepriority]
    jl L0c7e0c1c
-   cmp word ptr [445C],-01
+   cmp word ptr [offset _notepriority],-01
    jnz L0c7e0c25
 L0c7e0c1c:
    cmp word ptr [BP+06],-01
@@ -10579,16 +10582,16 @@ jmp near L0c7e0dfa
 L0c7e0c25:
    cmp word ptr [BP+06],+00
    jge L0c7e0c32
-   cmp word ptr [0C72],+00
+   cmp word ptr [offset _makesound],+00
    jnz L0c7e0c4a
 L0c7e0c32:
-   mov word ptr [0C72],0000
-   mov word ptr [4454],0000
-   mov word ptr [43B2],0000
-   mov word ptr [445A],0000
+   mov word ptr [offset _makesound],0000
+   mov word ptr [offset _soundptr],0000
+   mov word ptr [offset _soundlen],0000
+   mov word ptr [offset _soundcount],0000
 L0c7e0c4a:
    mov AX,[BP+06]
-   mov [445C],AX
+   mov [offset _notepriority],AX
    mov word ptr [BP-0A],0000
 L0c7e0c55:
    les BX,[BP+08]
@@ -10619,26 +10622,26 @@ L0c7e0c74:
    jnz L0c7e0cd5
    mov BX,[BP-08]
    shl BX,1
-   mov AX,[BX+0CBA]
-   mov DX,[43B2]
+   mov AX,[BX+offset _notetable]
+   mov DX,[offset _soundlen]
    shl DX,1
-   les BX,[0C7E]
+   les BX,[offset _freq]
    add BX,DX
    mov [ES:BX],AX
    mov AX,[BP-04]
-   mul word ptr [43B0]
-   mov DX,[43B2]
+   mul word ptr [offset _clockrate]
+   mov DX,[offset _soundlen]
    shl DX,1
-   les BX,[0C82]
+   les BX,[offset _dur]
    add BX,DX
    mov [ES:BX],AX
-   inc word ptr [43B2]
-   mov word ptr [0C72],0001
+   inc word ptr [offset _soundlen]
+   mov word ptr [offset _makesound],0001
 jmp near L0c7e0de3
 L0c7e0cd5:
    mov AX,[BP-06]
    shl AX,1
-   les BX,[3F28]
+   les BX,[offset _SOUNDS]
    add BX,AX
    cmp word ptr [ES:BX+2800],+01
    jge L0c7e0ced
@@ -10647,7 +10650,7 @@ jmp near L0c7e0cfd
 L0c7e0ced:
    mov AX,[BP-06]
    shl AX,1
-   les BX,[3F28]
+   les BX,[offset _SOUNDS]
    add BX,AX
    mov AX,[ES:BX+2800]
 L0c7e0cfd:
@@ -10655,7 +10658,7 @@ L0c7e0cfd:
    shl AX,CL
    push AX
    mov AX,[BP-04]
-   mul word ptr [43B0]
+   mul word ptr [offset _clockrate]
    pop DX
    sub AX,DX
    mov [BP-02],AX
@@ -10664,7 +10667,7 @@ L0c7e0cfd:
    push [BP-08]
    mov AX,[BP-06]
    shl AX,1
-   les BX,[3F28]
+   les BX,[offset _SOUNDS]
    add BX,AX
    cmp word ptr [ES:BX+2800],+01
    jge L0c7e0d30
@@ -10673,7 +10676,7 @@ jmp near L0c7e0d40
 L0c7e0d30:
    mov AX,[BP-06]
    shl AX,1
-   les BX,[3F28]
+   les BX,[offset _SOUNDS]
    add BX,AX
    mov AX,[ES:BX+2800]
 L0c7e0d40:
@@ -10682,26 +10685,26 @@ L0c7e0d40:
    push AX
    push [BP-06]
    push CS
-   call near offset A0c7e0b1b
+   call near offset _sampadd
    add SP,+08
-   mov AX,[43B2]
+   mov AX,[offset _soundlen]
    shl AX,1
-   les BX,[0C7E]
+   les BX,[offset _freq]
    add BX,AX
    mov word ptr [ES:BX],FFFF
    mov AX,[BP-02]
-   mov DX,[43B2]
+   mov DX,[offset _soundlen]
    shl DX,1
-   les BX,[0C82]
+   les BX,[offset _dur]
    add BX,DX
    mov [ES:BX],AX
-   inc word ptr [43B2]
+   inc word ptr [offset _soundlen]
 jmp near L0c7e0de3
 L0c7e0d77:
    push [BP-08]
    mov AX,[BP-06]
    shl AX,1
-   les BX,[3F28]
+   les BX,[offset _SOUNDS]
    add BX,AX
    cmp word ptr [ES:BX+2800],+01
    jge L0c7e0d92
@@ -10710,17 +10713,17 @@ jmp near L0c7e0da2
 L0c7e0d92:
    mov AX,[BP-06]
    shl AX,1
-   les BX,[3F28]
+   les BX,[offset _SOUNDS]
    add BX,AX
    mov AX,[ES:BX+2800]
 L0c7e0da2:
    push AX
    mov AX,[BP-04]
-   mul word ptr [43B0]
+   mul word ptr [offset _clockrate]
    push AX
    mov AX,[BP-06]
    shl AX,1
-   les BX,[3F28]
+   les BX,[offset _SOUNDS]
    add BX,AX
    cmp word ptr [ES:BX+2800],+01
    jge L0c7e0dc3
@@ -10729,7 +10732,7 @@ jmp near L0c7e0dd3
 L0c7e0dc3:
    mov AX,[BP-06]
    shl AX,1
-   les BX,[3F28]
+   les BX,[offset _SOUNDS]
    add BX,AX
    mov BX,[ES:BX+2800]
 L0c7e0dd3:
@@ -10739,14 +10742,14 @@ L0c7e0dd3:
    push AX
    push [BP-06]
    push CS
-   call near offset A0c7e0b1b
+   call near offset _sampadd
    add SP,+08
 L0c7e0de3:
    les BX,[BP+08]
    add BX,[BP-0A]
    cmp byte ptr [ES:BX],00
    jz L0c7e0dfa
-   cmp word ptr [43B2],1000
+   cmp word ptr [offset _soundlen],1000
    jge L0c7e0dfa
 jmp near L0c7e0c55
 L0c7e0dfa:
@@ -10754,21 +10757,21 @@ L0c7e0dfa:
    pop BP
 ret far
 
-A0c7e0dfe:
+_soundadd: ;; 0c7e0dfe
    push BP
    mov BP,SP
    sub SP,+0A
    mov word ptr [BP-06],FFFF
-   cmp word ptr [0C6E],+00
+   cmp word ptr [offset _soundoff],+00
    jz L0c7e0e13
 jmp near L0c7e1003
 L0c7e0e13:
-   cmp word ptr [0C72],+00
+   cmp word ptr [offset _makesound],+00
    jz L0c7e0e33
    mov AX,[BP+06]
-   cmp AX,[445C]
+   cmp AX,[offset _notepriority]
    jl L0c7e0e2a
-   cmp word ptr [445C],-01
+   cmp word ptr [offset _notepriority],-01
    jnz L0c7e0e33
 L0c7e0e2a:
    cmp word ptr [BP+06],-01
@@ -10777,16 +10780,16 @@ jmp near L0c7e1003
 L0c7e0e33:
    cmp word ptr [BP+06],+00
    jge L0c7e0e40
-   cmp word ptr [0C72],+00
+   cmp word ptr [offset _makesound],+00
    jnz L0c7e0e58
 L0c7e0e40:
-   mov word ptr [0C72],0000
-   mov word ptr [4454],0000
-   mov word ptr [43B2],0000
-   mov word ptr [445A],0000
+   mov word ptr [offset _makesound],0000
+   mov word ptr [offset _soundptr],0000
+   mov word ptr [offset _soundlen],0000
+   mov word ptr [offset _soundcount],0000
 L0c7e0e58:
    mov AX,[BP+06]
-   mov [445C],AX
+   mov [offset _notepriority],AX
    mov word ptr [BP-0A],0000
 L0c7e0e63:
    les BX,[BP+08]
@@ -10817,26 +10820,26 @@ L0c7e0e82:
    jnz L0c7e0ee3
    mov BX,[BP-08]
    shl BX,1
-   mov AX,[BX+0CBA]
-   mov DX,[43B2]
+   mov AX,[BX+offset _notetable]
+   mov DX,[offset _soundlen]
    shl DX,1
-   les BX,[0C7E]
+   les BX,[offset _freq]
    add BX,DX
    mov [ES:BX],AX
    mov AX,[BP-04]
-   mul word ptr [43B0]
-   mov DX,[43B2]
+   mul word ptr [offset _clockrate]
+   mov DX,[offset _soundlen]
    shl DX,1
-   les BX,[0C82]
+   les BX,[offset _dur]
    add BX,DX
    mov [ES:BX],AX
-   inc word ptr [43B2]
-   mov word ptr [0C72],0001
+   inc word ptr [offset _soundlen]
+   mov word ptr [offset _makesound],0001
 jmp near L0c7e0fec
 L0c7e0ee3:
    mov AX,[BP-06]
    shl AX,1
-   les BX,[3F28]
+   les BX,[offset _SOUNDS]
    add BX,AX
    cmp word ptr [ES:BX+2800],+01
    jge L0c7e0efb
@@ -10845,7 +10848,7 @@ jmp near L0c7e0f0b
 L0c7e0efb:
    mov AX,[BP-06]
    shl AX,1
-   les BX,[3F28]
+   les BX,[offset _SOUNDS]
    add BX,AX
    mov AX,[ES:BX+2800]
 L0c7e0f0b:
@@ -10853,7 +10856,7 @@ L0c7e0f0b:
    shl AX,CL
    push AX
    mov AX,[BP-04]
-   mul word ptr [43B0]
+   mul word ptr [offset _clockrate]
    pop DX
    sub AX,DX
    mov [BP-02],AX
@@ -10862,7 +10865,7 @@ L0c7e0f0b:
    push [BP-08]
    mov AX,[BP-06]
    shl AX,1
-   les BX,[3F28]
+   les BX,[offset _SOUNDS]
    add BX,AX
    cmp word ptr [ES:BX+2800],+01
    jge L0c7e0f3e
@@ -10871,7 +10874,7 @@ jmp near L0c7e0f4e
 L0c7e0f3e:
    mov AX,[BP-06]
    shl AX,1
-   les BX,[3F28]
+   les BX,[offset _SOUNDS]
    add BX,AX
    mov AX,[ES:BX+2800]
 L0c7e0f4e:
@@ -10880,26 +10883,26 @@ L0c7e0f4e:
    push AX
    push [BP-06]
    push CS
-   call near offset A0c7e0b1b
+   call near offset _sampadd
    add SP,+08
-   mov AX,[43B2]
+   mov AX,[offset _soundlen]
    shl AX,1
-   les BX,[0C7E]
+   les BX,[offset _freq]
    add BX,AX
    mov word ptr [ES:BX],FFFF
    mov AX,[BP-02]
-   mov DX,[43B2]
+   mov DX,[offset _soundlen]
    shl DX,1
-   les BX,[0C82]
+   les BX,[offset _dur]
    add BX,DX
    mov [ES:BX],AX
-   inc word ptr [43B2]
+   inc word ptr [offset _soundlen]
 jmp near L0c7e0fec
 L0c7e0f85:
    push [BP-08]
    mov AX,[BP-06]
    shl AX,1
-   les BX,[3F28]
+   les BX,[offset _SOUNDS]
    add BX,AX
    cmp word ptr [ES:BX+2800],+01
    jge L0c7e0fa0
@@ -10908,7 +10911,7 @@ jmp near L0c7e0fb0
 L0c7e0fa0:
    mov AX,[BP-06]
    shl AX,1
-   les BX,[3F28]
+   les BX,[offset _SOUNDS]
    add BX,AX
    mov AX,[ES:BX+2800]
 L0c7e0fb0:
@@ -10917,7 +10920,7 @@ L0c7e0fb0:
    push AX
    mov AX,[BP-06]
    shl AX,1
-   les BX,[3F28]
+   les BX,[offset _SOUNDS]
    add BX,AX
    cmp word ptr [ES:BX+2800],+01
    jge L0c7e0fcd
@@ -10926,7 +10929,7 @@ jmp near L0c7e0fdd
 L0c7e0fcd:
    mov AX,[BP-06]
    shl AX,1
-   les BX,[3F28]
+   les BX,[offset _SOUNDS]
    add BX,AX
    mov BX,[ES:BX+2800]
 L0c7e0fdd:
@@ -10936,14 +10939,14 @@ L0c7e0fdd:
    push AX
    push [BP-06]
    push CS
-   call near offset A0c7e0b1b
+   call near offset _sampadd
    add SP,+08
 L0c7e0fec:
    les BX,[BP+08]
    add BX,[BP-0A]
    cmp byte ptr [ES:BX],00
    jz L0c7e1003
-   cmp word ptr [43B2],1000
+   cmp word ptr [offset _soundlen],1000
    jge L0c7e1003
 jmp near L0c7e0e63
 L0c7e1003:
@@ -10958,7 +10961,7 @@ X0d7e0006:
    push AX
 X0d7e0007:
    push BX
-A0d7e0008:
+_spkr_intr: ;; 0d7e0008
    push AX
    push BX
    push CX
@@ -10972,68 +10975,68 @@ A0d7e0008:
    mov DS,BP
    mov BP,SP
    sub SP,+02
-   cmp word ptr [0C72],+00
+   cmp word ptr [offset _makesound],+00
    jnz L0d7e0025
 jmp near L0d7e009e
 X0d7e0024:
    nop
 L0d7e0025:
-   cmp word ptr [0C70],+00
+   cmp word ptr [offset _soundf],+00
    jnz L0d7e002f
 jmp near L0d7e009e
 X0d7e002e:
    nop
 L0d7e002f:
-   dec word ptr [445A]
-   cmp word ptr [445A],+00
+   dec word ptr [offset _soundcount]
+   cmp word ptr [offset _soundcount],+00
    jg L0d7e009c
-   mov AX,[4454]
-   cmp AX,[43B2]
+   mov AX,[offset _soundptr]
+   cmp AX,[offset _soundlen]
    jl L0d7e0050
-   mov word ptr [0C72],0000
-   call far A29f50038
+   mov word ptr [offset _makesound],0000
+   call far _nosound
 jmp near L0d7e009c
 L0d7e0050:
-   mov AX,[4454]
+   mov AX,[offset _soundptr]
    shl AX,1
-   les BX,[0C7E]
+   les BX,[offset _freq]
    add BX,AX
    mov AX,[ES:BX]
    mov [BP-02],AX
    cmp word ptr [BP-02],-01
    jnz L0d7e006e
-   call far A29f50038
+   call far _nosound
 jmp near L0d7e0081
 L0d7e006e:
    mov AX,[BP-02]
-   cmp AX,[43AE]
+   cmp AX,[offset _oldfreq]
    jz L0d7e0081
    push [BP-02]
-   call far A29f5000c
+   call far _sound
    inc SP
    inc SP
 L0d7e0081:
-   mov AX,[4454]
+   mov AX,[offset _soundptr]
    shl AX,1
-   les BX,[0C82]
+   les BX,[offset _dur]
    add BX,AX
    mov AX,[ES:BX]
-   mov [445A],AX
-   inc word ptr [4454]
+   mov [offset _soundcount],AX
+   inc word ptr [offset _soundptr]
    mov AX,[BP-02]
-   mov [43AE],AX
+   mov [offset _oldfreq],AX
 L0d7e009c:
 jmp near L0d7e00a3
 L0d7e009e:
-   call far A29f50038
+   call far _nosound
 L0d7e00a3:
-   mov AX,[4458]
-   inc word ptr [4458]
+   mov AX,[offset _clockcount]
+   inc word ptr [offset _clockcount]
    cmp AX,0002
    jbe L0d7e00bc
-   mov word ptr [4458],0000
+   mov word ptr [offset _clockcount],0000
    pushf
-   call far [0C92]
+   call far [offset _oldint8]
 jmp near L0d7e00c0
 L0d7e00bc:
    mov AL,20
@@ -11051,7 +11054,7 @@ L0d7e00c0:
    pop AX
 iret
 
-A0d7e00cc:
+_WorxBugInt8: ;; 0d7e00cc
    push AX
    push BX
    push CX
@@ -11065,7 +11068,7 @@ A0d7e00cc:
    mov DS,BP
    cld
    pushf
-   call far [0C96]
+   call far [offset _worxint8]
    pop BP
    pop DI
    pop SI
@@ -11078,638 +11081,638 @@ A0d7e00cc:
 iret
 
 Segment 0d8c ;; JOBJ.C:JOBJ
-A0d8c000a:
-   mov word ptr [B912],segment A16e001b6
-   mov word ptr [B910],offset A16e001b6
-   mov word ptr [B778],0010
-   mov word ptr [offset Y2a17b802+2*00],0020
-   mov [BA60],DS
-   mov word ptr [BA5E],offset Y2a170e3e
-   mov word ptr [C23E],0008
-   mov word ptr [BC40],0008
-   mov word ptr [BCCA],0000
-   mov word ptr [B916],segment A0d8c0e16
-   mov word ptr [B914],offset A0d8c0e16
-   mov word ptr [B77A],000C
-   mov word ptr [offset Y2a17b802+2*01],000C
-   mov [BA64],DS
-   mov word ptr [BA62],offset Y2a170e45
-   mov word ptr [C240],0000
-   mov word ptr [BC42],0009
-   mov word ptr [BCCC],000C
-   mov word ptr [B91A],segment A0d8c0ffc
-   mov word ptr [B918],offset A0d8c0ffc
-   mov word ptr [B77C],000A
-   mov word ptr [offset Y2a17b802+2*02],000A
-   mov [BA68],DS
-   mov word ptr [BA66],offset Y2a170e4b
-   mov word ptr [C242],4008
-   mov word ptr [BC44],000D
-   mov word ptr [BCCE],0000
-   mov word ptr [B91E],segment A0d8c0e0f
-   mov word ptr [B91C],offset A0d8c0e0f
-   mov word ptr [B77E],0000
-   mov word ptr [offset Y2a17b802+2*03],0000
-   mov [BA6C],DS
-   mov word ptr [BA6A],offset Y2a170e51
-   mov word ptr [C244],0000
-   mov word ptr [BC46],0000
-   mov word ptr [BCD0],0000
-   mov word ptr [B922],segment A0d8c13cc
-   mov word ptr [B920],offset A0d8c13cc
-   mov word ptr [B780],0018
-   mov word ptr [offset Y2a17b802+2*04],0010
-   mov [BA70],DS
-   mov word ptr [BA6E],offset Y2a170e58
-   mov word ptr [C246],0480
-   mov word ptr [BC48],003B
-   mov word ptr [BCD2],0008
-   mov word ptr [B926],segment A0d8c1788
-   mov word ptr [B924],offset A0d8c1788
-   mov word ptr [B782],0010
-   mov word ptr [offset Y2a17b802+2*05],000E
-   mov [BA74],DS
-   mov word ptr [BA72],offset Y2a170e5f
-   mov word ptr [C248],0080
-   mov word ptr [BC4A],003C
-   mov word ptr [BCD4],0003
-   mov word ptr [B92A],segment A11864c38
-   mov word ptr [B928],offset A11864c38
-   mov word ptr [B784],0000
-   mov word ptr [offset Y2a17b802+2*06],0000
-   mov [BA78],DS
-   mov word ptr [BA76],offset Y2a170e63
-   mov word ptr [C24A],0008
-   mov word ptr [BC4C],0000
-   mov word ptr [BCD6],0000
-   mov word ptr [B92E],segment A0d8c2956
-   mov word ptr [B92C],offset A0d8c2956
-   mov word ptr [B786],0020
-   mov word ptr [offset Y2a17b802+2*07],0020
-   mov [BA7C],DS
-   mov word ptr [BA7A],offset Y2a170e6d
-   mov word ptr [C24C],0000
-   mov word ptr [BC4E],002B
-   mov word ptr [BCD8],0014
-   mov word ptr [B932],segment A0d8c36f3
-   mov word ptr [B930],offset A0d8c36f3
-   mov word ptr [B788],0008
-   mov word ptr [offset Y2a17b802+2*08],0008
-   mov [BA80],DS
-   mov word ptr [BA7E],offset Y2a170e73
-   mov word ptr [C24E],0480
-   mov word ptr [BC50],003A
-   mov word ptr [BCDA],0002
-   mov word ptr [B936],segment A0d8c1c32
-   mov word ptr [B934],offset A0d8c1c32
-   mov word ptr [B78A],0010
-   mov word ptr [offset Y2a17b802+2*09],0008
-   mov [BA84],DS
-   mov word ptr [BA82],offset Y2a170e79
-   mov word ptr [C250],0480
-   mov word ptr [BC52],0016
-   mov word ptr [BCDC],0003
-   mov word ptr [B93A],segment A0d8c1d91
-   mov word ptr [B938],offset A0d8c1d91
-   mov word ptr [B78C],0020
-   mov word ptr [offset Y2a17b802+2*0A],0010
-   mov [BA88],DS
-   mov word ptr [BA86],offset Y2a170e82
-   mov word ptr [C252],0000
-   mov word ptr [BC54],001C
-   mov word ptr [BCDE],0000
-   mov word ptr [B93E],segment A0d8c1e4e
-   mov word ptr [B93C],offset A0d8c1e4e
-   mov word ptr [B78E],0018
-   mov word ptr [offset Y2a17b802+2*0B],0018
-   mov [BA8C],DS
-   mov word ptr [BA8A],offset Y2a170e89
-   mov word ptr [C254],0400
-   mov word ptr [BC56],0034
-   mov word ptr [BCE0],0005
-   mov word ptr [B942],segment A0d8c1fe4
-   mov word ptr [B940],offset A0d8c1fe4
-   mov word ptr [B790],0010
-   mov word ptr [offset Y2a17b802+2*0C],0010
-   mov [BA90],DS
-   mov word ptr [BA8E],offset Y2a170e91
-   mov word ptr [C256],0040
-   mov word ptr [BC58],0000
-   mov word ptr [BCE2],0000
-   mov word ptr [B946],segment A0d8c22cc
-   mov word ptr [B944],offset A0d8c22cc
-   mov word ptr [B792],0018
-   mov word ptr [offset Y2a17b802+2*0D],0020
-   mov [BA94],DS
-   mov word ptr [BA92],offset Y2a170e99
-   mov word ptr [C258],0000
-   mov word ptr [BC5A],0039
-   mov word ptr [BCE4],0000
-   mov word ptr [B94A],segment A0d8c2773
-   mov word ptr [B948],offset A0d8c2773
-   mov word ptr [B794],0010
-   mov word ptr [offset Y2a17b802+2*0E],0008
-   mov [BA98],DS
-   mov word ptr [BA96],offset Y2a170e9e
-   mov word ptr [C25A],0000
-   mov word ptr [BC5C],000E
-   mov word ptr [BCE6],0000
-   mov word ptr [B94E],segment A0d8c2885
-   mov word ptr [B94C],offset A0d8c2885
-   mov word ptr [B796],0010
-   mov word ptr [offset Y2a17b802+2*0F],0010
-   mov [BA9C],DS
-   mov word ptr [BA9A],offset Y2a170ea2
-   mov word ptr [C25C],0000
-   mov word ptr [BC5E],0000
-   mov word ptr [BCE8],0000
-   mov word ptr [B952],segment A0d8c2341
-   mov word ptr [B950],offset A0d8c2341
-   mov word ptr [B798],0010
-   mov word ptr [offset Y2a17b802+2*10],0018
-   mov [BAA0],DS
-   mov word ptr [BA9E],offset Y2a170ea6
-   mov word ptr [C25E],0040
-   mov word ptr [BC60],000B
-   mov word ptr [BCEA],0000
-   mov word ptr [B956],segment A0d8c2d45
-   mov word ptr [B954],offset A0d8c2d45
-   mov word ptr [B79A],0014
-   mov word ptr [offset Y2a17b802+2*11],001C
-   mov [BAA4],DS
-   mov word ptr [BAA2],offset Y2a170eae
-   mov word ptr [C260],0480
-   mov word ptr [BC62],002C
-   mov word ptr [BCEC],000C
-   mov word ptr [B95A],segment A0d8c3122
-   mov word ptr [B958],offset A0d8c3122
-   mov word ptr [B79C],0010
-   mov word ptr [offset Y2a17b802+2*12],0010
-   mov [BAA8],DS
-   mov word ptr [BAA6],offset Y2a170eb4
-   mov word ptr [C262],0000
-   mov word ptr [BC64],001A
-   mov word ptr [BCEE],0000
-   mov word ptr [B95E],segment A0d8c3262
-   mov word ptr [B95C],offset A0d8c3262
-   mov word ptr [B79E],0010
-   mov word ptr [offset Y2a17b802+2*13],0010
-   mov [BAAC],DS
-   mov word ptr [BAAA],offset Y2a170ebd
-   mov word ptr [C264],0000
-   mov word ptr [BC66],000A
-   mov word ptr [BCF0],0000
-   mov word ptr [B962],segment A0d8c337e
-   mov word ptr [B960],offset A0d8c337e
-   mov word ptr [B7A0],0006
-   mov word ptr [offset Y2a17b802+2*14],0007
-   mov [BAB0],DS
-   mov word ptr [BAAE],offset Y2a170ec3
-   mov word ptr [C266],0040
-   mov word ptr [BC68],0000
-   mov word ptr [BCF2],0000
-   mov word ptr [B966],segment A0d8c35e6
-   mov word ptr [B964],offset A0d8c35e6
-   mov word ptr [B7A2],0008
-   mov word ptr [offset Y2a17b802+2*15],0008
-   mov [BAB4],DS
-   mov word ptr [BAB2],offset Y2a170ec9
-   mov word ptr [C268],0040
-   mov word ptr [BC6A],0000
-   mov word ptr [BCF4],0000
-   mov word ptr [B96A],segment A0d8c36f3
-   mov word ptr [B968],offset A0d8c36f3
-   mov word ptr [B7A4],000E
-   mov word ptr [offset Y2a17b802+2*16],000A
-   mov [BAB8],DS
-   mov word ptr [BAB6],offset Y2a170ecf
-   mov word ptr [C26A],0480
-   mov word ptr [BC6C],003F
-   mov word ptr [BCF6],000F
-   mov word ptr [B96E],segment A16e01d61
-   mov word ptr [B96C],offset A16e01d61
-   mov word ptr [B7A6],0004
-   mov word ptr [offset Y2a17b802+2*17],000A
-   mov [BABC],DS
-   mov word ptr [BABA],offset Y2a170ed4
-   mov word ptr [C26C],0008
-   mov word ptr [BC6E],0010
-   mov word ptr [BCF8],0000
-   mov word ptr [B972],segment A0d8c3a05
-   mov word ptr [B970],offset A0d8c3a05
-   mov word ptr [B7A8],0010
-   mov word ptr [offset Y2a17b802+2*18],0018
-   mov [BAC0],DS
-   mov word ptr [BABE],offset Y2a170ed9
-   mov word ptr [C26E],0100
-   mov word ptr [BC70],0000
-   mov word ptr [BCFA],0000
-   mov word ptr [B976],segment A0d8c3d8a
-   mov word ptr [B974],offset A0d8c3d8a
-   mov word ptr [B7AA],0010
-   mov word ptr [offset Y2a17b802+2*19],0010
-   mov [BAC4],DS
-   mov word ptr [BAC2],offset Y2a170ede
-   mov word ptr [C270],0100
-   mov word ptr [BC72],000E
-   mov word ptr [BCFC],0000
-   mov word ptr [B97A],segment A0d8c24f7
-   mov word ptr [B978],offset A0d8c24f7
-   mov word ptr [B7AC],0000
-   mov word ptr [offset Y2a17b802+2*1A],0000
-   mov [BAC8],DS
-   mov word ptr [BAC6],offset Y2a170ee7
-   mov word ptr [C272],0100
-   mov word ptr [BC74],0000
-   mov word ptr [BCFE],0000
-   mov word ptr [B97E],segment A0d8c348d
-   mov word ptr [B97C],offset A0d8c348d
-   mov word ptr [B7AE],0004
-   mov word ptr [offset Y2a17b802+2*1B],0005
-   mov [BACC],DS
-   mov word ptr [BACA],offset Y2a170eef
-   mov word ptr [C274],0000
-   mov word ptr [BC76],0000
-   mov word ptr [BD00],0000
-   mov word ptr [B982],segment A11860007
-   mov word ptr [B980],offset A11860007
-   mov word ptr [B7B0],0010
-   mov word ptr [offset Y2a17b802+2*1C],0010
-   mov [BAD0],DS
-   mov word ptr [BACE],offset Y2a170ef5
-   mov word ptr [C276],0008
-   mov word ptr [BC78],0000
-   mov word ptr [BD02],0000
-   mov word ptr [B986],segment A0d8c15a6
-   mov word ptr [B984],offset A0d8c15a6
-   mov word ptr [B7B2],0020
-   mov word ptr [offset Y2a17b802+2*1D],0010
-   mov [BAD4],DS
-   mov word ptr [BAD2],offset Y2a170efb
-   mov word ptr [C278],0480
-   mov word ptr [BC7A],000A
-   mov word ptr [BD04],0006
-   mov word ptr [B98A],segment A0d8c1988
-   mov word ptr [B988],offset A0d8c1988
-   mov word ptr [B7B4],0010
-   mov word ptr [offset Y2a17b802+2*1E],0010
-   mov [BAD8],DS
-   mov word ptr [BAD6],offset Y2a170eff
-   mov word ptr [C27A],0480
-   mov word ptr [BC7C],000B
-   mov word ptr [BD06],0004
-   mov word ptr [B98E],segment A11860215
-   mov word ptr [B98C],offset A11860215
-   mov word ptr [B7B6],0010
-   mov word ptr [offset Y2a17b802+2*1F],0020
-   mov [BADC],DS
-   mov word ptr [BADA],offset Y2a170f07
-   mov word ptr [C27C],0000
-   mov word ptr [BC7E],000C
-   mov word ptr [BD08],0000
-   mov word ptr [B992],segment A1186035e
-   mov word ptr [B990],offset A1186035e
-   mov word ptr [B7B8],0010
-   mov word ptr [offset Y2a17b802+2*20],0010
-   mov [BAE0],DS
-   mov word ptr [BADE],offset Y2a170f0c
-   mov word ptr [C27E],0008
-   mov word ptr [BC80],003C
-   mov word ptr [BD0A],0000
-   mov word ptr [B996],segment A1186053e
-   mov word ptr [B994],offset A1186053e
-   mov word ptr [B7BA],0010
-   mov word ptr [offset Y2a17b802+2*21],0010
-   mov [BAE4],DS
-   mov word ptr [BAE2],offset Y2a170f13
-   mov word ptr [C280],0000
-   mov word ptr [BC82],0009
-   mov word ptr [BD0C],0017
-   mov word ptr [B99A],segment A11864c4a
-   mov word ptr [B998],offset A11864c4a
-   mov word ptr [B7BC],0010
-   mov word ptr [offset Y2a17b802+2*22],0010
-   mov [BAE8],DS
-   mov word ptr [BAE6],offset Y2a170f17
-   mov word ptr [C282],0008
-   mov word ptr [BC84],000E
-   mov word ptr [BD0E],0000
-   mov word ptr [B99E],segment A1186067f
-   mov word ptr [B99C],offset A1186067f
-   mov word ptr [B7BE],0010
-   mov word ptr [offset Y2a17b802+2*23],0010
-   mov [BAEC],DS
-   mov word ptr [BAEA],offset Y2a170f1e
-   mov word ptr [C284],0000
-   mov word ptr [BC86],0000
-   mov word ptr [BD10],0000
-   mov word ptr [B9A2],segment A11860ac8
-   mov word ptr [B9A0],offset A11860ac8
-   mov word ptr [B7C0],0010
-   mov word ptr [offset Y2a17b802+2*24],0020
-   mov [BAF0],DS
-   mov word ptr [BAEE],offset Y2a170f26
-   mov word ptr [C286],0000
-   mov word ptr [BC88],002E
-   mov word ptr [BD12],0000
-   mov word ptr [B9A6],segment A11860c1c
-   mov word ptr [B9A4],offset A11860c1c
-   mov word ptr [B7C2],0010
-   mov word ptr [offset Y2a17b802+2*25],0020
-   mov [BAF4],DS
-   mov word ptr [BAF2],offset Y2a170f2c
-   mov word ptr [C288],0000
-   mov word ptr [BC8A],000E
-   mov word ptr [BD14],0000
-   mov word ptr [B9AA],segment A11860cdd
-   mov word ptr [B9A8],offset A11860cdd
-   mov word ptr [B7C4],0010
-   mov word ptr [offset Y2a17b802+2*26],0010
-   mov [BAF8],DS
-   mov word ptr [BAF6],offset Y2a170f32
-   mov word ptr [C28A],0100
-   mov word ptr [BC8C],0000
-   mov word ptr [BD16],0000
-   mov word ptr [B9AE],segment A11860e52
-   mov word ptr [B9AC],offset A11860e52
-   mov word ptr [B7C6],0038
-   mov word ptr [offset Y2a17b802+2*27],0010
-   mov [BAFC],DS
-   mov word ptr [BAFA],offset Y2a170f39
-   mov word ptr [C28C],0400
-   mov word ptr [BC8E],000F
-   mov word ptr [BD18],0023
-   mov word ptr [B9B2],segment A1186469d
-   mov word ptr [B9B0],offset A1186469d
-   mov word ptr [B7C8],0010
-   mov word ptr [offset Y2a17b802+2*28],0010
-   mov [BB00],DS
-   mov word ptr [BAFE],offset Y2a170f3f
-   mov word ptr [C28E],0000
-   mov word ptr [BC90],000E
-   mov word ptr [BD1A],0000
-   mov word ptr [B9B6],segment A118612e2
-   mov word ptr [B9B4],offset A118612e2
-   mov word ptr [B7CA],000E
-   mov word ptr [offset Y2a17b802+2*29],000E
-   mov [BB04],DS
-   mov word ptr [BB02],offset Y2a170f47
-   mov word ptr [C290],0000
-   mov word ptr [BC92],001F
-   mov word ptr [BD1C],0000
-   mov word ptr [B9BA],segment A118616d6
-   mov word ptr [B9B8],offset A118616d6
-   mov word ptr [B7CC],0014
-   mov word ptr [offset Y2a17b802+2*2A],0018
-   mov [BB08],DS
-   mov word ptr [BB06],offset Y2a170f4c
-   mov word ptr [C292],0100
-   mov word ptr [BC94],0021
-   mov word ptr [BD1E],0000
-   mov word ptr [B9BE],segment A1186185e
-   mov word ptr [B9BC],offset A1186185e
-   mov word ptr [B7CE],001A
-   mov word ptr [offset Y2a17b802+2*2B],0020
-   mov [BB0C],DS
-   mov word ptr [BB0A],offset Y2a170f51
-   mov word ptr [C294],0480
-   mov word ptr [BC96],0023
-   mov word ptr [BD20],0004
-   mov word ptr [B9C2],segment A11861bfd
-   mov word ptr [B9C0],offset A11861bfd
-   mov word ptr [B7D0],0020
-   mov word ptr [offset Y2a17b802+2*2C],0020
-   mov [BB10],DS
-   mov word ptr [BB0E],offset Y2a170f55
-   mov word ptr [C296],0100
-   mov word ptr [BC98],0024
-   mov word ptr [BD22],0000
-   mov word ptr [B9C6],segment A11861e5a
-   mov word ptr [B9C4],offset A11861e5a
-   mov word ptr [B7D2],0010
-   mov word ptr [offset Y2a17b802+2*2D],0010
-   mov [BB14],DS
-   mov word ptr [BB12],offset Y2a170f5c
-   mov word ptr [C298],0000
-   mov word ptr [BC9A],0025
-   mov word ptr [BD24],000B
-   mov word ptr [B9CA],segment A118620af
-   mov word ptr [B9C8],offset A118620af
-   mov word ptr [B7D4],0010
-   mov word ptr [offset Y2a17b802+2*2E],0010
-   mov [BB18],DS
-   mov word ptr [BB16],offset Y2a170f64
-   mov word ptr [C29A],0000
-   mov word ptr [BC9C],0025
-   mov word ptr [BD26],0000
-   mov word ptr [B9CE],segment A11862337
-   mov word ptr [B9CC],offset A11862337
-   mov word ptr [B7D6],0010
-   mov word ptr [offset Y2a17b802+2*2F],0010
-   mov [BB1C],DS
-   mov word ptr [BB1A],offset Y2a170f6d
-   mov word ptr [C29C],0480
-   mov word ptr [BC9E],0026
-   mov word ptr [BD28],0002
-   mov word ptr [B9D2],segment A118626e4
-   mov word ptr [B9D0],offset A118626e4
-   mov word ptr [B7D8],0040
-   mov word ptr [offset Y2a17b802+2*30],0008
-   mov [BB20],DS
-   mov word ptr [BB1E],offset Y2a170f72
-   mov word ptr [C29E],0480
-   mov word ptr [BCA0],0027
-   mov word ptr [BD2A],0003
-   mov word ptr [B9D6],segment A11862a39
-   mov word ptr [B9D4],offset A11862a39
-   mov word ptr [B7DA],0020
-   mov word ptr [offset Y2a17b802+2*31],0010
-   mov [BB24],DS
-   mov word ptr [BB22],offset Y2a170f77
-   mov word ptr [C2A0],0000
-   mov word ptr [BCA2],0028
-   mov word ptr [BD2C],0023
-   mov word ptr [B9DA],segment A11862b57
-   mov word ptr [B9D8],offset A11862b57
-   mov word ptr [B7DC],0010
-   mov word ptr [offset Y2a17b802+2*32],0010
-   mov [BB28],DS
-   mov word ptr [BB26],offset Y2a170f7c
-   mov word ptr [C2A2],4008
-   mov word ptr [BCA4],002D
-   mov word ptr [BD2E],0000
-   mov word ptr [B9DE],segment A1186305a
-   mov word ptr [B9DC],offset A1186305a
-   mov word ptr [B7DE],0016
-   mov word ptr [offset Y2a17b802+2*33],001A
-   mov [BB2C],DS
-   mov word ptr [BB2A],offset Y2a170f85
-   mov word ptr [C2A4],0100
-   mov word ptr [BCA6],002F
-   mov word ptr [BD30],0000
-   mov word ptr [B9E2],segment A1186328b
-   mov word ptr [B9E0],offset A1186328b
-   mov word ptr [B7E0],0010
-   mov word ptr [offset Y2a17b802+2*34],0010
-   mov [BB30],DS
-   mov word ptr [BB2E],offset Y2a170f8b
-   mov word ptr [C2A6],0008
-   mov word ptr [BCA8],0031
-   mov word ptr [BD32],0000
-   mov word ptr [B9E6],segment A1186341b
-   mov word ptr [B9E4],offset A1186341b
-   mov word ptr [B7E2],0010
-   mov word ptr [offset Y2a17b802+2*35],0010
-   mov [BB34],DS
-   mov word ptr [BB32],offset Y2a170f92
-   mov word ptr [C2A8],0400
-   mov word ptr [BCAA],0032
-   mov word ptr [BD34],0000
-   mov word ptr [B9EA],segment A16e0206c
-   mov word ptr [B9E8],offset A16e0206c
-   mov word ptr [B7E4],0018
-   mov word ptr [offset Y2a17b802+2*36],0010
-   mov [BB38],DS
-   mov word ptr [BB36],offset Y2a170f96
-   mov word ptr [C2AA],0008
-   mov word ptr [BCAC],0033
-   mov word ptr [BD36],0000
-   mov word ptr [B9EE],segment A16e0266f
-   mov word ptr [B9EC],offset A16e0266f
-   mov word ptr [B7E6],0010
-   mov word ptr [offset Y2a17b802+2*37],0010
-   mov [BB3C],DS
-   mov word ptr [BB3A],offset Y2a170f9f
-   mov word ptr [C2AC],0008
-   mov word ptr [BCAE],0000
-   mov word ptr [BD38],0000
-   mov word ptr [B9F2],segment A16e029a7
-   mov word ptr [B9F0],offset A16e029a7
-   mov word ptr [B7E8],0010
-   mov word ptr [offset Y2a17b802+2*38],0010
-   mov [BB40],DS
-   mov word ptr [BB3E],offset Y2a170faa
-   mov word ptr [C2AE],0008
-   mov word ptr [BCB0],000B
-   mov word ptr [BD3A],0000
-   mov word ptr [B9F6],segment A16e02680
-   mov word ptr [B9F4],offset A16e02680
-   mov word ptr [B7EA],000E
-   mov word ptr [offset Y2a17b802+2*39],000A
-   mov [BB44],DS
-   mov word ptr [BB42],offset Y2a170fb3
-   mov word ptr [C2B0],0008
-   mov word ptr [BCB2],003F
-   mov word ptr [BD3C],0000
-   mov word ptr [B9FA],segment A11863846
-   mov word ptr [B9F8],offset A11863846
-   mov word ptr [B7EC],0008
-   mov word ptr [offset Y2a17b802+2*3A],0008
-   mov [BB48],DS
-   mov word ptr [BB46],offset Y2a170fbc
-   mov word ptr [C2B2],0000
-   mov word ptr [BCB4],0033
-   mov word ptr [BD3E],0000
-   mov word ptr [B9FE],segment A1186395e
-   mov word ptr [B9FC],offset A1186395e
-   mov word ptr [B7EE],0010
-   mov word ptr [offset Y2a17b802+2*3B],0018
-   mov [BB4C],DS
-   mov word ptr [BB4A],offset Y2a170fc3
-   mov word ptr [C2B4],0000
-   mov word ptr [BCB6],0033
-   mov word ptr [BD40],0000
-   mov word ptr [BA02],segment A11863d08
-   mov word ptr [BA00],offset A11863d08
-   mov word ptr [B7F0],001C
-   mov word ptr [offset Y2a17b802+2*3C],0010
-   mov [BB50],DS
-   mov word ptr [BB4E],offset Y2a170fcd
-   mov word ptr [C2B6],0000
-   mov word ptr [BCB8],0033
-   mov word ptr [BD42],0007
-   mov word ptr [BA06],segment A11863feb
-   mov word ptr [BA04],offset A11863feb
-   mov word ptr [B7F2],0010
-   mov word ptr [offset Y2a17b802+2*3D],0010
-   mov [BB54],DS
-   mov word ptr [BB52],offset Y2a170fd5
-   mov word ptr [C2B8],0100
-   mov word ptr [BCBA],0000
-   mov word ptr [BD44],0000
-   mov word ptr [BA0A],segment A1186434b
-   mov word ptr [BA08],offset A1186434b
-   mov word ptr [B7F4],0010
-   mov word ptr [offset Y2a17b802+2*3E],0010
-   mov [BB58],DS
-   mov word ptr [BB56],offset Y2a170fda
-   mov word ptr [C2BA],4008
-   mov word ptr [BCBC],001A
-   mov word ptr [BD46],0000
-   mov word ptr [BA0E],segment A118645b7
-   mov word ptr [BA0C],offset A118645b7
-   mov word ptr [B7F6],000C
-   mov word ptr [offset Y2a17b802+2*3F],0005
-   mov [BB5C],DS
-   mov word ptr [BB5A],offset Y2a170fe5
-   mov word ptr [C2BC],4008
-   mov word ptr [BCBE],0033
-   mov word ptr [BD48],0000
-   mov word ptr [BA12],segment A11864748
-   mov word ptr [BA10],offset A11864748
-   mov word ptr [B7F8],0010
-   mov word ptr [offset Y2a17b802+2*40],000C
-   mov [BB60],DS
-   mov word ptr [BB5E],offset Y2a170ff0
-   mov word ptr [C2BE],0180
-   mov word ptr [BCC0],003E
-   mov word ptr [BD4A],0003
-   mov word ptr [BA16],segment A118648bd
-   mov word ptr [BA14],offset A118648bd
-   mov word ptr [B7FA],0010
-   mov word ptr [offset Y2a17b802+2*41],0008
-   mov [BB64],DS
-   mov word ptr [BB62],offset Y2a170ff4
-   mov word ptr [C2C0],0000
-   mov word ptr [BCC2],003D
-   mov word ptr [BD4C],0000
-   mov word ptr [BA1A],segment A11864ab7
-   mov word ptr [BA18],offset A11864ab7
-   mov word ptr [B7FC],0024
-   mov word ptr [offset Y2a17b802+2*42],0010
-   mov [BB68],DS
-   mov word ptr [BB66],offset Y2a170ffe
-   mov word ptr [C2C2],0008
-   mov word ptr [BCC4],0005
-   mov word ptr [BD4E],0000
-   mov word ptr [BA1E],segment A11864cec
-   mov word ptr [BA1C],offset A11864cec
-   mov word ptr [B7FE],0040
-   mov word ptr [offset Y2a17b802+2*43],0010
-   mov [BB6C],DS
-   mov word ptr [BB6A],offset Y2a171003
-   mov word ptr [C2C4],0000
-   mov word ptr [BCC6],0003
-   mov word ptr [BD50],0000
-   mov word ptr [BA22],segment A0d8c2f4b
-   mov word ptr [BA20],offset A0d8c2f4b
-   mov word ptr [B800],0010
-   mov word ptr [offset Y2a17b802+2*44],0020
-   mov [BB70],DS
-   mov word ptr [BB6E],offset Y2a17100b
-   mov word ptr [C2C6],0480
-   mov word ptr [BCC8],002C
-   mov word ptr [BD52],000C
+_initobjinfo: ;; 0d8c000a
+   mov word ptr [offset _kindmsg+4*00+02],segment _msg_player
+   mov word ptr [offset _kindmsg+4*00+00],offset _msg_player
+   mov word ptr [offset _kindxl+2*00],0010
+   mov word ptr [offset _kindyl+2*00],0020
+   mov [offset _kindname+4*00+02],DS
+   mov word ptr [offset _kindname+4*00],offset Y2a170e3e
+   mov word ptr [offset _kindflags+2*00],0008
+   mov word ptr [offset _kindtable+2*00],0008
+   mov word ptr [offset _kindscore+2*00],0000
+   mov word ptr [offset _kindmsg+4*01+02],segment _msg_apple
+   mov word ptr [offset _kindmsg+4*01+00],offset _msg_apple
+   mov word ptr [offset _kindxl+2*01],000C
+   mov word ptr [offset _kindyl+2*01],000C
+   mov [offset _kindname+4*01+02],DS
+   mov word ptr [offset _kindname+4*01],offset Y2a170e45
+   mov word ptr [offset _kindflags+2*01],0000
+   mov word ptr [offset _kindtable+2*01],0009
+   mov word ptr [offset _kindscore+2*01],000C
+   mov word ptr [offset _kindmsg+4*02+02],segment _msg_knife
+   mov word ptr [offset _kindmsg+4*02+00],offset _msg_knife
+   mov word ptr [offset _kindxl+2*02],000A
+   mov word ptr [offset _kindyl+2*02],000A
+   mov [offset _kindname+4*02+02],DS
+   mov word ptr [offset _kindname+4*02],offset Y2a170e4b
+   mov word ptr [offset _kindflags+2*02],4008
+   mov word ptr [offset _kindtable+2*02],000D
+   mov word ptr [offset _kindscore+2*02],0000
+   mov word ptr [offset _kindmsg+4*03+02],segment _msg_null
+   mov word ptr [offset _kindmsg+4*03+00],offset _msg_null
+   mov word ptr [offset _kindxl+2*03],0000
+   mov word ptr [offset _kindyl+2*03],0000
+   mov [offset _kindname+4*03+02],DS
+   mov word ptr [offset _kindname+4*03],offset Y2a170e51
+   mov word ptr [offset _kindflags+2*03],0000
+   mov word ptr [offset _kindtable+2*03],0000
+   mov word ptr [offset _kindscore+2*03],0000
+   mov word ptr [offset _kindmsg+4*04+02],segment _msg_bigant
+   mov word ptr [offset _kindmsg+4*04+00],offset _msg_bigant
+   mov word ptr [offset _kindxl+2*04],0018
+   mov word ptr [offset _kindyl+2*04],0010
+   mov [offset _kindname+4*04+02],DS
+   mov word ptr [offset _kindname+4*04],offset Y2a170e58
+   mov word ptr [offset _kindflags+2*04],0480
+   mov word ptr [offset _kindtable+2*04],003B
+   mov word ptr [offset _kindscore+2*04],0008
+   mov word ptr [offset _kindmsg+4*05+02],segment _msg_fly
+   mov word ptr [offset _kindmsg+4*05+00],offset _msg_fly
+   mov word ptr [offset _kindxl+2*05],0010
+   mov word ptr [offset _kindyl+2*05],000E
+   mov [offset _kindname+4*05+02],DS
+   mov word ptr [offset _kindname+4*05],offset Y2a170e5f
+   mov word ptr [offset _kindflags+2*05],0080
+   mov word ptr [offset _kindtable+2*05],003C
+   mov word ptr [offset _kindscore+2*05],0003
+   mov word ptr [offset _kindmsg+4*06+02],segment _msg_macrotrig
+   mov word ptr [offset _kindmsg+4*06+00],offset _msg_macrotrig
+   mov word ptr [offset _kindxl+2*06],0000
+   mov word ptr [offset _kindyl+2*06],0000
+   mov [offset _kindname+4*06+02],DS
+   mov word ptr [offset _kindname+4*06],offset Y2a170e63
+   mov word ptr [offset _kindflags+2*06],0008
+   mov word ptr [offset _kindtable+2*06],0000
+   mov word ptr [offset _kindscore+2*06],0000
+   mov word ptr [offset _kindmsg+4*07+02],segment _msg_demon
+   mov word ptr [offset _kindmsg+4*07+00],offset _msg_demon
+   mov word ptr [offset _kindxl+2*07],0020
+   mov word ptr [offset _kindyl+2*07],0020
+   mov [offset _kindname+4*07+02],DS
+   mov word ptr [offset _kindname+4*07],offset Y2a170e6d
+   mov word ptr [offset _kindflags+2*07],0000
+   mov word ptr [offset _kindtable+2*07],002B
+   mov word ptr [offset _kindscore+2*07],0014
+   mov word ptr [offset _kindmsg+4*08+02],segment _msg_frog
+   mov word ptr [offset _kindmsg+4*08+00],offset _msg_frog
+   mov word ptr [offset _kindxl+2*08],0008
+   mov word ptr [offset _kindyl+2*08],0008
+   mov [offset _kindname+4*08+02],DS
+   mov word ptr [offset _kindname+4*08],offset Y2a170e73
+   mov word ptr [offset _kindflags+2*08],0480
+   mov word ptr [offset _kindtable+2*08],003A
+   mov word ptr [offset _kindscore+2*08],0002
+   mov word ptr [offset _kindmsg+4*09+02],segment _msg_inchworm
+   mov word ptr [offset _kindmsg+4*09+00],offset _msg_inchworm
+   mov word ptr [offset _kindxl+2*09],0010
+   mov word ptr [offset _kindyl+2*09],0008
+   mov [offset _kindname+4*09+02],DS
+   mov word ptr [offset _kindname+4*09],offset Y2a170e79
+   mov word ptr [offset _kindflags+2*09],0480
+   mov word ptr [offset _kindtable+2*09],0016
+   mov word ptr [offset _kindscore+2*09],0003
+   mov word ptr [offset _kindmsg+4*0a+02],segment _msg_zapper
+   mov word ptr [offset _kindmsg+4*0a+00],offset _msg_zapper
+   mov word ptr [offset _kindxl+2*0a],0020
+   mov word ptr [offset _kindyl+2*0a],0010
+   mov [offset _kindname+4*0a+02],DS
+   mov word ptr [offset _kindname+4*0a],offset Y2a170e82
+   mov word ptr [offset _kindflags+2*0a],0000
+   mov word ptr [offset _kindtable+2*0a],001C
+   mov word ptr [offset _kindscore+2*0a],0000
+   mov word ptr [offset _kindmsg+4*0b+02],segment _msg_bobslug
+   mov word ptr [offset _kindmsg+4*0b+00],offset _msg_bobslug
+   mov word ptr [offset _kindxl+2*0b],0018
+   mov word ptr [offset _kindyl+2*0b],0018
+   mov [offset _kindname+4*0b+02],DS
+   mov word ptr [offset _kindname+4*0b],offset Y2a170e89
+   mov word ptr [offset _kindflags+2*0b],0400
+   mov word ptr [offset _kindtable+2*0b],0034
+   mov word ptr [offset _kindscore+2*0b],0005
+   mov word ptr [offset _kindmsg+4*0c+02],segment _msg_checkpt
+   mov word ptr [offset _kindmsg+4*0c+00],offset _msg_checkpt
+   mov word ptr [offset _kindxl+2*0c],0010
+   mov word ptr [offset _kindyl+2*0c],0010
+   mov [offset _kindname+4*0c+02],DS
+   mov word ptr [offset _kindname+4*0c],offset Y2a170e91
+   mov word ptr [offset _kindflags+2*0c],0040
+   mov word ptr [offset _kindtable+2*0c],0000
+   mov word ptr [offset _kindscore+2*0c],0000
+   mov word ptr [offset _kindmsg+4*0d+02],segment _msg_paul
+   mov word ptr [offset _kindmsg+4*0d+00],offset _msg_paul
+   mov word ptr [offset _kindxl+2*0d],0018
+   mov word ptr [offset _kindyl+2*0d],0020
+   mov [offset _kindname+4*0d+02],DS
+   mov word ptr [offset _kindname+4*0d],offset Y2a170e99
+   mov word ptr [offset _kindflags+2*0d],0000
+   mov word ptr [offset _kindtable+2*0d],0039
+   mov word ptr [offset _kindscore+2*0d],0000
+   mov word ptr [offset _kindmsg+4*0e+02],segment _msg_key
+   mov word ptr [offset _kindmsg+4*0e+00],offset _msg_key
+   mov word ptr [offset _kindxl+2*0e],0010
+   mov word ptr [offset _kindyl+2*0e],0008
+   mov [offset _kindname+4*0e+02],DS
+   mov word ptr [offset _kindname+4*0e],offset Y2a170e9e
+   mov word ptr [offset _kindflags+2*0e],0000
+   mov word ptr [offset _kindtable+2*0e],000E
+   mov word ptr [offset _kindscore+2*0e],0000
+   mov word ptr [offset _kindmsg+4*0f+02],segment _msg_pad
+   mov word ptr [offset _kindmsg+4*0f+00],offset _msg_pad
+   mov word ptr [offset _kindxl+2*0f],0010
+   mov word ptr [offset _kindyl+2*0f],0010
+   mov [offset _kindname+4*0f+02],DS
+   mov word ptr [offset _kindname+4*0f],offset Y2a170ea2
+   mov word ptr [offset _kindflags+2*0f],0000
+   mov word ptr [offset _kindtable+2*0f],0000
+   mov word ptr [offset _kindscore+2*0f],0000
+   mov word ptr [offset _kindmsg+4*10+02],segment _msg_wiseman
+   mov word ptr [offset _kindmsg+4*10+00],offset _msg_wiseman
+   mov word ptr [offset _kindxl+2*10],0010
+   mov word ptr [offset _kindyl+2*10],0018
+   mov [offset _kindname+4*10+02],DS
+   mov word ptr [offset _kindname+4*10],offset Y2a170ea6
+   mov word ptr [offset _kindflags+2*10],0040
+   mov word ptr [offset _kindtable+2*10],000B
+   mov word ptr [offset _kindscore+2*10],0000
+   mov word ptr [offset _kindmsg+4*11+02],segment _msg_fatso
+   mov word ptr [offset _kindmsg+4*11+00],offset _msg_fatso
+   mov word ptr [offset _kindxl+2*11],0014
+   mov word ptr [offset _kindyl+2*11],001C
+   mov [offset _kindname+4*11+02],DS
+   mov word ptr [offset _kindname+4*11],offset Y2a170eae
+   mov word ptr [offset _kindflags+2*11],0480
+   mov word ptr [offset _kindtable+2*11],002C
+   mov word ptr [offset _kindscore+2*11],000C
+   mov word ptr [offset _kindmsg+4*12+02],segment _msg_fireball
+   mov word ptr [offset _kindmsg+4*12+00],offset _msg_fireball
+   mov word ptr [offset _kindxl+2*12],0010
+   mov word ptr [offset _kindyl+2*12],0010
+   mov [offset _kindname+4*12+02],DS
+   mov word ptr [offset _kindname+4*12],offset Y2a170eb4
+   mov word ptr [offset _kindflags+2*12],0000
+   mov word ptr [offset _kindtable+2*12],001A
+   mov word ptr [offset _kindscore+2*12],0000
+   mov word ptr [offset _kindmsg+4*13+02],segment _msg_cloud
+   mov word ptr [offset _kindmsg+4*13+00],offset _msg_cloud
+   mov word ptr [offset _kindxl+2*13],0010
+   mov word ptr [offset _kindyl+2*13],0010
+   mov [offset _kindname+4*13+02],DS
+   mov word ptr [offset _kindname+4*13],offset Y2a170ebd
+   mov word ptr [offset _kindflags+2*13],0000
+   mov word ptr [offset _kindtable+2*13],000A
+   mov word ptr [offset _kindscore+2*13],0000
+   mov word ptr [offset _kindmsg+4*14+02],segment _msg_text6
+   mov word ptr [offset _kindmsg+4*14+00],offset _msg_text6
+   mov word ptr [offset _kindxl+2*14],0006
+   mov word ptr [offset _kindyl+2*14],0007
+   mov [offset _kindname+4*14+02],DS
+   mov word ptr [offset _kindname+4*14],offset Y2a170ec3
+   mov word ptr [offset _kindflags+2*14],0040
+   mov word ptr [offset _kindtable+2*14],0000
+   mov word ptr [offset _kindscore+2*14],0000
+   mov word ptr [offset _kindmsg+4*15+02],segment _msg_text8
+   mov word ptr [offset _kindmsg+4*15+00],offset _msg_text8
+   mov word ptr [offset _kindxl+2*15],0008
+   mov word ptr [offset _kindyl+2*15],0008
+   mov [offset _kindname+4*15+02],DS
+   mov word ptr [offset _kindname+4*15],offset Y2a170ec9
+   mov word ptr [offset _kindflags+2*15],0040
+   mov word ptr [offset _kindtable+2*15],0000
+   mov word ptr [offset _kindscore+2*15],0000
+   mov word ptr [offset _kindmsg+4*16+02],segment _msg_frog
+   mov word ptr [offset _kindmsg+4*16+00],offset _msg_frog
+   mov word ptr [offset _kindxl+2*16],000E
+   mov word ptr [offset _kindyl+2*16],000A
+   mov [offset _kindname+4*16+02],DS
+   mov word ptr [offset _kindname+4*16],offset Y2a170ecf
+   mov word ptr [offset _kindflags+2*16],0480
+   mov word ptr [offset _kindtable+2*16],003F
+   mov word ptr [offset _kindscore+2*16],000F
+   mov word ptr [offset _kindmsg+4*17+02],segment _msg_tiny
+   mov word ptr [offset _kindmsg+4*17+00],offset _msg_tiny
+   mov word ptr [offset _kindxl+2*17],0004
+   mov word ptr [offset _kindyl+2*17],000A
+   mov [offset _kindname+4*17+02],DS
+   mov word ptr [offset _kindname+4*17],offset Y2a170ed4
+   mov word ptr [offset _kindflags+2*17],0008
+   mov word ptr [offset _kindtable+2*17],0010
+   mov word ptr [offset _kindscore+2*17],0000
+   mov word ptr [offset _kindmsg+4*18+02],segment _msg_door
+   mov word ptr [offset _kindmsg+4*18+00],offset _msg_door
+   mov word ptr [offset _kindxl+2*18],0010
+   mov word ptr [offset _kindyl+2*18],0018
+   mov [offset _kindname+4*18+02],DS
+   mov word ptr [offset _kindname+4*18],offset Y2a170ed9
+   mov word ptr [offset _kindflags+2*18],0100
+   mov word ptr [offset _kindtable+2*18],0000
+   mov word ptr [offset _kindscore+2*18],0000
+   mov word ptr [offset _kindmsg+4*19+02],segment _msg_falldoor
+   mov word ptr [offset _kindmsg+4*19+00],offset _msg_falldoor
+   mov word ptr [offset _kindxl+2*19],0010
+   mov word ptr [offset _kindyl+2*19],0010
+   mov [offset _kindname+4*19+02],DS
+   mov word ptr [offset _kindname+4*19],offset Y2a170ede
+   mov word ptr [offset _kindflags+2*19],0100
+   mov word ptr [offset _kindtable+2*19],000E
+   mov word ptr [offset _kindscore+2*19],0000
+   mov word ptr [offset _kindmsg+4*1a+02],segment _msg_bridger
+   mov word ptr [offset _kindmsg+4*1a+00],offset _msg_bridger
+   mov word ptr [offset _kindxl+2*1a],0000
+   mov word ptr [offset _kindyl+2*1a],0000
+   mov [offset _kindname+4*1a+02],DS
+   mov word ptr [offset _kindname+4*1a],offset Y2a170ee7
+   mov word ptr [offset _kindflags+2*1a],0100
+   mov word ptr [offset _kindtable+2*1a],0000
+   mov word ptr [offset _kindscore+2*1a],0000
+   mov word ptr [offset _kindmsg+4*1b+02],segment _msg_score
+   mov word ptr [offset _kindmsg+4*1b+00],offset _msg_score
+   mov word ptr [offset _kindxl+2*1b],0004
+   mov word ptr [offset _kindyl+2*1b],0005
+   mov [offset _kindname+4*1b+02],DS
+   mov word ptr [offset _kindname+4*1b],offset Y2a170eef
+   mov word ptr [offset _kindflags+2*1b],0000
+   mov word ptr [offset _kindtable+2*1b],0000
+   mov word ptr [offset _kindscore+2*1b],0000
+   mov word ptr [offset _kindmsg+4*1c+02],segment _msg_token
+   mov word ptr [offset _kindmsg+4*1c+00],offset _msg_token
+   mov word ptr [offset _kindxl+2*1c],0010
+   mov word ptr [offset _kindyl+2*1c],0010
+   mov [offset _kindname+4*1c+02],DS
+   mov word ptr [offset _kindname+4*1c],offset Y2a170ef5
+   mov word ptr [offset _kindflags+2*1c],0008
+   mov word ptr [offset _kindtable+2*1c],0000
+   mov word ptr [offset _kindscore+2*1c],0000
+   mov word ptr [offset _kindmsg+4*1d+02],segment _msg_ant
+   mov word ptr [offset _kindmsg+4*1d+00],offset _msg_ant
+   mov word ptr [offset _kindxl+2*1d],0020
+   mov word ptr [offset _kindyl+2*1d],0010
+   mov [offset _kindname+4*1d+02],DS
+   mov word ptr [offset _kindname+4*1d],offset Y2a170efb
+   mov word ptr [offset _kindflags+2*1d],0480
+   mov word ptr [offset _kindtable+2*1d],000A
+   mov word ptr [offset _kindscore+2*1d],0006
+   mov word ptr [offset _kindmsg+4*1e+02],segment _msg_phoenix
+   mov word ptr [offset _kindmsg+4*1e+00],offset _msg_phoenix
+   mov word ptr [offset _kindxl+2*1e],0010
+   mov word ptr [offset _kindyl+2*1e],0010
+   mov [offset _kindname+4*1e+02],DS
+   mov word ptr [offset _kindname+4*1e],offset Y2a170eff
+   mov word ptr [offset _kindflags+2*1e],0480
+   mov word ptr [offset _kindtable+2*1e],000B
+   mov word ptr [offset _kindscore+2*1e],0004
+   mov word ptr [offset _kindmsg+4*1f+02],segment _msg_fire
+   mov word ptr [offset _kindmsg+4*1f+00],offset _msg_fire
+   mov word ptr [offset _kindxl+2*1f],0010
+   mov word ptr [offset _kindyl+2*1f],0020
+   mov [offset _kindname+4*1f+02],DS
+   mov word ptr [offset _kindname+4*1f],offset Y2a170f07
+   mov word ptr [offset _kindflags+2*1f],0000
+   mov word ptr [offset _kindtable+2*1f],000C
+   mov word ptr [offset _kindscore+2*1f],0000
+   mov word ptr [offset _kindmsg+4*20+02],segment _msg_switch
+   mov word ptr [offset _kindmsg+4*20+00],offset _msg_switch
+   mov word ptr [offset _kindxl+2*20],0010
+   mov word ptr [offset _kindyl+2*20],0010
+   mov [offset _kindname+4*20+02],DS
+   mov word ptr [offset _kindname+4*20],offset Y2a170f0c
+   mov word ptr [offset _kindflags+2*20],0008
+   mov word ptr [offset _kindtable+2*20],003C
+   mov word ptr [offset _kindscore+2*20],0000
+   mov word ptr [offset _kindmsg+4*21+02],segment _msg_gem
+   mov word ptr [offset _kindmsg+4*21+00],offset _msg_gem
+   mov word ptr [offset _kindxl+2*21],0010
+   mov word ptr [offset _kindyl+2*21],0010
+   mov [offset _kindname+4*21+02],DS
+   mov word ptr [offset _kindname+4*21],offset Y2a170f13
+   mov word ptr [offset _kindflags+2*21],0000
+   mov word ptr [offset _kindtable+2*21],0009
+   mov word ptr [offset _kindscore+2*21],0017
+   mov word ptr [offset _kindmsg+4*22+02],segment _msg_txtmsg
+   mov word ptr [offset _kindmsg+4*22+00],offset _msg_txtmsg
+   mov word ptr [offset _kindxl+2*22],0010
+   mov word ptr [offset _kindyl+2*22],0010
+   mov [offset _kindname+4*22+02],DS
+   mov word ptr [offset _kindname+4*22],offset Y2a170f17
+   mov word ptr [offset _kindflags+2*22],0008
+   mov word ptr [offset _kindtable+2*22],000E
+   mov word ptr [offset _kindscore+2*22],0000
+   mov word ptr [offset _kindmsg+4*23+02],segment _msg_boulder
+   mov word ptr [offset _kindmsg+4*23+00],offset _msg_boulder
+   mov word ptr [offset _kindxl+2*23],0010
+   mov word ptr [offset _kindyl+2*23],0010
+   mov [offset _kindname+4*23+02],DS
+   mov word ptr [offset _kindname+4*23],offset Y2a170f1e
+   mov word ptr [offset _kindflags+2*23],0000
+   mov word ptr [offset _kindtable+2*23],0000
+   mov word ptr [offset _kindscore+2*23],0000
+   mov word ptr [offset _kindmsg+4*24+02],segment _msg_expl1
+   mov word ptr [offset _kindmsg+4*24+00],offset _msg_expl1
+   mov word ptr [offset _kindxl+2*24],0010
+   mov word ptr [offset _kindyl+2*24],0020
+   mov [offset _kindname+4*24+02],DS
+   mov word ptr [offset _kindname+4*24],offset Y2a170f26
+   mov word ptr [offset _kindflags+2*24],0000
+   mov word ptr [offset _kindtable+2*24],002E
+   mov word ptr [offset _kindscore+2*24],0000
+   mov word ptr [offset _kindmsg+4*25+02],segment _msg_expl2
+   mov word ptr [offset _kindmsg+4*25+00],offset _msg_expl2
+   mov word ptr [offset _kindxl+2*25],0010
+   mov word ptr [offset _kindyl+2*25],0020
+   mov [offset _kindname+4*25+02],DS
+   mov word ptr [offset _kindname+4*25],offset Y2a170f2c
+   mov word ptr [offset _kindflags+2*25],0000
+   mov word ptr [offset _kindtable+2*25],000E
+   mov word ptr [offset _kindscore+2*25],0000
+   mov word ptr [offset _kindmsg+4*26+02],segment _msg_stalag
+   mov word ptr [offset _kindmsg+4*26+00],offset _msg_stalag
+   mov word ptr [offset _kindxl+2*26],0010
+   mov word ptr [offset _kindyl+2*26],0010
+   mov [offset _kindname+4*26+02],DS
+   mov word ptr [offset _kindname+4*26],offset Y2a170f32
+   mov word ptr [offset _kindflags+2*26],0100
+   mov word ptr [offset _kindtable+2*26],0000
+   mov word ptr [offset _kindscore+2*26],0000
+   mov word ptr [offset _kindmsg+4*27+02],segment _msg_snake
+   mov word ptr [offset _kindmsg+4*27+00],offset _msg_snake
+   mov word ptr [offset _kindxl+2*27],0038
+   mov word ptr [offset _kindyl+2*27],0010
+   mov [offset _kindname+4*27+02],DS
+   mov word ptr [offset _kindname+4*27],offset Y2a170f39
+   mov word ptr [offset _kindflags+2*27],0400
+   mov word ptr [offset _kindtable+2*27],000F
+   mov word ptr [offset _kindscore+2*27],0023
+   mov word ptr [offset _kindmsg+4*28+02],segment _msg_searock
+   mov word ptr [offset _kindmsg+4*28+00],offset _msg_searock
+   mov word ptr [offset _kindxl+2*28],0010
+   mov word ptr [offset _kindyl+2*28],0010
+   mov [offset _kindname+4*28+02],DS
+   mov word ptr [offset _kindname+4*28],offset Y2a170f3f
+   mov word ptr [offset _kindflags+2*28],0000
+   mov word ptr [offset _kindtable+2*28],000E
+   mov word ptr [offset _kindscore+2*28],0000
+   mov word ptr [offset _kindmsg+4*29+02],segment _msg_boll
+   mov word ptr [offset _kindmsg+4*29+00],offset _msg_boll
+   mov word ptr [offset _kindxl+2*29],000E
+   mov word ptr [offset _kindyl+2*29],000E
+   mov [offset _kindname+4*29+02],DS
+   mov word ptr [offset _kindname+4*29],offset Y2a170f47
+   mov word ptr [offset _kindflags+2*29],0000
+   mov word ptr [offset _kindtable+2*29],001F
+   mov word ptr [offset _kindscore+2*29],0000
+   mov word ptr [offset _kindmsg+4*2a+02],segment _msg_mega
+   mov word ptr [offset _kindmsg+4*2a+00],offset _msg_mega
+   mov word ptr [offset _kindxl+2*2a],0014
+   mov word ptr [offset _kindyl+2*2a],0018
+   mov [offset _kindname+4*2a+02],DS
+   mov word ptr [offset _kindname+4*2a],offset Y2a170f4c
+   mov word ptr [offset _kindflags+2*2a],0100
+   mov word ptr [offset _kindtable+2*2a],0021
+   mov word ptr [offset _kindscore+2*2a],0000
+   mov word ptr [offset _kindmsg+4*2b+02],segment _msg_bat
+   mov word ptr [offset _kindmsg+4*2b+00],offset _msg_bat
+   mov word ptr [offset _kindxl+2*2b],001A
+   mov word ptr [offset _kindyl+2*2b],0020
+   mov [offset _kindname+4*2b+02],DS
+   mov word ptr [offset _kindname+4*2b],offset Y2a170f51
+   mov word ptr [offset _kindflags+2*2b],0480
+   mov word ptr [offset _kindtable+2*2b],0023
+   mov word ptr [offset _kindscore+2*2b],0004
+   mov word ptr [offset _kindmsg+4*2c+02],segment _msg_knight
+   mov word ptr [offset _kindmsg+4*2c+00],offset _msg_knight
+   mov word ptr [offset _kindxl+2*2c],0020
+   mov word ptr [offset _kindyl+2*2c],0020
+   mov [offset _kindname+4*2c+02],DS
+   mov word ptr [offset _kindname+4*2c],offset Y2a170f55
+   mov word ptr [offset _kindflags+2*2c],0100
+   mov word ptr [offset _kindtable+2*2c],0024
+   mov word ptr [offset _kindscore+2*2c],0000
+   mov word ptr [offset _kindmsg+4*2d+02],segment _msg_beenest
+   mov word ptr [offset _kindmsg+4*2d+00],offset _msg_beenest
+   mov word ptr [offset _kindxl+2*2d],0010
+   mov word ptr [offset _kindyl+2*2d],0010
+   mov [offset _kindname+4*2d+02],DS
+   mov word ptr [offset _kindname+4*2d],offset Y2a170f5c
+   mov word ptr [offset _kindflags+2*2d],0000
+   mov word ptr [offset _kindtable+2*2d],0025
+   mov word ptr [offset _kindscore+2*2d],000B
+   mov word ptr [offset _kindmsg+4*2e+02],segment _msg_beeswarm
+   mov word ptr [offset _kindmsg+4*2e+00],offset _msg_beeswarm
+   mov word ptr [offset _kindxl+2*2e],0010
+   mov word ptr [offset _kindyl+2*2e],0010
+   mov [offset _kindname+4*2e+02],DS
+   mov word ptr [offset _kindname+4*2e],offset Y2a170f64
+   mov word ptr [offset _kindflags+2*2e],0000
+   mov word ptr [offset _kindtable+2*2e],0025
+   mov word ptr [offset _kindscore+2*2e],0000
+   mov word ptr [offset _kindmsg+4*2f+02],segment _msg_crab
+   mov word ptr [offset _kindmsg+4*2f+00],offset _msg_crab
+   mov word ptr [offset _kindxl+2*2f],0010
+   mov word ptr [offset _kindyl+2*2f],0010
+   mov [offset _kindname+4*2f+02],DS
+   mov word ptr [offset _kindname+4*2f],offset Y2a170f6d
+   mov word ptr [offset _kindflags+2*2f],0480
+   mov word ptr [offset _kindtable+2*2f],0026
+   mov word ptr [offset _kindscore+2*2f],0002
+   mov word ptr [offset _kindmsg+4*30+02],segment _msg_croc
+   mov word ptr [offset _kindmsg+4*30+00],offset _msg_croc
+   mov word ptr [offset _kindxl+2*30],0040
+   mov word ptr [offset _kindyl+2*30],0008
+   mov [offset _kindname+4*30+02],DS
+   mov word ptr [offset _kindname+4*30],offset Y2a170f72
+   mov word ptr [offset _kindflags+2*30],0480
+   mov word ptr [offset _kindtable+2*30],0027
+   mov word ptr [offset _kindscore+2*30],0003
+   mov word ptr [offset _kindmsg+4*31+02],segment _msg_epic
+   mov word ptr [offset _kindmsg+4*31+00],offset _msg_epic
+   mov word ptr [offset _kindxl+2*31],0020
+   mov word ptr [offset _kindyl+2*31],0010
+   mov [offset _kindname+4*31+02],DS
+   mov word ptr [offset _kindname+4*31],offset Y2a170f77
+   mov word ptr [offset _kindflags+2*31],0000
+   mov word ptr [offset _kindtable+2*31],0028
+   mov word ptr [offset _kindscore+2*31],0023
+   mov word ptr [offset _kindmsg+4*32+02],segment _msg_spinblad
+   mov word ptr [offset _kindmsg+4*32+00],offset _msg_spinblad
+   mov word ptr [offset _kindxl+2*32],0010
+   mov word ptr [offset _kindyl+2*32],0010
+   mov [offset _kindname+4*32+02],DS
+   mov word ptr [offset _kindname+4*32],offset Y2a170f7c
+   mov word ptr [offset _kindflags+2*32],4008
+   mov word ptr [offset _kindtable+2*32],002D
+   mov word ptr [offset _kindscore+2*32],0000
+   mov word ptr [offset _kindmsg+4*33+02],segment _msg_skull
+   mov word ptr [offset _kindmsg+4*33+00],offset _msg_skull
+   mov word ptr [offset _kindxl+2*33],0016
+   mov word ptr [offset _kindyl+2*33],001A
+   mov [offset _kindname+4*33+02],DS
+   mov word ptr [offset _kindname+4*33],offset Y2a170f85
+   mov word ptr [offset _kindflags+2*33],0100
+   mov word ptr [offset _kindtable+2*33],002F
+   mov word ptr [offset _kindscore+2*33],0000
+   mov word ptr [offset _kindmsg+4*34+02],segment _msg_button
+   mov word ptr [offset _kindmsg+4*34+00],offset _msg_button
+   mov word ptr [offset _kindxl+2*34],0010
+   mov word ptr [offset _kindyl+2*34],0010
+   mov [offset _kindname+4*34+02],DS
+   mov word ptr [offset _kindname+4*34],offset Y2a170f8b
+   mov word ptr [offset _kindflags+2*34],0008
+   mov word ptr [offset _kindtable+2*34],0031
+   mov word ptr [offset _kindscore+2*34],0000
+   mov word ptr [offset _kindmsg+4*35+02],segment _msg_pac
+   mov word ptr [offset _kindmsg+4*35+00],offset _msg_pac
+   mov word ptr [offset _kindxl+2*35],0010
+   mov word ptr [offset _kindyl+2*35],0010
+   mov [offset _kindname+4*35+02],DS
+   mov word ptr [offset _kindname+4*35],offset Y2a170f92
+   mov word ptr [offset _kindflags+2*35],0400
+   mov word ptr [offset _kindtable+2*35],0032
+   mov word ptr [offset _kindscore+2*35],0000
+   mov word ptr [offset _kindmsg+4*36+02],segment _msg_jillfish
+   mov word ptr [offset _kindmsg+4*36+00],offset _msg_jillfish
+   mov word ptr [offset _kindxl+2*36],0018
+   mov word ptr [offset _kindyl+2*36],0010
+   mov [offset _kindname+4*36+02],DS
+   mov word ptr [offset _kindname+4*36],offset Y2a170f96
+   mov word ptr [offset _kindflags+2*36],0008
+   mov word ptr [offset _kindtable+2*36],0033
+   mov word ptr [offset _kindscore+2*36],0000
+   mov word ptr [offset _kindmsg+4*37+02],segment _msg_jillspider
+   mov word ptr [offset _kindmsg+4*37+00],offset _msg_jillspider
+   mov word ptr [offset _kindxl+2*37],0010
+   mov word ptr [offset _kindyl+2*37],0010
+   mov [offset _kindname+4*37+02],DS
+   mov word ptr [offset _kindname+4*37],offset Y2a170f9f
+   mov word ptr [offset _kindflags+2*37],0008
+   mov word ptr [offset _kindtable+2*37],0000
+   mov word ptr [offset _kindscore+2*37],0000
+   mov word ptr [offset _kindmsg+4*38+02],segment _msg_jillbird
+   mov word ptr [offset _kindmsg+4*38+00],offset _msg_jillbird
+   mov word ptr [offset _kindxl+2*38],0010
+   mov word ptr [offset _kindyl+2*38],0010
+   mov [offset _kindname+4*38+02],DS
+   mov word ptr [offset _kindname+4*38],offset Y2a170faa
+   mov word ptr [offset _kindflags+2*38],0008
+   mov word ptr [offset _kindtable+2*38],000B
+   mov word ptr [offset _kindscore+2*38],0000
+   mov word ptr [offset _kindmsg+4*39+02],segment _msg_jillfrog
+   mov word ptr [offset _kindmsg+4*39+00],offset _msg_jillfrog
+   mov word ptr [offset _kindxl+2*39],000E
+   mov word ptr [offset _kindyl+2*39],000A
+   mov [offset _kindname+4*39+02],DS
+   mov word ptr [offset _kindname+4*39],offset Y2a170fb3
+   mov word ptr [offset _kindflags+2*39],0008
+   mov word ptr [offset _kindtable+2*39],003F
+   mov word ptr [offset _kindscore+2*39],0000
+   mov word ptr [offset _kindmsg+4*3a+02],segment _msg_bubble
+   mov word ptr [offset _kindmsg+4*3a+00],offset _msg_bubble
+   mov word ptr [offset _kindxl+2*3a],0008
+   mov word ptr [offset _kindyl+2*3a],0008
+   mov [offset _kindname+4*3a+02],DS
+   mov word ptr [offset _kindname+4*3a],offset Y2a170fbc
+   mov word ptr [offset _kindflags+2*3a],0000
+   mov word ptr [offset _kindtable+2*3a],0033
+   mov word ptr [offset _kindscore+2*3a],0000
+   mov word ptr [offset _kindmsg+4*3b+02],segment _msg_jellyfish
+   mov word ptr [offset _kindmsg+4*3b+00],offset _msg_jellyfish
+   mov word ptr [offset _kindxl+2*3b],0010
+   mov word ptr [offset _kindyl+2*3b],0018
+   mov [offset _kindname+4*3b+02],DS
+   mov word ptr [offset _kindname+4*3b],offset Y2a170fc3
+   mov word ptr [offset _kindflags+2*3b],0000
+   mov word ptr [offset _kindtable+2*3b],0033
+   mov word ptr [offset _kindscore+2*3b],0000
+   mov word ptr [offset _kindmsg+4*3c+02],segment _msg_badfish
+   mov word ptr [offset _kindmsg+4*3c+00],offset _msg_badfish
+   mov word ptr [offset _kindxl+2*3c],001C
+   mov word ptr [offset _kindyl+2*3c],0010
+   mov [offset _kindname+4*3c+02],DS
+   mov word ptr [offset _kindname+4*3c],offset Y2a170fcd
+   mov word ptr [offset _kindflags+2*3c],0000
+   mov word ptr [offset _kindtable+2*3c],0033
+   mov word ptr [offset _kindscore+2*3c],0007
+   mov word ptr [offset _kindmsg+4*3d+02],segment _msg_elev
+   mov word ptr [offset _kindmsg+4*3d+00],offset _msg_elev
+   mov word ptr [offset _kindxl+2*3d],0010
+   mov word ptr [offset _kindyl+2*3d],0010
+   mov [offset _kindname+4*3d+02],DS
+   mov word ptr [offset _kindname+4*3d],offset Y2a170fd5
+   mov word ptr [offset _kindflags+2*3d],0100
+   mov word ptr [offset _kindtable+2*3d],0000
+   mov word ptr [offset _kindscore+2*3d],0000
+   mov word ptr [offset _kindmsg+4*3e+02],segment _msg_firebullet
+   mov word ptr [offset _kindmsg+4*3e+00],offset _msg_firebullet
+   mov word ptr [offset _kindxl+2*3e],0010
+   mov word ptr [offset _kindyl+2*3e],0010
+   mov [offset _kindname+4*3e+02],DS
+   mov word ptr [offset _kindname+4*3e],offset Y2a170fda
+   mov word ptr [offset _kindflags+2*3e],4008
+   mov word ptr [offset _kindtable+2*3e],001A
+   mov word ptr [offset _kindscore+2*3e],0000
+   mov word ptr [offset _kindmsg+4*3f+02],segment _msg_fishbullet
+   mov word ptr [offset _kindmsg+4*3f+00],offset _msg_fishbullet
+   mov word ptr [offset _kindxl+2*3f],000C
+   mov word ptr [offset _kindyl+2*3f],0005
+   mov [offset _kindname+4*3f+02],DS
+   mov word ptr [offset _kindname+4*3f],offset Y2a170fe5
+   mov word ptr [offset _kindflags+2*3f],4008
+   mov word ptr [offset _kindtable+2*3f],0033
+   mov word ptr [offset _kindscore+2*3f],0000
+   mov word ptr [offset _kindmsg+4*40+02],segment _msg_eyes
+   mov word ptr [offset _kindmsg+4*40+00],offset _msg_eyes
+   mov word ptr [offset _kindxl+2*40],0010
+   mov word ptr [offset _kindyl+2*40],000C
+   mov [offset _kindname+4*40+02],DS
+   mov word ptr [offset _kindname+4*40],offset Y2a170ff0
+   mov word ptr [offset _kindflags+2*40],0180
+   mov word ptr [offset _kindtable+2*40],003E
+   mov word ptr [offset _kindscore+2*40],0003
+   mov word ptr [offset _kindmsg+4*41+02],segment _msg_vineclimb
+   mov word ptr [offset _kindmsg+4*41+00],offset _msg_vineclimb
+   mov word ptr [offset _kindxl+2*41],0010
+   mov word ptr [offset _kindyl+2*41],0008
+   mov [offset _kindname+4*41+02],DS
+   mov word ptr [offset _kindname+4*41],offset Y2a170ff4
+   mov word ptr [offset _kindflags+2*41],0000
+   mov word ptr [offset _kindtable+2*41],003D
+   mov word ptr [offset _kindscore+2*41],0000
+   mov word ptr [offset _kindmsg+4*42+02],segment _msg_flag
+   mov word ptr [offset _kindmsg+4*42+00],offset _msg_flag
+   mov word ptr [offset _kindxl+2*42],0024
+   mov word ptr [offset _kindyl+2*42],0010
+   mov [offset _kindname+4*42+02],DS
+   mov word ptr [offset _kindname+4*42],offset Y2a170ffe
+   mov word ptr [offset _kindflags+2*42],0008
+   mov word ptr [offset _kindtable+2*42],0005
+   mov word ptr [offset _kindscore+2*42],0000
+   mov word ptr [offset _kindmsg+4*43+02],segment _msg_mapdemo
+   mov word ptr [offset _kindmsg+4*43+00],offset _msg_mapdemo
+   mov word ptr [offset _kindxl+2*43],0040
+   mov word ptr [offset _kindyl+2*43],0010
+   mov [offset _kindname+4*43+02],DS
+   mov word ptr [offset _kindname+4*43],offset Y2a171003
+   mov word ptr [offset _kindflags+2*43],0000
+   mov word ptr [offset _kindtable+2*43],0003
+   mov word ptr [offset _kindscore+2*43],0000
+   mov word ptr [offset _kindmsg+4*44+02],segment _msg_roman
+   mov word ptr [offset _kindmsg+4*44+00],offset _msg_roman
+   mov word ptr [offset _kindxl+2*44],0010
+   mov word ptr [offset _kindyl+2*44],0020
+   mov [offset _kindname+4*44+02],DS
+   mov word ptr [offset _kindname+4*44],offset Y2a17100b
+   mov word ptr [offset _kindflags+2*44],0480
+   mov word ptr [offset _kindtable+2*44],002C
+   mov word ptr [offset _kindscore+2*44],000C
 ret far
 
-A0d8c0e0f:
+_msg_null: ;; 0d8c0e0f
    push BP
    mov BP,SP
    xor AX,AX
    pop BP
 ret far
 
-A0d8c0e16:
+_msg_apple: ;; 0d8c0e16
    push BP
    mov BP,SP
    push SI
@@ -11729,7 +11732,7 @@ L0d8c0e34:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -11737,11 +11740,11 @@ L0d8c0e34:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
-   mov AX,[BC42]
+   mov AX,[offset _kindtable+2*01]
    mov CL,08
    shl AX,CL
    push AX
@@ -11749,7 +11752,7 @@ L0d8c0e34:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -11759,9 +11762,9 @@ L0d8c0e34:
    pop DX
    add DX,AX
    push DX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L0d8c0ff9
 L0d8c0e92:
@@ -11769,7 +11772,7 @@ L0d8c0e92:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -11778,7 +11781,7 @@ L0d8c0e92:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -11796,7 +11799,7 @@ L0d8c0ec4:
    push DX
    mul BX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -11805,7 +11808,7 @@ L0d8c0ec4:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    test word ptr [ES:BX+13],0001
@@ -11821,7 +11824,7 @@ L0d8c0f01:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+00
@@ -11830,7 +11833,7 @@ L0d8c0f01:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+1D],+00
@@ -11839,30 +11842,30 @@ L0d8c0f01:
    push AX
    mov AX,0006
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+0D]
-   call far A19dd0f3d
+   call far _dotextmsg
    pop CX
 L0d8c0f55:
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+1D],0004
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
 jmp near L0d8c0ff6
 L0d8c0f74:
@@ -11871,15 +11874,15 @@ L0d8c0f74:
    xor AX,AX
 jmp near L0d8c0ff9
 L0d8c0f7f:
-   cmp word ptr [offset Y2a17846a],+08
+   cmp word ptr [offset _pl+02],+08
    jge L0d8c0f8a
-   inc word ptr [offset Y2a17846a]
+   inc word ptr [offset _pl+02]
 L0d8c0f8a:
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -11887,34 +11890,34 @@ L0d8c0f8a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
-   push [BCCC]
-   call far A1e3e1fa4
+   push [offset _kindscore+2*01]
+   call far _addscore
    add SP,+06
-   or word ptr [C23A],C000
+   or word ptr [offset _statmodflg],C000
    mov AX,000B
    push AX
    mov AX,0002
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
-   cmp word ptr [0DE8],+00
+   cmp word ptr [offset _first_apple],+00
    jz L0d8c0ff6
    mov AX,0002
    push AX
    push DS
    mov AX,offset Y2a171011
    push AX
-   call far A19dd059d
+   call far _putbotmsg
    add SP,+06
-   mov word ptr [0DE8],0000
+   mov word ptr [offset _first_apple],0000
 L0d8c0ff6:
    mov AX,0001
 L0d8c0ff9:
@@ -11922,7 +11925,7 @@ L0d8c0ff9:
    pop BP
 ret far
 
-A0d8c0ffc:
+_msg_knife: ;; 0d8c0ffc
    push BP
    mov BP,SP
    sub SP,+06
@@ -11941,7 +11944,7 @@ L0d8c1019:
    jz L0d8c1067
 jmp near L0d8c13c1
 L0d8c1021:
-   mov AX,[BC44]
+   mov AX,[offset _kindtable+2*02]
    mov CL,08
    shl AX,CL
    mov [BP-06],AX
@@ -11949,7 +11952,7 @@ L0d8c1021:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -11957,14 +11960,14 @@ L0d8c1021:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push [BP-06]
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L0d8c13c1
 L0d8c1067:
@@ -11972,7 +11975,7 @@ L0d8c1067:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+11],+00
@@ -11983,7 +11986,7 @@ L0d8c1080:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+11]
@@ -11991,7 +11994,7 @@ L0d8c1080:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+11],+0E
@@ -12005,7 +12008,7 @@ L0d8c10ac:
    lea AX,[BP-04]
    push AX
    push SI
-   call far A1e3e0719
+   call far _seekplayer
    add SP,+0A
    mov AX,[BP-04]
    push AX
@@ -12013,7 +12016,7 @@ L0d8c10ac:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -12022,7 +12025,7 @@ L0d8c10ac:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+08
@@ -12031,7 +12034,7 @@ L0d8c10ac:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+05],0008
@@ -12041,7 +12044,7 @@ L0d8c1104:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],-08
@@ -12050,7 +12053,7 @@ L0d8c1104:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+05],FFF8
@@ -12061,7 +12064,7 @@ L0d8c112f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -12070,7 +12073,7 @@ L0d8c112f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+04
@@ -12079,7 +12082,7 @@ L0d8c112f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],0004
@@ -12089,7 +12092,7 @@ L0d8c1174:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],-04
@@ -12098,7 +12101,7 @@ L0d8c1174:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],FFFC
@@ -12107,7 +12110,7 @@ L0d8c119f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -12116,7 +12119,7 @@ L0d8c119f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -12126,7 +12129,7 @@ L0d8c119f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -12135,14 +12138,14 @@ L0d8c119f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    add AX,[ES:BX+05]
    push AX
    push SI
-   call far A1e3e1c9b
+   call far _trymove
    add SP,+06
    neg AX
    sbb AX,AX
@@ -12152,7 +12155,7 @@ L0d8c119f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+11],+40
@@ -12171,7 +12174,7 @@ L0d8c1225:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+11],FFFF
@@ -12181,7 +12184,7 @@ L0d8c123d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+11],-01
@@ -12190,7 +12193,7 @@ L0d8c123d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -12200,12 +12203,12 @@ L0d8c123d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e1c9b
+   call far _trymove
    add SP,+06
    or AX,AX
    jz L0d8c128b
@@ -12215,7 +12218,7 @@ L0d8c128b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+11],0000
@@ -12232,7 +12235,7 @@ L0d8c12af:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+11],+00
@@ -12241,7 +12244,7 @@ L0d8c12af:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+11],+0A
@@ -12250,7 +12253,7 @@ jmp near L0d8c13be
 L0d8c12de:
    mov AX,0002
    push AX
-   call far A1e3e1aaa
+   call far _invcount
    pop CX
    cmp AX,0003
    jl L0d8c12f0
@@ -12258,19 +12261,19 @@ jmp near L0d8c13be
 L0d8c12f0:
    mov AX,0002
    push AX
-   call far A1e3e1a38
+   call far _addinv
    pop CX
    mov AX,0007
    push AX
    mov AX,0002
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
-   cmp word ptr [0DEA],+00
+   cmp word ptr [offset _first_knife],+00
    jnz L0d8c131a
 jmp near L0d8c13be
 L0d8c131a:
@@ -12279,29 +12282,29 @@ L0d8c131a:
    push DS
    mov AX,offset Y2a171028
    push AX
-   call far A19dd059d
+   call far _putbotmsg
    add SP,+06
-   mov word ptr [0DEA],0000
+   mov word ptr [offset _first_knife],0000
 jmp near L0d8c13be
 L0d8c1334:
    mov AX,DI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AL,[ES:BX]
    cbw
    mov BX,AX
    shl BX,1
-   test word ptr [BX+C23E],0080
+   test word ptr [BX+offset _kindflags],0080
    jz L0d8c13be
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+11],+00
@@ -12310,7 +12313,7 @@ L0d8c1334:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+05],0000
@@ -12318,7 +12321,7 @@ L0d8c1334:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],0000
@@ -12326,18 +12329,18 @@ L0d8c1334:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+11],000F
    push DI
-   call far A1e3e00fe
+   call far _playerkill
    pop CX
    mov AX,000A
    push AX
    mov AX,0003
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
 L0d8c13be:
@@ -12349,13 +12352,13 @@ L0d8c13c1:
    pop BP
 X0d8c13c6:
 ret far
-X0d8c13c7:
+_msg_nullkind: ;; 0d8c13c7 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    pop BP
 ret far
 
-A0d8c13cc:
+_msg_bigant: ;; 0d8c13cc
    push BP
    mov BP,SP
    push SI
@@ -12374,14 +12377,14 @@ jmp near L0d8c14de
 L0d8c13eb:
 jmp near L0d8c15a2
 L0d8c13ee:
-   mov DI,[BC48]
+   mov DI,[offset _kindtable+2*04]
    mov CL,08
    shl DI,CL
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+00
@@ -12390,7 +12393,7 @@ L0d8c13ee:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -12407,7 +12410,7 @@ L0d8c1429:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -12419,7 +12422,7 @@ L0d8c1447:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -12428,7 +12431,7 @@ L0d8c1447:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+0D]
@@ -12440,7 +12443,7 @@ L0d8c1477:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,000A
@@ -12452,7 +12455,7 @@ L0d8c1491:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -12460,14 +12463,14 @@ L0d8c1491:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push DI
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L0d8c15a2
 L0d8c14cb:
@@ -12476,7 +12479,7 @@ L0d8c14cb:
 jmp near L0d8c15a2
 L0d8c14d4:
    push SI
-   call far A1e3e257f
+   call far _hitplayer
    pop CX
 jmp near L0d8c15a2
 L0d8c14de:
@@ -12484,7 +12487,7 @@ L0d8c14de:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+00
@@ -12495,7 +12498,7 @@ L0d8c14f7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+13]
@@ -12506,7 +12509,7 @@ L0d8c14f7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+13],0000
@@ -12517,12 +12520,12 @@ L0d8c1528:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+05]
    push SI
-   call far A1e3e1f29
+   call far _crawl
    add SP,+06
    or AX,AX
    jnz L0d8c159f
@@ -12530,7 +12533,7 @@ L0d8c1528:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0005
@@ -12538,7 +12541,7 @@ L0d8c1528:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -12548,7 +12551,7 @@ L0d8c1528:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -12559,7 +12562,7 @@ L0d8c158c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    dec word ptr [ES:BX+0D]
@@ -12571,7 +12574,7 @@ L0d8c15a2:
    pop BP
 ret far
 
-A0d8c15a6:
+_msg_ant: ;; 0d8c15a6
    push BP
    mov BP,SP
    push SI
@@ -12590,14 +12593,14 @@ jmp near L0d8c16c0
 L0d8c15c5:
 jmp near L0d8c1784
 L0d8c15c8:
-   mov DI,[BC7A]
+   mov DI,[offset _kindtable+2*1d]
    mov CL,08
    shl DI,CL
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+00
@@ -12606,7 +12609,7 @@ L0d8c15c8:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -12623,7 +12626,7 @@ L0d8c1603:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -12635,7 +12638,7 @@ L0d8c1621:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -12644,7 +12647,7 @@ L0d8c1621:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+0D]
@@ -12659,7 +12662,7 @@ L0d8c1658:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+0D]
@@ -12672,7 +12675,7 @@ L0d8c1673:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -12680,14 +12683,14 @@ L0d8c1673:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push DI
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L0d8c1784
 L0d8c16ad:
@@ -12696,7 +12699,7 @@ L0d8c16ad:
 jmp near L0d8c1784
 L0d8c16b6:
    push SI
-   call far A1e3e257f
+   call far _hitplayer
    pop CX
 jmp near L0d8c1784
 L0d8c16c0:
@@ -12704,7 +12707,7 @@ L0d8c16c0:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+00
@@ -12715,7 +12718,7 @@ L0d8c16d9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+13]
@@ -12726,7 +12729,7 @@ L0d8c16d9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+13],0000
@@ -12737,12 +12740,12 @@ L0d8c170a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+05]
    push SI
-   call far A1e3e1f29
+   call far _crawl
    add SP,+06
    or AX,AX
    jnz L0d8c1781
@@ -12750,7 +12753,7 @@ L0d8c170a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0002
@@ -12758,7 +12761,7 @@ L0d8c170a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -12768,7 +12771,7 @@ L0d8c170a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -12779,7 +12782,7 @@ L0d8c176e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    dec word ptr [ES:BX+0D]
@@ -12791,7 +12794,7 @@ L0d8c1784:
    pop BP
 ret far
 
-A0d8c1788:
+_msg_fly: ;; 0d8c1788
    push BP
    mov BP,SP
    sub SP,+1C
@@ -12805,7 +12808,7 @@ A0d8c1788:
    mov AX,offset Y2a170df2
    push AX
    mov CX,0008
-   call far A076a05d8
+   call far SCOPY@
    push SS
    lea AX,[BP-10]
    push AX
@@ -12813,7 +12816,7 @@ A0d8c1788:
    mov AX,offset Y2a170dfa
    push AX
    mov CX,0010
-   call far A076a05d8
+   call far SCOPY@
    mov AX,[BP+08]
    or AX,AX
    jz L0d8c17d1
@@ -12831,7 +12834,7 @@ L0d8c17d1:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+13]
@@ -12840,7 +12843,7 @@ L0d8c17d1:
    lea AX,[BP-18]
    add BX,AX
    mov DI,[SS:BX]
-   mov AX,[BC4A]
+   mov AX,[offset _kindtable+2*05]
    mov CL,08
    shl AX,CL
    add DI,AX
@@ -12849,7 +12852,7 @@ L0d8c17d1:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -12865,7 +12868,7 @@ L0d8c1819:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -12873,14 +12876,14 @@ L0d8c1819:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push DI
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L0d8c1982
 L0d8c1856:
@@ -12894,7 +12897,7 @@ L0d8c185f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -12902,21 +12905,21 @@ L0d8c185f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
-   call far A11860a35
+   call far _explode1
    add SP,+06
    xor AX,AX
    push AX
    mov AX,0001
    push AX
-   call far A1e3e064c
+   call far _p_ouch
    pop CX
    pop CX
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
 jmp near L0d8c1982
 L0d8c18a9:
@@ -12924,7 +12927,7 @@ L0d8c18a9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -12933,7 +12936,7 @@ L0d8c18a9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -12943,7 +12946,7 @@ L0d8c18a9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+13]
@@ -12956,7 +12959,7 @@ L0d8c18a9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -12965,7 +12968,7 @@ L0d8c18a9:
    push AX
    push [BP-1C]
    push SI
-   call far A1e3e1d7e
+   call far _justmove
    add SP,+06
    or AX,AX
    jnz L0d8c1953
@@ -12973,7 +12976,7 @@ L0d8c18a9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -12983,7 +12986,7 @@ L0d8c18a9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -12992,7 +12995,7 @@ L0d8c18a9:
    push AX
    mov AX,0001
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
 L0d8c1953:
@@ -13000,7 +13003,7 @@ L0d8c1953:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -13011,7 +13014,7 @@ L0d8c1953:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -13024,7 +13027,7 @@ L0d8c1982:
    pop BP
 ret far
 
-A0d8c1988:
+_msg_phoenix: ;; 0d8c1988
    push BP
    mov BP,SP
    sub SP,+24
@@ -13038,7 +13041,7 @@ A0d8c1988:
    mov AX,0E0A
    push AX
    mov CX,0010
-   call far A076a05d8
+   call far SCOPY@
    push SS
    lea AX,[BP-10]
    push AX
@@ -13046,7 +13049,7 @@ A0d8c1988:
    mov AX,0E1A
    push AX
    mov CX,0010
-   call far A076a05d8
+   call far SCOPY@
    mov AX,[BP+08]
    or AX,AX
    jz L0d8c19d1
@@ -13064,7 +13067,7 @@ L0d8c19d1:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+13]
@@ -13072,7 +13075,7 @@ L0d8c19d1:
    lea AX,[BP-20]
    add BX,AX
    mov AX,[SS:BX]
-   mov DX,[BC7C]
+   mov DX,[offset _kindtable+2*1e]
    mov CL,08
    shl DX,CL
    add AX,DX
@@ -13081,7 +13084,7 @@ L0d8c19d1:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -13090,7 +13093,7 @@ L0d8c19d1:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+13]
@@ -13109,7 +13112,7 @@ L0d8c1a30:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -13117,14 +13120,14 @@ L0d8c1a30:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push [BP-24]
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L0d8c1c2c
 L0d8c1a72:
@@ -13138,7 +13141,7 @@ L0d8c1a7b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -13146,25 +13149,25 @@ L0d8c1a7b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
-   call far A11860a35
+   call far _explode1
    add SP,+06
    xor AX,AX
    push AX
    mov AX,0001
    push AX
-   call far A1e3e064c
+   call far _p_ouch
    pop CX
    pop CX
    xor AX,AX
    push AX
-   call far A118609bd
+   call far _explode2
    pop CX
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
 jmp near L0d8c1c2c
 L0d8c1ace:
@@ -13174,7 +13177,7 @@ L0d8c1ace:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -13182,12 +13185,12 @@ L0d8c1ace:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e21fd
+   call far _cando
    add SP,+08
    or AX,AX
    jnz L0d8c1b0a
@@ -13198,7 +13201,7 @@ L0d8c1b0a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov DI,[ES:BX+01]
@@ -13206,7 +13209,7 @@ L0d8c1b0a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    add DI,[ES:BX+05]
@@ -13214,7 +13217,7 @@ L0d8c1b0a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -13223,7 +13226,7 @@ L0d8c1b0a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+13]
@@ -13234,7 +13237,7 @@ L0d8c1b0a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+13],+07
@@ -13244,7 +13247,7 @@ L0d8c1b78:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+13],0000
@@ -13252,7 +13255,7 @@ L0d8c1b8d:
    push [BP-22]
    push DI
    push SI
-   call far A1e3e1d7e
+   call far _justmove
    add SP,+06
    or AX,AX
    jz L0d8c1bf0
@@ -13260,7 +13263,7 @@ L0d8c1b8d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov DI,[ES:BX+01]
@@ -13268,7 +13271,7 @@ L0d8c1b8d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    add DI,[ES:BX+05]
@@ -13277,7 +13280,7 @@ L0d8c1b8d:
    push [BP-22]
    push DI
    push SI
-   call far A1e3e21fd
+   call far _cando
    add SP,+08
    or AX,AX
    jnz L0d8c1c29
@@ -13285,7 +13288,7 @@ L0d8c1b8d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+13],0006
@@ -13295,7 +13298,7 @@ L0d8c1bf0:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -13305,7 +13308,7 @@ L0d8c1bf0:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -13314,7 +13317,7 @@ L0d8c1bf0:
    push AX
    mov AX,0001
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
 L0d8c1c29:
@@ -13326,7 +13329,7 @@ L0d8c1c2c:
    pop BP
 ret far
 
-A0d8c1c32:
+_msg_inchworm: ;; 0d8c1c32
    push BP
    mov BP,SP
    push SI
@@ -13345,7 +13348,7 @@ jmp near L0d8c1ce2
 L0d8c1c51:
 jmp near L0d8c1d8d
 L0d8c1c54:
-   mov DI,[BC52]
+   mov DI,[offset _kindtable+2*09]
    mov CL,08
    shl DI,CL
    push DI
@@ -13353,7 +13356,7 @@ L0d8c1c54:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -13371,7 +13374,7 @@ L0d8c1c7a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    add DI,[ES:BX+11]
@@ -13379,7 +13382,7 @@ L0d8c1c7a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -13387,14 +13390,14 @@ L0d8c1c7a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push DI
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L0d8c1d8d
 L0d8c1ccf:
@@ -13403,7 +13406,7 @@ L0d8c1ccf:
 jmp near L0d8c1d8d
 L0d8c1cd8:
    push SI
-   call far A1e3e257f
+   call far _hitplayer
    pop CX
 jmp near L0d8c1d8d
 L0d8c1ce2:
@@ -13411,7 +13414,7 @@ L0d8c1ce2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -13422,7 +13425,7 @@ L0d8c1ce2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -13431,7 +13434,7 @@ L0d8c1ce2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+13],+00
@@ -13440,7 +13443,7 @@ L0d8c1ce2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    xor word ptr [ES:BX+11],0001
@@ -13450,12 +13453,12 @@ L0d8c1ce2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+05]
    push SI
-   call far A1e3e1f29
+   call far _crawl
    add SP,+06
    or AX,AX
    jnz L0d8c1d86
@@ -13463,7 +13466,7 @@ L0d8c1ce2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -13473,7 +13476,7 @@ L0d8c1ce2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -13489,7 +13492,7 @@ L0d8c1d8d:
    pop BP
 ret far
 
-A0d8c1d91:
+_msg_zapper: ;; 0d8c1d91
    push BP
    mov BP,SP
    push SI
@@ -13504,14 +13507,14 @@ A0d8c1d91:
    jz L0d8c1e16
 jmp near L0d8c1e4a
 L0d8c1dad:
-   mov DI,[BC54]
+   mov DI,[offset _kindtable+2*0a]
    mov CL,08
    shl DI,CL
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    add DI,[ES:BX+13]
@@ -13520,7 +13523,7 @@ L0d8c1dad:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -13528,14 +13531,14 @@ L0d8c1dad:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push DI
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L0d8c1e4a
 L0d8c1e05:
@@ -13543,7 +13546,7 @@ L0d8c1e05:
    push AX
    mov AX,0010
    push AX
-   call far A1e3e064c
+   call far _p_ouch
    pop CX
    pop CX
 jmp near L0d8c1e4a
@@ -13552,7 +13555,7 @@ L0d8c1e16:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+13]
@@ -13563,7 +13566,7 @@ L0d8c1e16:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+13],0000
@@ -13575,7 +13578,7 @@ L0d8c1e4a:
    pop BP
 ret far
 
-A0d8c1e4e:
+_msg_bobslug: ;; 0d8c1e4e
    push BP
    mov BP,SP
    push SI
@@ -13594,14 +13597,14 @@ jmp near L0d8c1f0c
 L0d8c1e6d:
 jmp near L0d8c1fe0
 L0d8c1e70:
-   mov DI,[BC56]
+   mov DI,[offset _kindtable+2*0b]
    mov CL,08
    shl DI,CL
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -13610,7 +13613,7 @@ L0d8c1e70:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+0D]
@@ -13621,7 +13624,7 @@ L0d8c1ea5:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,0006
@@ -13633,7 +13636,7 @@ L0d8c1ebf:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -13641,14 +13644,14 @@ L0d8c1ebf:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push DI
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L0d8c1fe0
 L0d8c1ef9:
@@ -13657,7 +13660,7 @@ L0d8c1ef9:
 jmp near L0d8c1fe0
 L0d8c1f02:
    push SI
-   call far A1e3e257f
+   call far _hitplayer
    pop CX
 jmp near L0d8c1fe0
 L0d8c1f0c:
@@ -13665,7 +13668,7 @@ L0d8c1f0c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+00
@@ -13676,12 +13679,12 @@ L0d8c1f0c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+05]
    push SI
-   call far A1e3e1f29
+   call far _crawl
    add SP,+06
    or AX,AX
    jz L0d8c1f48
@@ -13691,7 +13694,7 @@ L0d8c1f48:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0001
@@ -13701,7 +13704,7 @@ L0d8c1f60:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    xor word ptr [ES:BX+11],0001
@@ -13715,7 +13718,7 @@ L0d8c1f82:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+0D]
@@ -13726,7 +13729,7 @@ L0d8c1f82:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0000
@@ -13734,7 +13737,7 @@ L0d8c1f82:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -13744,7 +13747,7 @@ L0d8c1f82:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -13757,7 +13760,7 @@ L0d8c1fe0:
    pop BP
 ret far
 
-A0d8c1fe4:
+_msg_checkpt: ;; 0d8c1fe4
    push BP
    mov BP,SP
    sub SP,+10
@@ -13776,7 +13779,7 @@ jmp near L0d8c2098
 L0d8c2005:
 jmp near L0d8c22c7
 L0d8c2008:
-   cmp word ptr [13C4],+00
+   cmp word ptr [offset _designflag],+00
    jnz L0d8c2012
 jmp near L0d8c22c7
 L0d8c2012:
@@ -13784,9 +13787,9 @@ L0d8c2012:
    push AX
    mov AX,0005
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A0a820abc
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _fontcolor
    add SP,+08
    mov AX,000A
    push AX
@@ -13797,11 +13800,11 @@ L0d8c2012:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+13]
-   call far A288c008e
+   call far _itoa
    add SP,+08
    push SS
    lea AX,[BP-10]
@@ -13812,7 +13815,7 @@ L0d8c2012:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -13822,15 +13825,15 @@ L0d8c2012:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
    add AX,0004
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A0a8206bf
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _wprint
    add SP,+0E
 jmp near L0d8c22c7
 L0d8c2098:
@@ -13838,7 +13841,7 @@ L0d8c2098:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -13847,12 +13850,12 @@ L0d8c2098:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    add AX,[ES:BX+09]
-   cmp AX,[976F]
+   cmp AX,[offset _objs+01]
    jg L0d8c20c9
 jmp near L0d8c2197
 L0d8c20c9:
@@ -13860,12 +13863,12 @@ L0d8c20c9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
-   mov DX,[976F]
-   add DX,[9777]
+   mov DX,[offset _objs+01]
+   add DX,[offset _objs+09]
    cmp AX,DX
    jl L0d8c20eb
 jmp near L0d8c2197
@@ -13874,7 +13877,7 @@ L0d8c20eb:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -13883,12 +13886,12 @@ L0d8c20eb:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    add AX,[ES:BX+0B]
-   cmp AX,[9771]
+   cmp AX,[offset _objs+03]
    jg L0d8c211c
 jmp near L0d8c2197
 L0d8c211c:
@@ -13896,32 +13899,32 @@ L0d8c211c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
-   mov DX,[9771]
-   add DX,[9779]
+   mov DX,[offset _objs+03]
+   add DX,[offset _objs+0b]
    cmp AX,DX
    jge L0d8c2197
-   mov AX,[976F]
+   mov AX,[offset _objs+01]
    push AX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    mov [ES:BX+05],AX
-   mov AX,[9771]
+   mov AX,[offset _objs+03]
    push AX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -13936,13 +13939,13 @@ L0d8c2176:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+03
    jnz L0d8c219c
-   call far A0b3906d3
-   mov word ptr [BDAC],0002
+   call far _macrecend
+   mov word ptr [offset _gameover],0002
 L0d8c2197:
    xor AX,AX
 jmp near L0d8c22c7
@@ -13951,15 +13954,15 @@ L0d8c219c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
-   cmp AX,[offset Y2a178468]
+   cmp AX,[offset _pl]
    jnz L0d8c21b8
 jmp near L0d8c22c7
 L0d8c21b8:
-   cmp word ptr [0C88],+00
+   cmp word ptr [offset _vocflag],+00
    jz L0d8c21c4
    mov AX,0005
 jmp near L0d8c21da
@@ -13968,7 +13971,7 @@ L0d8c21c4:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -13977,14 +13980,14 @@ L0d8c21da:
    push AX
    mov AX,0004
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+13],+00
@@ -13993,19 +13996,19 @@ L0d8c21da:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
-   mov [offset Y2a178468],AX
+   mov [offset _pl],AX
 L0d8c2212:
-   cmp byte ptr [976E],17
+   cmp byte ptr [offset _objs],17
    jnz L0d8c224c
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+07]
@@ -14013,13 +14016,13 @@ L0d8c2212:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+05]
    xor AX,AX
    push AX
-   call far A1e3e1aeb
+   call far _moveobj
    add SP,+06
 jmp near L0d8c2287
 L0d8c224c:
@@ -14027,29 +14030,29 @@ L0d8c224c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
-   mov [976F],AX
+   mov [offset _objs+01],AX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
    add AX,FFF0
-   mov [9771],AX
-   mov word ptr [977B],0004
-   mov word ptr [977F],0000
+   mov [offset _objs+03],AX
+   mov word ptr [offset _objs+0d],0004
+   mov word ptr [offset _objs+11],0000
 L0d8c2287:
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+17]
@@ -14059,15 +14062,15 @@ L0d8c2287:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+19]
    push [ES:BX+17]
    push DS
-   mov AX,offset Y2a17bc20
+   mov AX,offset _newlevel
    push AX
-   call far A28a70001
+   call far _strcpy
    add SP,+08
 L0d8c22c4:
    mov AX,0001
@@ -14077,7 +14080,7 @@ L0d8c22c7:
    pop BP
 ret far
 
-A0d8c22cc:
+_msg_paul: ;; 0d8c22cc
    push BP
    mov BP,SP
    push SI
@@ -14092,14 +14095,14 @@ A0d8c22cc:
    jz L0d8c233b
 jmp near L0d8c233d
 L0d8c22e7:
-   mov DI,[BC5A]
+   mov DI,[offset _kindtable+2*0d]
    mov CL,08
    shl DI,CL
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    add DI,[ES:BX+0D]
@@ -14107,7 +14110,7 @@ L0d8c22e7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -14115,14 +14118,14 @@ L0d8c22e7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push DI
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L0d8c233d
 L0d8c233b:
@@ -14133,7 +14136,7 @@ L0d8c233d:
    pop BP
 ret far
 
-A0d8c2341:
+_msg_wiseman: ;; 0d8c2341
    push BP
    mov BP,SP
    push SI
@@ -14152,14 +14155,14 @@ jmp near L0d8c23de
 L0d8c2360:
 jmp near L0d8c24f3
 L0d8c2363:
-   mov DI,[BC60]
+   mov DI,[offset _kindtable+2*10]
    mov CL,08
    shl DI,CL
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -14176,7 +14179,7 @@ L0d8c2388:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -14186,7 +14189,7 @@ L0d8c2388:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -14194,14 +14197,14 @@ L0d8c2388:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push DI
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L0d8c24f3
 L0d8c23de:
@@ -14209,7 +14212,7 @@ L0d8c23de:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+13],+00
@@ -14220,7 +14223,7 @@ L0d8c23f7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+0D]
@@ -14231,7 +14234,7 @@ L0d8c23f7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -14240,7 +14243,7 @@ L0d8c23f7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+13],0001
@@ -14250,12 +14253,12 @@ L0d8c23f7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+05]
    push SI
-   call far A1e3e1f29
+   call far _crawl
    add SP,+06
    or AX,AX
    jnz L0d8c2485
@@ -14263,7 +14266,7 @@ L0d8c23f7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -14273,7 +14276,7 @@ L0d8c23f7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -14286,7 +14289,7 @@ L0d8c248a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    dec word ptr [ES:BX+13]
@@ -14297,7 +14300,7 @@ L0d8c249d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+1D],+00
@@ -14308,19 +14311,19 @@ L0d8c249d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+19]
    push [ES:BX+17]
-   call far A19dd059d
+   call far _putbotmsg
    add SP,+06
 L0d8c24dd:
    mov AX,[BP+0A]
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+1D],0003
@@ -14330,7 +14333,7 @@ L0d8c24f3:
    pop BP
 ret far
 
-A0d8c24f7:
+_msg_bridger: ;; 0d8c24f7
    push BP
    mov BP,SP
    sub SP,+0E
@@ -14341,7 +14344,7 @@ A0d8c24f7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -14353,7 +14356,7 @@ A0d8c24f7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -14365,7 +14368,7 @@ A0d8c24f7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -14387,7 +14390,7 @@ L0d8c256a:
 jmp near [CS:BX+offset Y0d8c2573]
 Y0d8c2573:	dw L0d8c257f,L0d8c267b,L0d8c267b,L0d8c260a,L0d8c25f8,L0d8c25ce
 L0d8c257f:
-   cmp word ptr [13C4],+00
+   cmp word ptr [offset _designflag],+00
    jnz L0d8c2589
 jmp near L0d8c267b
 L0d8c2589:
@@ -14395,7 +14398,7 @@ L0d8c2589:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -14405,7 +14408,7 @@ L0d8c2589:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -14413,9 +14416,9 @@ L0d8c2589:
    push AX
    mov AX,0123
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L0d8c267b
 L0d8c25ce:
@@ -14423,7 +14426,7 @@ L0d8c25ce:
    mov BX,DI
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,[BP-0E]
@@ -14445,7 +14448,7 @@ L0d8c260a:
    mov BX,DI
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,[BP-0E]
@@ -14465,7 +14468,7 @@ L0d8c2635:
    mov BX,DI
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,[BP-0E]
@@ -14480,13 +14483,13 @@ L0d8c2657:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp byte ptr [ES:BX],0F
    jnz L0d8c267b
    push [BP+0A]
-   call far A1e3e188a
+   call far _killobj
    pop CX
 L0d8c267b:
    cmp word ptr [BP-06],+00
@@ -14504,7 +14507,7 @@ L0d8c2694:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+07]
@@ -14513,7 +14516,7 @@ L0d8c2694:
    add BX,DI
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,SI
@@ -14522,7 +14525,7 @@ L0d8c2694:
    push ES
    push BX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -14539,7 +14542,7 @@ L0d8c2694:
    shl BX,1
    shl BX,1
    shl BX,1
-   add BX,offset Y2a1784ae
+   add BX,offset _info
    push DS
    pop ES
    mov AX,[ES:BX+02]
@@ -14558,13 +14561,13 @@ L0d8c270e:
    push [BP-0A]
    push [BP-0E]
    push DI
-   call far A1e3e0004
+   call far _setboard
    add SP,+06
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -14573,7 +14576,7 @@ L0d8c270e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+07]
@@ -14582,7 +14585,7 @@ L0d8c2748:
    mov BX,DI
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,[BP-0E]
@@ -14603,7 +14606,7 @@ L0d8c276d:
    pop BP
 ret far
 
-A0d8c2773:
+_msg_key: ;; 0d8c2773
    push BP
    mov BP,SP
    push SI
@@ -14624,7 +14627,7 @@ L0d8c2792:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -14632,7 +14635,7 @@ L0d8c2792:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
@@ -14640,7 +14643,7 @@ L0d8c2792:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -14649,9 +14652,9 @@ L0d8c2792:
    idiv BX
    add AX,0E06
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L0d8c2881
 L0d8c27e8:
@@ -14659,7 +14662,7 @@ L0d8c27e8:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -14670,7 +14673,7 @@ L0d8c27e8:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -14679,7 +14682,7 @@ L0d8c27e8:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    test word ptr [ES:BX+13],0001
@@ -14699,28 +14702,28 @@ jmp near L0d8c2881
 L0d8c2840:
    mov AX,0001
    push AX
-   call far A1e3e1a38
+   call far _addinv
    pop CX
    mov AX,0006
    push AX
    mov AX,0003
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
-   cmp word ptr [0DEC],+00
+   cmp word ptr [offset _first_key],+00
    jz L0d8c287e
    mov AX,0002
    push AX
    push DS
    mov AX,offset Y2a17103b
    push AX
-   call far A19dd059d
+   call far _putbotmsg
    add SP,+06
-   mov word ptr [0DEC],0000
+   mov word ptr [offset _first_key],0000
 L0d8c287e:
    mov AX,0001
 L0d8c2881:
@@ -14729,7 +14732,7 @@ L0d8c2881:
    pop BP
 ret far
 
-A0d8c2885:
+_msg_pad: ;; 0d8c2885
    push BP
    mov BP,SP
    push SI
@@ -14744,7 +14747,7 @@ A0d8c2885:
    jz L0d8c28ef
 jmp near L0d8c2952
 L0d8c28a1:
-   cmp word ptr [13C4],+00
+   cmp word ptr [offset _designflag],+00
    jnz L0d8c28ab
 jmp near L0d8c2952
 L0d8c28ab:
@@ -14752,7 +14755,7 @@ L0d8c28ab:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -14762,7 +14765,7 @@ L0d8c28ab:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -14770,9 +14773,9 @@ L0d8c28ab:
    push AX
    mov AX,0140
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L0d8c2952
 L0d8c28ef:
@@ -14785,7 +14788,7 @@ L0d8c28f3:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],-01
@@ -14797,7 +14800,7 @@ L0d8c2914:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+01
@@ -14813,11 +14816,11 @@ L0d8c2932:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+13]
-   call far A1e3e20e1
+   call far _sendtrig
    add SP,+06
 L0d8c294f:
    mov AX,0001
@@ -14827,7 +14830,7 @@ L0d8c2952:
    pop BP
 ret far
 
-A0d8c2956:
+_msg_demon: ;; 0d8c2956
    push BP
    mov BP,SP
    sub SP,+0C
@@ -14840,7 +14843,7 @@ A0d8c2956:
    mov AX,offset Y2a170e2a
    push AX
    mov CX,000C
-   call far A076a05d8
+   call far SCOPY@
    mov AX,[BP+08]
    or AX,AX
    jz L0d8c298c
@@ -14858,7 +14861,7 @@ L0d8c298c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -14866,7 +14869,7 @@ L0d8c298c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
@@ -14874,7 +14877,7 @@ L0d8c298c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -14886,7 +14889,7 @@ L0d8c298c:
    lea AX,[BP-0C]
    add BX,AX
    mov AX,[SS:BX]
-   mov DX,[BC4E]
+   mov DX,[offset _kindtable+2*07]
    mov CL,08
    shl DX,CL
    add AX,DX
@@ -14895,7 +14898,7 @@ L0d8c298c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -14910,9 +14913,9 @@ L0d8c29ff:
    pop DX
    add DX,AX
    push DX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L0d8c2d40
 L0d8c2a1a:
@@ -14920,7 +14923,7 @@ L0d8c2a1a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+13]
@@ -14931,7 +14934,7 @@ L0d8c2a1a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+13],0000
@@ -14940,7 +14943,7 @@ L0d8c2a4b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -14949,7 +14952,7 @@ L0d8c2a4b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -14959,7 +14962,7 @@ L0d8c2a4b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -14968,18 +14971,18 @@ L0d8c2a4b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    add AX,[ES:BX+05]
    push AX
    push SI
-   call far A1e3e1d7e
+   call far _justmove
    add SP,+06
    or AX,AX
    jz L0d8c2abc
-   call far A29b90016
+   call far _rand
    mov BX,0024
    cwd
    idiv BX
@@ -14991,7 +14994,7 @@ L0d8c2abc:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+1B],+00
@@ -15003,7 +15006,7 @@ L0d8c2ad5:
    mov AX,SI
    mov DX,001F
    mul DX
-   add AX,offset Y2a17976e
+   add AX,offset _objs
    mov DX,DS
    add AX,0007
    push DX
@@ -15011,7 +15014,7 @@ L0d8c2ad5:
    mov AX,SI
    mov DX,001F
    mul DX
-   add AX,offset Y2a17976e
+   add AX,offset _objs
    mov DX,DS
    add AX,0005
    push DX
@@ -15019,13 +15022,13 @@ L0d8c2ad5:
    push SI
    xor AX,AX
    push AX
-   call far A1e3e25ff
+   call far _pointvect
    add SP,+0E
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -15033,29 +15036,29 @@ L0d8c2ad5:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    mov AX,0012
    push AX
-   call far A1e3e18b9
+   call far _addobj
    add SP,+06
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
    push AX
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    dec AX
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -15064,28 +15067,28 @@ L0d8c2ad5:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+07]
    push AX
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    dec AX
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    mov [ES:BX+07],AX
-   call far A29b90016
+   call far _rand
    mov BX,0002
    cwd
    idiv BX
    or DX,DX
    jnz L0d8c2be4
-   call far A29b90016
+   call far _rand
    mov BX,0005
    cwd
    idiv BX
@@ -15095,12 +15098,12 @@ L0d8c2ad5:
    push DX
    mul BX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    mov [ES:BX+05],AX
-   call far A29b90016
+   call far _rand
    mov BX,0005
    cwd
    idiv BX
@@ -15110,7 +15113,7 @@ L0d8c2ad5:
    push DX
    mul BX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -15121,7 +15124,7 @@ L0d8c2be4:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -15133,7 +15136,7 @@ L0d8c2be4:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -15142,7 +15145,7 @@ L0d8c2be4:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+07]
@@ -15154,7 +15157,7 @@ L0d8c2be4:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -15164,7 +15167,7 @@ L0d8c2c40:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+00
@@ -15179,7 +15182,7 @@ L0d8c2c5d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -15192,13 +15195,13 @@ L0d8c2c75:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+1B],+00
    jnz L0d8c2c9b
    push SI
-   call far A1e3e257f
+   call far _hitplayer
    pop CX
 jmp near L0d8c2d3d
 L0d8c2c9b:
@@ -15206,7 +15209,7 @@ L0d8c2c9b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp byte ptr [ES:BX],32
@@ -15217,7 +15220,7 @@ L0d8c2cb4:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+00
@@ -15226,7 +15229,7 @@ L0d8c2cb4:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+11]
@@ -15234,10 +15237,10 @@ L0d8c2cb4:
    cmp AX,0005
    jle L0d8c2cf6
    push SI
-   call far A118609bd
+   call far _explode2
    pop CX
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
 jmp near L0d8c2d28
 L0d8c2cf6:
@@ -15247,7 +15250,7 @@ L0d8c2cf6:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -15255,18 +15258,18 @@ L0d8c2cf6:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
-   call far A11860a35
+   call far _explode1
    add SP,+06
 L0d8c2d28:
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0004
@@ -15278,7 +15281,7 @@ L0d8c2d40:
    pop BP
 ret far
 
-A0d8c2d45:
+_msg_fatso: ;; 0d8c2d45
    push BP
    mov BP,SP
    sub SP,+08
@@ -15292,7 +15295,7 @@ A0d8c2d45:
    mov AX,offset Y2a170e36
    push AX
    mov CX,0008
-   call far A076a05d8
+   call far SCOPY@
    mov AX,[BP+08]
    or AX,AX
    jz L0d8c2d7c
@@ -15306,7 +15309,7 @@ jmp near L0d8c2e1c
 L0d8c2d79:
 jmp near L0d8c2f45
 L0d8c2d7c:
-   mov DI,[BC62]
+   mov DI,[offset _kindtable+2*11]
    mov CL,08
    shl DI,CL
    push DI
@@ -15314,7 +15317,7 @@ L0d8c2d7c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -15332,7 +15335,7 @@ L0d8c2da2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -15348,7 +15351,7 @@ L0d8c2da2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -15356,14 +15359,14 @@ L0d8c2da2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push DI
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L0d8c2f45
 L0d8c2e09:
@@ -15372,7 +15375,7 @@ L0d8c2e09:
 jmp near L0d8c2f45
 L0d8c2e12:
    push SI
-   call far A1e3e257f
+   call far _hitplayer
    pop CX
 jmp near L0d8c2f45
 L0d8c2e1c:
@@ -15380,7 +15383,7 @@ L0d8c2e1c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+13]
@@ -15391,7 +15394,7 @@ L0d8c2e1c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+13],0000
@@ -15400,7 +15403,7 @@ L0d8c2e4d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    test word ptr [ES:BX+13],0001
@@ -15408,7 +15411,7 @@ L0d8c2e4d:
    xor AX,AX
 jmp near L0d8c2f45
 L0d8c2e69:
-   call far A29b90016
+   call far _rand
    mov BX,001E
    cwd
    idiv BX
@@ -15417,7 +15420,7 @@ L0d8c2e69:
    mov AX,SI
    mov DX,001F
    mul DX
-   add AX,offset Y2a17976e
+   add AX,offset _objs
    mov DX,DS
    add AX,0007
    push DX
@@ -15425,19 +15428,19 @@ L0d8c2e69:
    mov AX,SI
    mov DX,001F
    mul DX
-   add AX,offset Y2a17976e
+   add AX,offset _objs
    mov DX,DS
    add AX,0005
    push DX
    push AX
    push SI
-   call far A1e3e0719
+   call far _seekplayer
    add SP,+0A
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],0000
@@ -15445,7 +15448,7 @@ L0d8c2e69:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -15456,7 +15459,7 @@ L0d8c2e69:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -15468,12 +15471,12 @@ L0d8c2ee4:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+05]
    push SI
-   call far A1e3e1f29
+   call far _crawl
    add SP,+06
    or AX,AX
    jnz L0d8c2f33
@@ -15481,7 +15484,7 @@ L0d8c2ee4:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -15491,7 +15494,7 @@ L0d8c2ee4:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -15502,7 +15505,7 @@ L0d8c2f33:
    push AX
    mov AX,0001
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
 L0d8c2f42:
@@ -15514,7 +15517,7 @@ L0d8c2f45:
    pop BP
 ret far
 
-A0d8c2f4b:
+_msg_roman: ;; 0d8c2f4b
    push BP
    mov BP,SP
    sub SP,+02
@@ -15533,7 +15536,7 @@ jmp near L0d8c301d
 L0d8c2f6c:
 jmp near L0d8c311d
 L0d8c2f6f:
-   mov AX,[BCC8]
+   mov AX,[offset _kindtable+2*44]
    mov CL,08
    shl AX,CL
    push AX
@@ -15541,7 +15544,7 @@ L0d8c2f6f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -15561,7 +15564,7 @@ L0d8c2f94:
    push DX
    mul BX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -15571,7 +15574,7 @@ L0d8c2f94:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -15579,14 +15582,14 @@ L0d8c2f94:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push [BP-02]
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L0d8c311d
 L0d8c2ff1:
@@ -15598,7 +15601,7 @@ L0d8c2ffa:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+1B],+00
@@ -15606,7 +15609,7 @@ L0d8c2ffa:
 jmp near L0d8c311d
 L0d8c3013:
    push SI
-   call far A1e3e257f
+   call far _hitplayer
    pop CX
 jmp near L0d8c311d
 L0d8c301d:
@@ -15614,7 +15617,7 @@ L0d8c301d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -15625,12 +15628,12 @@ L0d8c301d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    mov [ES:BX+13],AX
-   call far A29b90016
+   call far _rand
    mov BX,001E
    cwd
    idiv BX
@@ -15639,7 +15642,7 @@ L0d8c301d:
    mov AX,SI
    mov DX,001F
    mul DX
-   add AX,offset Y2a17976e
+   add AX,offset _objs
    mov DX,DS
    add AX,0007
    push DX
@@ -15648,13 +15651,13 @@ L0d8c301d:
    lea AX,[BP-02]
    push AX
    push SI
-   call far A1e3e0719
+   call far _seekplayer
    add SP,+0A
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],0000
@@ -15662,7 +15665,7 @@ L0d8c301d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -15675,7 +15678,7 @@ L0d8c301d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -15687,12 +15690,12 @@ L0d8c30bc:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+05]
    push SI
-   call far A1e3e1f29
+   call far _crawl
    add SP,+06
    or AX,AX
    jnz L0d8c310b
@@ -15700,7 +15703,7 @@ L0d8c30bc:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -15710,7 +15713,7 @@ L0d8c30bc:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -15721,7 +15724,7 @@ L0d8c310b:
    push AX
    mov AX,0001
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
 L0d8c311a:
@@ -15732,7 +15735,7 @@ L0d8c311d:
    pop BP
 ret far
 
-A0d8c3122:
+_msg_fireball: ;; 0d8c3122
    push BP
    mov BP,SP
    push SI
@@ -15750,7 +15753,7 @@ L0d8c313d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -15758,11 +15761,11 @@ L0d8c313d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
-   mov AX,[BC64]
+   mov AX,[offset _kindtable+2*12]
    mov CL,08
    shl AX,CL
    push AX
@@ -15770,7 +15773,7 @@ L0d8c313d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -15780,9 +15783,9 @@ L0d8c313d:
    pop DX
    add DX,AX
    push DX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L0d8c325f
 L0d8c319b:
@@ -15791,16 +15794,16 @@ L0d8c319b:
 jmp near L0d8c325f
 L0d8c31a4:
    push SI
-   call far A1e3e257f
+   call far _hitplayer
    pop CX
    xor AX,AX
    push AX
-   call far A118609bd
+   call far _explode2
    pop CX
 jmp near L0d8c325f
 L0d8c31b7:
    push SI
-   call far A1e3e1db1
+   call far _onscreen
    pop CX
    or AX,AX
    jnz L0d8c31c5
@@ -15810,7 +15813,7 @@ L0d8c31c5:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+13]
@@ -15821,7 +15824,7 @@ L0d8c31c5:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+13],0000
@@ -15830,7 +15833,7 @@ L0d8c31f6:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -15839,7 +15842,7 @@ L0d8c31f6:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -15849,7 +15852,7 @@ L0d8c31f6:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -15858,20 +15861,20 @@ L0d8c31f6:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    add AX,[ES:BX+05]
    push AX
    push SI
-   call far A1e3e1d7e
+   call far _justmove
    add SP,+06
    or AX,AX
    jnz L0d8c325c
 L0d8c3255:
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
 L0d8c325c:
    mov AX,0001
@@ -15880,7 +15883,7 @@ L0d8c325f:
    pop BP
 ret far
 
-A0d8c3262:
+_msg_cloud: ;; 0d8c3262
    push BP
    mov BP,SP
    sub SP,+02
@@ -15898,7 +15901,7 @@ L0d8c327c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -15906,15 +15909,15 @@ L0d8c327c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    mov AX,0E0A
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L0d8c3378
 L0d8c32b9:
@@ -15922,7 +15925,7 @@ L0d8c32b9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -15933,7 +15936,7 @@ L0d8c32b9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -15942,7 +15945,7 @@ L0d8c32b9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    test word ptr [ES:BX+13],0001
@@ -15951,7 +15954,7 @@ L0d8c32b9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov DI,[ES:BX+01]
@@ -15959,7 +15962,7 @@ L0d8c32b9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    add DI,[ES:BX+05]
@@ -15967,7 +15970,7 @@ L0d8c32b9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -15975,7 +15978,7 @@ L0d8c32b9:
    push AX
    push DI
    push SI
-   call far A1e3e1d7e
+   call far _justmove
    add SP,+06
    or AX,AX
    jnz L0d8c3371
@@ -15983,7 +15986,7 @@ L0d8c32b9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -15993,7 +15996,7 @@ L0d8c32b9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -16010,7 +16013,7 @@ L0d8c3378:
    pop BP
 ret far
 
-A0d8c337e:
+_msg_text6: ;; 0d8c337e
    push BP
    mov BP,SP
    push SI
@@ -16024,7 +16027,7 @@ jmp near L0d8c3451
 L0d8c3394:
 jmp near L0d8c348a
 L0d8c3397:
-   cmp byte ptr [3B53],00
+   cmp byte ptr [offset _x_ourmode],00
    jnz L0d8c33c6
    xor AX,AX
    push AX
@@ -16032,13 +16035,13 @@ L0d8c3397:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+05]
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A0a820abc
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _fontcolor
    add SP,+08
 jmp near L0d8c33fc
 L0d8c33c6:
@@ -16046,7 +16049,7 @@ L0d8c33c6:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+07]
@@ -16054,20 +16057,20 @@ L0d8c33c6:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+05]
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A0a820abc
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _fontcolor
    add SP,+08
 L0d8c33fc:
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+19]
@@ -16078,7 +16081,7 @@ L0d8c33fc:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -16088,13 +16091,13 @@ L0d8c33fc:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A0a8206bf
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _wprint
    add SP,+0E
 jmp near L0d8c348a
 L0d8c3451:
@@ -16102,7 +16105,7 @@ L0d8c3451:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+13],+00
@@ -16111,13 +16114,13 @@ L0d8c3451:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    dec word ptr [ES:BX+13]
    jg L0d8c3488
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
    mov AX,0001
 jmp near L0d8c348a
@@ -16128,7 +16131,7 @@ L0d8c348a:
    pop BP
 ret far
 
-A0d8c348d:
+_msg_score: ;; 0d8c348d
    push BP
    mov BP,SP
    sub SP,+0A
@@ -16150,16 +16153,16 @@ L0d8c34aa:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
    and AX,0003
    inc AX
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A0a820abc
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _fontcolor
    add SP,+08
    mov AX,000A
    push AX
@@ -16170,11 +16173,11 @@ L0d8c34aa:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+0D]
-   call far A288c008e
+   call far _itoa
    add SP,+08
    xor DI,DI
 jmp near L0d8c3547
@@ -16183,7 +16186,7 @@ L0d8c34fe:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -16191,7 +16194,7 @@ L0d8c34fe:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -16204,9 +16207,9 @@ L0d8c34fe:
    cbw
    add AX,03D0
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
    inc DI
 L0d8c3547:
@@ -16218,19 +16221,19 @@ L0d8c3551:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    dec word ptr [ES:BX+13]
    jl L0d8c3571
    push SI
-   call far A1e3e1db1
+   call far _onscreen
    pop CX
    or AX,AX
    jnz L0d8c357a
 L0d8c3571:
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
 jmp near L0d8c35e0
 L0d8c357a:
@@ -16238,7 +16241,7 @@ L0d8c357a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -16247,7 +16250,7 @@ L0d8c357a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -16256,7 +16259,7 @@ L0d8c357a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+07]
@@ -16265,7 +16268,7 @@ L0d8c357a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -16274,7 +16277,7 @@ L0d8c357a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    dec word ptr [ES:BX+07]
@@ -16286,7 +16289,7 @@ L0d8c35e0:
    pop BP
 ret far
 
-A0d8c35e6:
+_msg_text8: ;; 0d8c35e6
    push BP
    mov BP,SP
    push SI
@@ -16300,7 +16303,7 @@ jmp near L0d8c36b7
 L0d8c35fc:
 jmp near L0d8c36f0
 L0d8c35ff:
-   cmp byte ptr [3B53],00
+   cmp byte ptr [offset _x_ourmode],00
    jnz L0d8c362e
    xor AX,AX
    push AX
@@ -16308,13 +16311,13 @@ L0d8c35ff:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+05]
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A0a820abc
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _fontcolor
    add SP,+08
 jmp near L0d8c3664
 L0d8c362e:
@@ -16322,7 +16325,7 @@ L0d8c362e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+07]
@@ -16330,20 +16333,20 @@ L0d8c362e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+05]
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A0a820abc
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _fontcolor
    add SP,+08
 L0d8c3664:
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+19]
@@ -16354,7 +16357,7 @@ L0d8c3664:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -16362,13 +16365,13 @@ L0d8c3664:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A0a8206bf
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _wprint
    add SP,+0E
 jmp near L0d8c36f0
 L0d8c36b7:
@@ -16376,7 +16379,7 @@ L0d8c36b7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+13],+00
@@ -16385,13 +16388,13 @@ L0d8c36b7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    dec word ptr [ES:BX+13]
    jg L0d8c36ee
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
    mov AX,0001
 jmp near L0d8c36f0
@@ -16402,7 +16405,7 @@ L0d8c36f0:
    pop BP
 ret far
 
-A0d8c36f3:
+_msg_frog: ;; 0d8c36f3
    push BP
    mov BP,SP
    sub SP,+06
@@ -16427,14 +16430,14 @@ L0d8c371a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AL,[ES:BX]
    cbw
    mov BX,AX
    shl BX,1
-   mov AX,[BX+BC40]
+   mov AX,[BX+offset _kindtable]
    mov CL,08
    shl AX,CL
    push AX
@@ -16442,7 +16445,7 @@ L0d8c371a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -16461,7 +16464,7 @@ L0d8c3757:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+01
@@ -16470,7 +16473,7 @@ L0d8c3757:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
@@ -16486,7 +16489,7 @@ L0d8c3795:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
@@ -16504,7 +16507,7 @@ L0d8c37bb:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -16512,14 +16515,14 @@ L0d8c37bb:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push [BP-06]
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L0d8c39ff
 L0d8c37f7:
@@ -16528,7 +16531,7 @@ L0d8c37f7:
 jmp near L0d8c39ff
 L0d8c3800:
    push SI
-   call far A1e3e257f
+   call far _hitplayer
    pop CX
 jmp near L0d8c39ff
 L0d8c380a:
@@ -16536,7 +16539,7 @@ L0d8c380a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+00
@@ -16545,7 +16548,7 @@ L0d8c380a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+13]
@@ -16558,7 +16561,7 @@ L0d8c383f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0001
@@ -16569,7 +16572,7 @@ L0d8c383f:
    lea AX,[BP-04]
    push AX
    push SI
-   call far A1e3e0719
+   call far _seekplayer
    add SP,+0A
    mov AX,[BP-04]
    shl AX,1
@@ -16579,7 +16582,7 @@ L0d8c383f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -16588,7 +16591,7 @@ L0d8c383f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],FFF6
@@ -16600,7 +16603,7 @@ L0d8c389e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    add [ES:BX+07],DI
@@ -16611,7 +16614,7 @@ L0d8c389e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],000A
@@ -16620,7 +16623,7 @@ L0d8c38d2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -16629,7 +16632,7 @@ L0d8c38d2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -16639,7 +16642,7 @@ L0d8c38d2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -16648,7 +16651,7 @@ L0d8c38d2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -16657,7 +16660,7 @@ L0d8c38d2:
    push AX
    push [BP-04]
    push SI
-   call far A1e3e1c9b
+   call far _trymove
    add SP,+06
    test AX,0003
    jz L0d8c393d
@@ -16667,7 +16670,7 @@ L0d8c393d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
@@ -16676,7 +16679,7 @@ L0d8c393d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],0000
@@ -16686,7 +16689,7 @@ L0d8c396b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[BP-02]
@@ -16698,7 +16701,7 @@ L0d8c396b:
    push AX
    push [BP-04]
    push SI
-   call far A1e3e1c9b
+   call far _trymove
    add SP,+06
    push SS
    lea AX,[BP-02]
@@ -16707,7 +16710,7 @@ L0d8c396b:
    lea AX,[BP-04]
    push AX
    push SI
-   call far A1e3e0719
+   call far _seekplayer
    add SP,+0A
    mov AX,[BP-04]
    push AX
@@ -16715,7 +16718,7 @@ L0d8c396b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -16724,7 +16727,7 @@ L0d8c396b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0000
@@ -16732,7 +16735,7 @@ L0d8c396b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+13],0000
@@ -16740,7 +16743,7 @@ L0d8c396b:
    push AX
    mov AX,0001
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
 L0d8c39fd:
@@ -16752,7 +16755,7 @@ L0d8c39ff:
    pop BP
 ret far
 
-A0d8c3a05:
+_msg_door: ;; 0d8c3a05
    push BP
    mov BP,SP
    sub SP,+04
@@ -16763,7 +16766,7 @@ A0d8c3a05:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -16775,7 +16778,7 @@ A0d8c3a05:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -16796,13 +16799,13 @@ jmp near L0d8c3bdb
 L0d8c3a5e:
 jmp near L0d8c3d84
 L0d8c3a61:
-   cmp word ptr [13C4],+00
+   cmp word ptr [offset _designflag],+00
    jz L0d8c3aaa
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -16812,7 +16815,7 @@ L0d8c3a61:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -16820,16 +16823,16 @@ L0d8c3a61:
    push AX
    mov AX,0E05
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 L0d8c3aaa:
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+00
@@ -16838,21 +16841,21 @@ jmp near L0d8c3d84
 L0d8c3ac3:
    push [BP-02]
    push DI
-   call far A19dd140c
+   call far _drawcell
    pop CX
    pop CX
    mov AX,[BP-02]
    inc AX
    push AX
    push DI
-   call far A19dd140c
+   call far _drawcell
    pop CX
    pop CX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -16861,7 +16864,7 @@ L0d8c3ac3:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -16871,20 +16874,20 @@ L0d8c3ac3:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
-   push [89B6]
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _info+8*00a1]
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -16893,7 +16896,7 @@ L0d8c3ac3:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -16904,20 +16907,20 @@ L0d8c3ac3:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
-   push [89BE]
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _info+8*00a2]
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
    mov AX,[BP-02]
    dec AX
    push AX
    push DI
-   call far A19dd140c
+   call far _drawcell
    pop CX
    pop CX
    mov AX,[BP-02]
@@ -16925,7 +16928,7 @@ L0d8c3ac3:
    inc AX
    push AX
    push DI
-   call far A19dd140c
+   call far _drawcell
    pop CX
    pop CX
 jmp near L0d8c3d84
@@ -16934,7 +16937,7 @@ L0d8c3b9c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+00
@@ -16943,7 +16946,7 @@ L0d8c3b9c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+0D]
@@ -16951,7 +16954,7 @@ L0d8c3b9c:
    cmp AX,0010
    jle L0d8c3bd5
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
 L0d8c3bd5:
    mov AX,0001
@@ -16961,7 +16964,7 @@ L0d8c3bdb:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+00
@@ -16973,7 +16976,7 @@ L0d8c3bf6:
    mov BX,DI
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,[BP-02]
@@ -16987,7 +16990,7 @@ jmp near L0d8c3cd3
 L0d8c3c17:
    mov AX,0003
    push AX
-   call far A1e3e1a5b
+   call far _takeinv
    pop CX
    or AX,AX
    jnz L0d8c3c28
@@ -16997,32 +17000,32 @@ L0d8c3c28:
    push AX
    mov AX,0003
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
-   cmp word ptr [0DEE],+00
+   cmp word ptr [offset _first_openmapdoor],+00
    jz L0d8c3c55
-   mov word ptr [0DEE],0000
+   mov word ptr [offset _first_openmapdoor],0000
    mov AX,0001
    push AX
    push DS
    mov AX,offset Y2a17104c
    push AX
-   call far A19dd059d
+   call far _putbotmsg
    add SP,+06
 L0d8c3c55:
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+05]
    add BX,DI
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,SI
@@ -17031,7 +17034,7 @@ L0d8c3c55:
    push ES
    push BX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+07]
@@ -17045,14 +17048,14 @@ L0d8c3c55:
    push AX
    push [BP-02]
    push DI
-   call far A1e3e0004
+   call far _setboard
    add SP,+06
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
 jmp near L0d8c3d84
 L0d8c3caf:
-   cmp word ptr [0DF0],+00
+   cmp word ptr [offset _first_nogem],+00
    jnz L0d8c3cb9
 jmp near L0d8c3d84
 L0d8c3cb9:
@@ -17061,42 +17064,42 @@ L0d8c3cb9:
    push DS
    mov AX,offset Y2a17105b
    push AX
-   call far A19dd059d
+   call far _putbotmsg
    add SP,+06
-   mov word ptr [0DF0],0000
+   mov word ptr [offset _first_nogem],0000
 jmp near L0d8c3d84
 L0d8c3cd3:
    mov AX,0001
    push AX
-   call far A1e3e1a5b
+   call far _takeinv
    pop CX
    or AX,AX
    jnz L0d8c3ce4
 jmp near L0d8c3d66
 L0d8c3ce4:
-   cmp word ptr [0DE6],+00
+   cmp word ptr [offset _first_opendoor],+00
    jz L0d8c3d02
-   mov word ptr [0DE6],0000
+   mov word ptr [offset _first_opendoor],0000
    mov AX,0001
    push AX
    push DS
    mov AX,offset Y2a171072
    push AX
-   call far A19dd059d
+   call far _putbotmsg
    add SP,+06
 L0d8c3d02:
    mov AX,000C
    push AX
    mov AX,0003
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0001
@@ -17107,7 +17110,7 @@ L0d8c3d2d:
    dec BX
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,[BP-02]
@@ -17121,7 +17124,7 @@ L0d8c3d2d:
    add AX,[BP-04]
    push AX
    push DI
-   call far A1e3e0004
+   call far _setboard
    add SP,+06
    inc word ptr [BP-04]
 L0d8c3d5e:
@@ -17129,15 +17132,15 @@ L0d8c3d5e:
    jle L0d8c3d2d
 jmp near L0d8c3d84
 L0d8c3d66:
-   cmp word ptr [0DE4],+00
+   cmp word ptr [offset _first_nokey],+00
    jz L0d8c3d84
-   mov word ptr [0DE4],0000
+   mov word ptr [offset _first_nokey],0000
    mov AX,0002
    push AX
    push DS
    mov AX,offset Y2a171081
    push AX
-   call far A19dd059d
+   call far _putbotmsg
    add SP,+06
 L0d8c3d84:
    pop DI
@@ -17146,7 +17149,7 @@ L0d8c3d84:
    pop BP
 ret far
 
-A0d8c3d8a:
+_msg_falldoor: ;; 0d8c3d8a
    push BP
    mov BP,SP
    sub SP,+02
@@ -17168,7 +17171,7 @@ L0d8c3dac:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -17176,15 +17179,15 @@ L0d8c3dac:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    mov AX,0E10
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L0d8c3fa1
 L0d8c3de9:
@@ -17192,7 +17195,7 @@ L0d8c3de9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+00
@@ -17204,7 +17207,7 @@ L0d8c3e04:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -17214,12 +17217,12 @@ L0d8c3e04:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e1d7e
+   call far _justmove
    add SP,+06
    or AX,AX
    jz L0d8c3eaf
@@ -17227,7 +17230,7 @@ L0d8c3e04:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    test word ptr [ES:BX+03],000F
@@ -17238,7 +17241,7 @@ L0d8c3e55:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -17250,7 +17253,7 @@ L0d8c3e55:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -17262,7 +17265,7 @@ L0d8c3e55:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+13]
@@ -17270,7 +17273,7 @@ L0d8c3e55:
    dec AX
    push AX
    push DI
-   call far A1e3e0004
+   call far _setboard
    add SP,+06
 jmp near L0d8c3f1b
 L0d8c3eaf:
@@ -17278,14 +17281,14 @@ L0d8c3eaf:
    push AX
    mov AX,0003
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -17297,7 +17300,7 @@ L0d8c3eaf:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -17309,16 +17312,16 @@ L0d8c3eaf:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+13]
    push [BP-02]
    push DI
-   call far A1e3e0004
+   call far _setboard
    add SP,+06
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
 L0d8c3f1b:
    mov AX,0001
@@ -17328,7 +17331,7 @@ L0d8c3f21:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0001
@@ -17336,7 +17339,7 @@ L0d8c3f21:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+01]
@@ -17344,7 +17347,7 @@ L0d8c3f21:
    sar BX,CL
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,SI
@@ -17353,7 +17356,7 @@ L0d8c3f21:
    push ES
    push BX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -17371,7 +17374,7 @@ L0d8c3f21:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -17380,7 +17383,7 @@ L0d8c3f21:
    push AX
    mov AX,0003
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
 L0d8c3fa1:
@@ -17391,7 +17394,7 @@ L0d8c3fa1:
 ret far
 
 Segment 1186 ;; JOBJ2.C:JOBJ2
-A11860007:
+_msg_token: ;; 11860007
    push BP
    mov BP,SP
    push SI
@@ -17413,7 +17416,7 @@ L11860029:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -17421,7 +17424,7 @@ L11860029:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
@@ -17429,17 +17432,17 @@ L11860029:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+13]
    shl BX,1
-   mov AX,[BX+109C]
+   mov AX,[BX+offset _inv_shape]
    add AX,0E00
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L11860211
 L1186007f:
@@ -17447,7 +17450,7 @@ L1186007f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+13],+06
@@ -17456,7 +17459,7 @@ L1186007f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -17466,12 +17469,12 @@ L1186007f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e1c9b
+   call far _trymove
    add SP,+06
    mov AX,0001
 jmp near L11860211
@@ -17487,22 +17490,22 @@ L118600d8:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+13]
    shl BX,1
-   cmp word ptr [BX+10B2],+00
+   cmp word ptr [BX+offset _inv_xfm],+00
    jz L11860110
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+13]
-   call far A16e02e77
+   call far _playerxfm
    pop CX
 jmp near L118601c3
 L11860110:
@@ -17510,59 +17513,59 @@ L11860110:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+13]
    shl BX,1
-   cmp word ptr [BX+10F4],+00
+   cmp word ptr [BX+offset _inv_first],+00
    jz L11860170
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+13]
    shl BX,1
-   dec word ptr [BX+10F4]
+   dec word ptr [BX+offset _inv_first]
    mov AX,0007
    push AX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+13]
    shl BX,1
    shl BX,1
-   push [BX+10CA]
-   push [BX+10C8]
-   call far A19dd059d
+   push [BX+offset _inv_getmsg+02]
+   push [BX+offset _inv_getmsg]
+   call far _putbotmsg
    add SP,+06
 L11860170:
    mov AX,0019
    push AX
    mov AX,0003
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+13],+06
    jnz L118601a3
    mov AX,0006
    push AX
-   call far A1e3e1aaa
+   call far _invcount
    pop CX
    or AX,AX
    jnz L118601c3
@@ -17571,24 +17574,24 @@ L118601a3:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+13]
-   call far A1e3e1a38
+   call far _addinv
    pop CX
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
 L118601c3:
-   or word ptr [C23A],C000
+   or word ptr [offset _statmodflg],C000
 jmp near L11860211
 L118601cb:
    mov AX,DI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp byte ptr [ES:BX],44
@@ -17597,20 +17600,20 @@ L118601cb:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp byte ptr [ES:BX],07
    jnz L11860211
 L118601f5:
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
    mov AX,DI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+1B],0001
@@ -17620,7 +17623,7 @@ L11860211:
    pop BP
 ret far
 
-A11860215:
+_msg_fire: ;; 11860215
    push BP
    mov BP,SP
    push SI
@@ -17642,7 +17645,7 @@ L11860236:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -17650,11 +17653,11 @@ L11860236:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
-   mov AX,[BC7E]
+   mov AX,[offset _kindtable+2*1f]
    mov CL,08
    shl AX,CL
    push AX
@@ -17662,7 +17665,7 @@ L11860236:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -17676,7 +17679,7 @@ L11860236:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
@@ -17691,9 +17694,9 @@ L1186029e:
    pop DX
    add DX,AX
    push DX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L1186035b
 L118602ba:
@@ -17701,7 +17704,7 @@ L118602ba:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+13]
@@ -17712,21 +17715,21 @@ L118602ba:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+13],+00
    jge L118602f3
 L118602ec:
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
 L118602f3:
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    test word ptr [ES:BX+13],0001
@@ -17744,7 +17747,7 @@ L11860313:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+01
@@ -17753,18 +17756,18 @@ L11860313:
    push AX
    mov AX,0002
    push AX
-   call far A1e3e064c
+   call far _p_ouch
    pop CX
    pop CX
    xor AX,AX
    push AX
-   call far A118609bd
+   call far _explode2
    pop CX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0001
@@ -17773,7 +17776,7 @@ L1186035b:
    pop BP
 ret far
 
-A1186035e:
+_msg_switch: ;; 1186035e
    push BP
    mov BP,SP
    push SI
@@ -17795,35 +17798,35 @@ L1186037f:
    jz L11860388
 jmp near L118604df
 L11860388:
-   cmp word ptr [3D7C],+00
+   cmp word ptr [offset _dy1],+00
    jz L118603a5
    mov AX,[BP+0A]
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],0000
 L118603a5:
-   cmp word ptr [1094],+00
+   cmp word ptr [offset _first_switch],+00
    jz L118603c3
-   mov word ptr [1094],0000
+   mov word ptr [offset _first_switch],0000
    mov AX,0002
    push AX
    push DS
    mov AX,offset Y2a1712c3
    push AX
-   call far A19dd059d
+   call far _putbotmsg
    add SP,+06
 L118603c3:
-   cmp word ptr [3D7C],+00
+   cmp word ptr [offset _dy1],+00
    jge L11860440
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+01
@@ -17832,7 +17835,7 @@ L118603c3:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0000
@@ -17840,14 +17843,14 @@ L118603c3:
    push AX
    mov AX,0002
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+01
@@ -17861,15 +17864,15 @@ L1186041d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+13]
-   call far A1e3e20e1
+   call far _sendtrig
    add SP,+06
 jmp near L118604df
 L11860440:
-   cmp word ptr [3D7C],+00
+   cmp word ptr [offset _dy1],+00
    jg L1186044a
 jmp near L118604df
 L1186044a:
@@ -17877,7 +17880,7 @@ L1186044a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+00
@@ -17888,7 +17891,7 @@ L11860463:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0001
@@ -17896,14 +17899,14 @@ L11860463:
    push AX
    mov AX,0002
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+01
@@ -17916,11 +17919,11 @@ L1186049d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+13]
-   call far A1e3e20e1
+   call far _sendtrig
    add SP,+06
 jmp near L118604df
 L118604bf:
@@ -17931,11 +17934,11 @@ L118604bf:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+13]
-   call far A1e3e20e1
+   call far _sendtrig
    add SP,+06
 L118604df:
    mov AX,0001
@@ -17945,7 +17948,7 @@ L118604e4:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -17953,11 +17956,11 @@ L118604e4:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
-   mov AX,[BC80]
+   mov AX,[offset _kindtable+2*20]
    mov CL,08
    shl AX,CL
    push AX
@@ -17965,15 +17968,15 @@ L118604e4:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    add AX,[ES:BX+0D]
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L1186053b
 L11860539:
@@ -17983,7 +17986,7 @@ L1186053b:
    pop BP
 ret far
 
-A1186053e:
+_msg_gem: ;; 1186053e
    push BP
    mov BP,SP
    push SI
@@ -18003,7 +18006,7 @@ L1186055c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -18011,11 +18014,11 @@ L1186055c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
-   mov AX,[BC82]
+   mov AX,[offset _kindtable+2*21]
    mov CL,08
    shl AX,CL
    push AX
@@ -18023,7 +18026,7 @@ L1186055c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -18034,9 +18037,9 @@ L1186055c:
    add DX,AX
    add DX,+04
    push DX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L1186067c
 L118605bd:
@@ -18044,7 +18047,7 @@ L118605bd:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -18055,7 +18058,7 @@ L118605bd:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -18064,7 +18067,7 @@ L118605bd:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -18076,33 +18079,33 @@ jmp near L1186067c
 L11860606:
    cmp word ptr [BP+0A],+00
    jnz L1186067c
-   cmp word ptr [109A],+00
+   cmp word ptr [offset _first_touchgem],+00
    jz L1186062a
-   mov word ptr [109A],0000
+   mov word ptr [offset _first_touchgem],0000
    mov AX,0002
    push AX
    push DS
    mov AX,offset Y2a1712e2
    push AX
-   call far A19dd059d
+   call far _putbotmsg
    add SP,+06
 L1186062a:
    mov AX,0003
    push AX
-   call far A1e3e1a38
+   call far _addinv
    pop CX
    mov AX,0010
    push AX
    mov AX,0003
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -18110,22 +18113,22 @@ L1186062a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
-   push [BD0C]
-   call far A1e3e1fa4
+   push [offset _kindscore+2*21]
+   call far _addscore
    add SP,+06
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
 L1186067c:
    pop SI
    pop BP
 ret far
 
-A1186067f:
+_msg_boulder: ;; 1186067f
    push BP
    mov BP,SP
    push SI
@@ -18143,7 +18146,7 @@ L1186069a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -18151,7 +18154,7 @@ L1186069a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
@@ -18159,15 +18162,15 @@ L1186069a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
    add AX,0E18
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L118609ba
 L118606ea:
@@ -18176,7 +18179,7 @@ L118606ea:
 jmp near L118609ba
 L118606f3:
    push SI
-   call far A1e3e257f
+   call far _hitplayer
    pop CX
 jmp near L118609ba
 L118606fd:
@@ -18186,7 +18189,7 @@ L118606fd:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -18196,12 +18199,12 @@ L118606fd:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e21fd
+   call far _cando
    add SP,+08
    cmp AX,0003
    jz L1186073a
@@ -18211,7 +18214,7 @@ L1186073a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    add word ptr [ES:BX+07],+02
@@ -18222,7 +18225,7 @@ L1186073a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],000C
@@ -18231,7 +18234,7 @@ L1186076c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -18240,7 +18243,7 @@ L1186076c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -18250,7 +18253,7 @@ L1186076c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -18259,14 +18262,14 @@ L1186076c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    add AX,[ES:BX+05]
    push AX
    push SI
-   call far A1e3e1c9b
+   call far _trymove
    add SP,+06
    cmp AX,0001
    jnz L118607cf
@@ -18276,7 +18279,7 @@ L118607cf:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -18285,7 +18288,7 @@ L118607cf:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -18293,25 +18296,25 @@ L118607cf:
    dec AX
    and AX,FFF0
    mov DX,0010
-   sub DX,[B848]
+   sub DX,[offset _kindyl+2*23]
    add AX,DX
    push AX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e1c9b
+   call far _trymove
    add SP,+06
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+05],0000
@@ -18321,7 +18324,7 @@ L11860839:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
@@ -18330,7 +18333,7 @@ L11860839:
    push AX
    mov AX,0002
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
 L1186085e:
@@ -18338,7 +18341,7 @@ L1186085e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],0000
@@ -18346,7 +18349,7 @@ L1186085e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -18354,7 +18357,7 @@ L1186085e:
    mov AX,SI
    mov DX,001F
    mul DX
-   add AX,offset Y2a17976e
+   add AX,offset _objs
    mov DX,DS
    add AX,0007
    push DX
@@ -18362,19 +18365,19 @@ L1186085e:
    mov AX,SI
    mov DX,001F
    mul DX
-   add AX,offset Y2a17976e
+   add AX,offset _objs
    mov DX,DS
    add AX,0005
    push DX
    push AX
    push SI
-   call far A1e3e0719
+   call far _seekplayer
    add SP,+0A
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -18385,7 +18388,7 @@ L1186085e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -18395,7 +18398,7 @@ L118608e0:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -18404,7 +18407,7 @@ L118608e0:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -18422,7 +18425,7 @@ L11860912:
    push DX
    mul BX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -18431,7 +18434,7 @@ L11860912:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],0000
@@ -18439,7 +18442,7 @@ L11860912:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -18447,7 +18450,7 @@ L11860912:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -18456,14 +18459,14 @@ L11860912:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    add AX,[ES:BX+05]
    push AX
    push SI
-   call far A1e3e1c9b
+   call far _trymove
    add SP,+06
    cmp AX,0001
    jz L118609b7
@@ -18471,7 +18474,7 @@ L11860912:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -18481,7 +18484,7 @@ L11860912:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -18493,7 +18496,7 @@ L118609ba:
    pop BP
 ret far
 
-A118609bd:
+_explode2: ;; 118609bd
    push BP
    mov BP,SP
    push SI
@@ -18502,7 +18505,7 @@ A118609bd:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -18511,18 +18514,18 @@ A118609bd:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    add AX,[ES:BX+0B]
-   sub AX,[B84C]
+   sub AX,[offset _kindyl+2*25]
    push AX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -18531,11 +18534,11 @@ A118609bd:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+09]
-   sub AX,[B7C2]
+   sub AX,[offset _kindxl+2*25]
    mov BX,0002
    cwd
    idiv BX
@@ -18544,13 +18547,13 @@ A118609bd:
    push DX
    mov AX,0025
    push AX
-   call far A1e3e18b9
+   call far _addobj
    add SP,+06
    pop SI
    pop BP
 ret far
 
-A11860a35:
+_explode1: ;; 11860a35
    push BP
    mov BP,SP
    push SI
@@ -18561,51 +18564,51 @@ L11860a3e:
    push [BP+06]
    mov AX,0024
    push AX
-   call far A1e3e18b9
+   call far _addobj
    add SP,+06
-   call far A29b90016
+   call far _rand
    mov BX,0007
    cwd
    idiv BX
    add DX,-03
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    dec AX
    mov BX,001F
    push DX
    mul BX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    mov [ES:BX+05],AX
-   call far A29b90016
+   call far _rand
    mov BX,000B
    cwd
    idiv BX
    add DX,-08
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    dec AX
    mov BX,001F
    push DX
    mul BX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    mov [ES:BX+07],AX
-   call far A29b90016
+   call far _rand
    mov BX,0003
    cwd
    idiv BX
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    dec AX
    mov BX,001F
    push DX
    mul BX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -18620,7 +18623,7 @@ L11860ac5:
    pop BP
 ret far
 
-A11860ac8:
+_msg_expl1: ;; 11860ac8
    push BP
    mov BP,SP
    push SI
@@ -18636,7 +18639,7 @@ L11860ade:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -18644,11 +18647,11 @@ L11860ade:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
-   mov AX,[BC88]
+   mov AX,[offset _kindtable+2*24]
    mov CL,08
    shl AX,CL
    push AX
@@ -18656,7 +18659,7 @@ L11860ade:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -18667,7 +18670,7 @@ L11860ade:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -18679,9 +18682,9 @@ L11860ade:
    pop DX
    sub DX,AX
    push DX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L11860c19
 L11860b59:
@@ -18689,7 +18692,7 @@ L11860b59:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+13]
@@ -18697,13 +18700,13 @@ L11860b59:
    cmp AX,0028
    jge L11860b80
    push SI
-   call far A1e3e1db1
+   call far _onscreen
    pop CX
    or AX,AX
    jnz L11860b8a
 L11860b80:
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
 jmp near L11860c16
 L11860b8a:
@@ -18711,7 +18714,7 @@ L11860b8a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+07]
@@ -18722,7 +18725,7 @@ L11860b8a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],000C
@@ -18731,7 +18734,7 @@ L11860bbb:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -18740,7 +18743,7 @@ L11860bbb:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -18750,7 +18753,7 @@ L11860bbb:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -18759,14 +18762,14 @@ L11860bbb:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    add AX,[ES:BX+05]
    push AX
    push SI
-   call far A1e3e1aeb
+   call far _moveobj
    add SP,+06
 L11860c16:
    mov AX,0001
@@ -18775,7 +18778,7 @@ L11860c19:
    pop BP
 ret far
 
-A11860c1c:
+_msg_expl2: ;; 11860c1c
    push BP
    mov BP,SP
    sub SP,+12
@@ -18788,7 +18791,7 @@ A11860c1c:
    mov AX,offset Y2a17110a
    push AX
    mov CX,0012
-   call far A076a05d8
+   call far SCOPY@
    mov AX,[BP+08]
    or AX,AX
    jz L11860c47
@@ -18800,7 +18803,7 @@ L11860c47:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -18808,7 +18811,7 @@ L11860c47:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
@@ -18816,7 +18819,7 @@ L11860c47:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+13]
@@ -18824,14 +18827,14 @@ L11860c47:
    lea AX,[BP-12]
    add BX,AX
    mov AX,[SS:BX]
-   mov DX,[BC8A]
+   mov DX,[offset _kindtable+2*25]
    mov CL,08
    shl DX,CL
    add AX,DX
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L11860cd8
 L11860ca7:
@@ -18839,7 +18842,7 @@ L11860ca7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+13]
@@ -18847,13 +18850,13 @@ L11860ca7:
    cmp AX,0009
    jge L11860cce
    push SI
-   call far A1e3e1db1
+   call far _onscreen
    pop CX
    or AX,AX
    jnz L11860cd5
 L11860cce:
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
 L11860cd5:
    mov AX,0001
@@ -18863,7 +18866,7 @@ L11860cd8:
    pop BP
 ret far
 
-A11860cdd:
+_msg_stalag: ;; 11860cdd
    push BP
    mov BP,SP
    push SI
@@ -18882,7 +18885,7 @@ L11860d04:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -18890,15 +18893,15 @@ L11860d04:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    mov AX,0E21
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L11860e4f
 L11860d41:
@@ -18909,7 +18912,7 @@ L11860d4a:
    mov AX,0002
    push AX
    push AX
-   call far A1e3e064c
+   call far _p_ouch
    pop CX
    pop CX
 jmp near L11860e4f
@@ -18918,7 +18921,7 @@ L11860d59:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
@@ -18929,7 +18932,7 @@ L11860d72:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -18938,7 +18941,7 @@ L11860d72:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -18948,12 +18951,12 @@ L11860d72:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e1e6b
+   call far _trymovey
    add SP,+06
    or AX,AX
    jnz L11860dd1
@@ -18961,18 +18964,18 @@ L11860d72:
    push AX
    mov AX,0002
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
 L11860dd1:
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    add word ptr [ES:BX+07],+02
@@ -18983,7 +18986,7 @@ L11860dd1:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],0010
@@ -18998,7 +19001,7 @@ L11860e0c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
@@ -19007,7 +19010,7 @@ L11860e0c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],0002
@@ -19015,19 +19018,19 @@ L11860e0c:
    push AX
    mov AX,0003
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
 L11860e46:
    push [BP+0A]
-   call far A1e3e188a
+   call far _killobj
    pop CX
 L11860e4f:
    pop SI
    pop BP
 ret far
 
-A11860e52:
+_msg_snake: ;; 11860e52
    push BP
    mov BP,SP
    sub SP,+1A
@@ -19041,7 +19044,7 @@ A11860e52:
    mov AX,offset Y2a17111c
    push AX
    mov CX,0008
-   call far A076a05d8
+   call far SCOPY@
    push SS
    lea AX,[BP-12]
    push AX
@@ -19049,7 +19052,7 @@ A11860e52:
    mov AX,offset Y2a171124
    push AX
    mov CX,0008
-   call far A076a05d8
+   call far SCOPY@
    push SS
    lea AX,[BP-0A]
    push AX
@@ -19057,8 +19060,8 @@ A11860e52:
    mov AX,offset Y2a17112c
    push AX
    mov CX,0008
-   call far A076a05d8
-   mov AX,[BC8E]
+   call far SCOPY@
+   mov AX,[offset _kindtable+2*27]
    mov CL,08
    shl AX,CL
    mov [BP-02],AX
@@ -19079,7 +19082,7 @@ L11860eb7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -19090,7 +19093,7 @@ L11860ed0:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -19098,7 +19101,7 @@ L11860ed0:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -19107,7 +19110,7 @@ L11860ed0:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -19118,7 +19121,7 @@ L11860ed0:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+13]
@@ -19128,9 +19131,9 @@ L11860ed0:
    mov AX,[SS:BX]
    add AX,[BP-02]
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
    mov DI,0001
 jmp near L11860fac
@@ -19139,7 +19142,7 @@ L11860f45:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -19149,7 +19152,7 @@ L11860f45:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -19163,7 +19166,7 @@ L11860f45:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+13]
@@ -19173,9 +19176,9 @@ L11860f45:
    mov AX,[SS:BX]
    add AX,[BP-02]
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
    inc DI
 L11860fac:
@@ -19183,7 +19186,7 @@ L11860fac:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+09]
@@ -19199,7 +19202,7 @@ L11860fcf:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -19209,7 +19212,7 @@ L11860fcf:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
@@ -19217,7 +19220,7 @@ L11860fcf:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+13]
@@ -19227,9 +19230,9 @@ L11860fcf:
    mov AX,[SS:BX]
    add AX,[BP-02]
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L118612dc
 L1186102d:
@@ -19237,7 +19240,7 @@ L1186102d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -19245,7 +19248,7 @@ L1186102d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
@@ -19253,7 +19256,7 @@ L1186102d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+13]
@@ -19264,9 +19267,9 @@ L1186102d:
    add AX,[BP-02]
    add AX,0009
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
    mov DI,0001
 jmp near L118610f4
@@ -19275,7 +19278,7 @@ L1186108c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -19285,7 +19288,7 @@ L1186108c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -19300,7 +19303,7 @@ L1186108c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+13]
@@ -19310,9 +19313,9 @@ L1186108c:
    mov AX,[SS:BX]
    add AX,[BP-02]
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
    inc DI
 L118610f4:
@@ -19320,7 +19323,7 @@ L118610f4:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+09]
@@ -19336,7 +19339,7 @@ L11861117:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -19346,7 +19349,7 @@ L11861117:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -19355,7 +19358,7 @@ L11861117:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -19366,7 +19369,7 @@ L11861117:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+13]
@@ -19377,9 +19380,9 @@ L11861117:
    add AX,[BP-02]
    add AX,0005
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L118612dc
 L11861191:
@@ -19387,7 +19390,7 @@ L11861191:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+00
@@ -19396,7 +19399,7 @@ L11861191:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    dec word ptr [ES:BX+0D]
@@ -19405,7 +19408,7 @@ L118611ba:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -19416,7 +19419,7 @@ L118611ba:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -19427,12 +19430,12 @@ L118611ba:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+05]
    push SI
-   call far A1e3e1f29
+   call far _crawl
    add SP,+06
    or AX,AX
    jnz L11861242
@@ -19440,7 +19443,7 @@ L118611ba:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -19450,7 +19453,7 @@ L118611ba:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -19460,7 +19463,7 @@ L11861235:
    cmp word ptr [BP+0A],+00
    jnz L11861248
    push SI
-   call far A1e3e257f
+   call far _hitplayer
    pop CX
 L11861242:
    mov AX,0001
@@ -19470,32 +19473,32 @@ L11861248:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AL,[ES:BX]
    cbw
    mov BX,AX
    shl BX,1
-   test word ptr [BX+C23E],4000
+   test word ptr [BX+offset _kindflags],4000
    jz L118612dc
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+00
    jnz L118612dc
    push SI
-   call far A1e3e0198
+   call far _notemod
    pop CX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0010
@@ -19503,7 +19506,7 @@ L11861248:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    sub word ptr [ES:BX+09],+08
@@ -19511,13 +19514,13 @@ L11861248:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+09],+18
    jge L118612cd
    push SI
-   call far A1e3e00fe
+   call far _playerkill
    pop CX
 jmp near L118612dc
 L118612cd:
@@ -19525,7 +19528,7 @@ L118612cd:
    push AX
    mov AX,0003
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
 L118612dc:
@@ -19535,7 +19538,7 @@ L118612dc:
    pop BP
 ret far
 
-A118612e2:
+_msg_boll: ;; 118612e2
    push BP
    mov BP,SP
    sub SP,+18
@@ -19546,7 +19549,7 @@ A118612e2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -19559,7 +19562,7 @@ A118612e2:
    mov AX,offset Y2a171134
    push AX
    mov CX,000C
-   call far A076a05d8
+   call far SCOPY@
    mov AX,[BP+08]
    or AX,AX
    jz L1186132e
@@ -19573,7 +19576,7 @@ L1186132e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -19581,11 +19584,11 @@ L1186132e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
-   mov AX,[BC92]
+   mov AX,[offset _kindtable+2*29]
    mov CL,08
    shl AX,CL
    push AX
@@ -19593,15 +19596,15 @@ L1186132e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    add AX,[ES:BX+13]
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L118616d0
 L11861384:
@@ -19610,7 +19613,7 @@ L11861384:
 jmp near L118616d0
 L1186138d:
    push SI
-   call far A1e3e257f
+   call far _hitplayer
    pop CX
 jmp near L118616d0
 L11861397:
@@ -19618,7 +19621,7 @@ L11861397:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+13]
@@ -19631,7 +19634,7 @@ L11861397:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -19640,7 +19643,7 @@ L11861397:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+13]
@@ -19653,7 +19656,7 @@ L11861397:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -19665,12 +19668,12 @@ jmp near L11861472
 L11861409:
    mov BX,DI
    shl BX,1
-   mov AX,[BX+BDAE]
+   mov AX,[BX+offset _scrnobjs]
    mov [BP-18],AX
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp byte ptr [ES:BX],29
@@ -19679,7 +19682,7 @@ L11861409:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -19688,7 +19691,7 @@ L11861409:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -19696,7 +19699,7 @@ L11861409:
    jle L11861471
    push [BP-18]
    push SI
-   call far A1e3e26f4
+   call far _vectdist
    pop CX
    pop CX
    mov [BP-12],AX
@@ -19709,7 +19712,7 @@ L11861409:
 L11861471:
    inc DI
 L11861472:
-   cmp DI,[C2CE]
+   cmp DI,[offset _numscrnobjs]
    jl L11861409
    cmp word ptr [BP-16],+00
    jl L11861498
@@ -19723,7 +19726,7 @@ L11861472:
    push AX
    push SI
    push [BP-16]
-   call far A1e3e25ff
+   call far _pointvect
    add SP,+0E
 L11861498:
    mov AX,[BP-10]
@@ -19732,7 +19735,7 @@ L11861498:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -19741,7 +19744,7 @@ L11861498:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+0C
@@ -19750,7 +19753,7 @@ L11861498:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+05],000C
@@ -19759,7 +19762,7 @@ L118614db:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],-0C
@@ -19768,7 +19771,7 @@ L118614db:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+05],FFF4
@@ -19779,7 +19782,7 @@ L11861506:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -19788,7 +19791,7 @@ L11861506:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+0C
@@ -19797,7 +19800,7 @@ L11861506:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],000C
@@ -19806,7 +19809,7 @@ L11861549:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],-0C
@@ -19815,7 +19818,7 @@ L11861549:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],FFF4
@@ -19824,7 +19827,7 @@ L11861574:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -19832,7 +19835,7 @@ L11861574:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -19841,14 +19844,14 @@ L11861574:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    add AX,[ES:BX+05]
    push AX
    push SI
-   call far A1e3e1d7e
+   call far _justmove
    add SP,+06
    or AX,AX
    jnz L118615e7
@@ -19856,7 +19859,7 @@ L11861574:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -19866,7 +19869,7 @@ L11861574:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -19876,7 +19879,7 @@ L118615e7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -19885,7 +19888,7 @@ L118615e7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -19895,12 +19898,12 @@ L118615e7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e1d7e
+   call far _justmove
    add SP,+06
    or AX,AX
    jz L11861633
@@ -19910,7 +19913,7 @@ L11861633:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov DI,[ES:BX+03]
@@ -19918,7 +19921,7 @@ L11861633:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    add DI,[ES:BX+07]
@@ -19928,7 +19931,7 @@ L11861633:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    sub DI,[ES:BX+0B]
@@ -19937,12 +19940,12 @@ L11861633:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e1d7e
+   call far _justmove
    add SP,+06
    or AX,AX
    jnz L118616cd
@@ -19950,7 +19953,7 @@ L11861633:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+07]
@@ -19960,7 +19963,7 @@ L11861633:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -19969,7 +19972,7 @@ L11861633:
    push AX
    mov AX,0001
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
 L118616cd:
@@ -19981,7 +19984,7 @@ L118616d0:
    pop BP
 ret far
 
-A118616d6:
+_msg_mega: ;; 118616d6
    push BP
    mov BP,SP
    push SI
@@ -20001,7 +20004,7 @@ L118616f4:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -20009,11 +20012,11 @@ L118616f4:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
-   mov AX,[BC94]
+   mov AX,[offset _kindtable+2*2a]
    mov CL,08
    shl AX,CL
    push AX
@@ -20021,15 +20024,15 @@ L118616f4:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    add AX,[ES:BX+05]
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L1186185b
 L1186174a:
@@ -20037,7 +20040,7 @@ L1186174a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+00
@@ -20048,7 +20051,7 @@ L11861763:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    add word ptr [ES:BX+07],+02
@@ -20056,7 +20059,7 @@ L11861763:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+10
@@ -20065,7 +20068,7 @@ L11861763:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],0010
@@ -20074,7 +20077,7 @@ L118617a2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -20083,7 +20086,7 @@ L118617a2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -20093,12 +20096,12 @@ L118617a2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e1d7e
+   call far _justmove
    add SP,+06
    or AX,AX
    jnz L11861858
@@ -20106,7 +20109,7 @@ L118617a2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,0002
@@ -20117,7 +20120,7 @@ L118617a2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -20126,7 +20129,7 @@ L118617a2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
@@ -20139,7 +20142,7 @@ L11861832:
    push AX
    mov AX,0002
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
 jmp near L11861858
@@ -20148,7 +20151,7 @@ L11861843:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0001
@@ -20159,14 +20162,14 @@ L1186185b:
    pop BP
 ret far
 
-A1186185e:
+_msg_bat: ;; 1186185e
    push BP
    mov BP,SP
    sub SP,+16
    push SI
    push DI
    mov SI,[BP+06]
-   mov AX,[BC96]
+   mov AX,[offset _kindtable+2*2b]
    mov CL,08
    shl AX,CL
    mov [BP-16],AX
@@ -20179,7 +20182,7 @@ A1186185e:
    mov AX,offset Y2a171140
    push AX
    mov CX,0008
-   call far A076a05d8
+   call far SCOPY@
    push SS
    lea AX,[BP-08]
    push AX
@@ -20187,7 +20190,7 @@ A1186185e:
    mov AX,offset Y2a171148
    push AX
    mov CX,0008
-   call far A076a05d8
+   call far SCOPY@
    mov AX,[BP+08]
    or AX,AX
    jz L118618b8
@@ -20205,7 +20208,7 @@ L118618b8:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+00
@@ -20218,7 +20221,7 @@ L118618d8:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -20234,7 +20237,7 @@ L118618d8:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -20251,7 +20254,7 @@ L118618d8:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -20271,7 +20274,7 @@ L1186194b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -20281,16 +20284,16 @@ L1186194b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
    add AX,[BP-14]
    push AX
    push [BP-16]
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L11861bf7
 L1186198e:
@@ -20299,7 +20302,7 @@ L1186198e:
 jmp near L11861bf7
 L11861997:
    push SI
-   call far A1e3e257f
+   call far _hitplayer
    pop CX
 jmp near L11861bf7
 L118619a1:
@@ -20307,7 +20310,7 @@ L118619a1:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -20318,7 +20321,7 @@ L118619a1:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -20327,12 +20330,12 @@ L118619a1:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+00
    jnz L11861a4d
-   call far A29b90016
+   call far _rand
    mov BX,0028
    cwd
    idiv BX
@@ -20345,11 +20348,11 @@ L118619f7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0001
-   call far A29b90016
+   call far _rand
    mov BX,0002
    cwd
    idiv BX
@@ -20362,7 +20365,7 @@ L118619f7:
    push DX
    mul BX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -20371,7 +20374,7 @@ L118619f7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],0002
@@ -20381,7 +20384,7 @@ L11861a4d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -20390,7 +20393,7 @@ L11861a4d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -20400,7 +20403,7 @@ L11861a4d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -20409,19 +20412,19 @@ L11861a4d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    add AX,[ES:BX+05]
    push AX
    push SI
-   call far A1e3e1c9b
+   call far _trymove
    add SP,+06
    mov [BP-12],AX
    cmp AX,0001
    jnz L11861afe
-   call far A29b90016
+   call far _rand
    mov BX,0023
    cwd
    idiv BX
@@ -20431,7 +20434,7 @@ L11861a4d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -20441,13 +20444,13 @@ L11861a4d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    mov [ES:BX+05],AX
 L11861ae9:
-   call far A29b90016
+   call far _rand
    mov BX,0014
    cwd
    idiv BX
@@ -20463,7 +20466,7 @@ L11861afe:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -20473,7 +20476,7 @@ L11861afe:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -20484,7 +20487,7 @@ L11861b31:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -20494,12 +20497,12 @@ L11861b31:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    mov [ES:BX+05],AX
-   call far A29b90016
+   call far _rand
    mov BX,0003
    cwd
    idiv BX
@@ -20509,7 +20512,7 @@ L11861b31:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
@@ -20518,7 +20521,7 @@ L11861b31:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0000
@@ -20526,7 +20529,7 @@ L11861b31:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -20536,12 +20539,12 @@ L11861b31:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e1c9b
+   call far _trymove
    add SP,+06
 jmp near L11861bf4
 L11861bca:
@@ -20549,7 +20552,7 @@ L11861bca:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+07]
@@ -20559,7 +20562,7 @@ L11861bca:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -20573,14 +20576,14 @@ L11861bf7:
    pop BP
 ret far
 
-A11861bfd:
+_msg_knight: ;; 11861bfd
    push BP
    mov BP,SP
    sub SP,+2C
    push SI
    push DI
    mov SI,[BP+06]
-   mov DI,[BC98]
+   mov DI,[offset _kindtable+2*2c]
    mov CL,08
    shl DI,CL
    push SS
@@ -20590,7 +20593,7 @@ A11861bfd:
    mov AX,offset Y2a171150
    push AX
    mov CX,0016
-   call far A076a05d8
+   call far SCOPY@
    push SS
    lea AX,[BP-16]
    push AX
@@ -20598,7 +20601,7 @@ A11861bfd:
    mov AX,offset Y2a171166
    push AX
    mov CX,0016
-   call far A076a05d8
+   call far SCOPY@
    mov AX,[BP+08]
    cmp AX,0005
    jbe L11861c3f
@@ -20613,7 +20616,7 @@ L11861c54:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -20621,7 +20624,7 @@ L11861c54:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+11]
@@ -20634,7 +20637,7 @@ L11861c54:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -20644,7 +20647,7 @@ L11861c54:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+11]
@@ -20654,9 +20657,9 @@ L11861c54:
    mov AX,[SS:BX]
    add AX,DI
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L11861e54
 L11861ccd:
@@ -20664,7 +20667,7 @@ L11861ccd:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0000
@@ -20672,7 +20675,7 @@ L11861ccd:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+11],+06
@@ -20681,18 +20684,18 @@ L11861ccd:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0001
 L11861d0d:
-   test word ptr [C23C],0001
+   test word ptr [offset _gamecount],0001
    jz L11861d3f
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+11]
@@ -20701,7 +20704,7 @@ L11861d0d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -20715,7 +20718,7 @@ L11861d44:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+11]
@@ -20726,7 +20729,7 @@ L11861d44:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+11],0000
@@ -20734,7 +20737,7 @@ L11861d44:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+05],0000
@@ -20746,7 +20749,7 @@ L11861d90:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+05],000A
@@ -20756,7 +20759,7 @@ L11861da8:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+05],0006
@@ -20766,7 +20769,7 @@ L11861dc0:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+05],0000
@@ -20778,7 +20781,7 @@ L11861dd8:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+01
@@ -20786,15 +20789,15 @@ L11861dd8:
    mov AX,0007
    push AX
    push DS
-   mov AX,offset Y2a1718f3
+   mov AX,offset _xknightmsg
    push AX
-   call far A19dd059d
+   call far _putbotmsg
    add SP,+06
    mov AX,0002
    push AX
    mov AX,0010
    push AX
-   call far A1e3e064c
+   call far _p_ouch
    pop CX
    pop CX
 jmp near L11861e54
@@ -20803,25 +20806,25 @@ L11861e16:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AL,[ES:BX]
    cbw
    mov BX,AX
    shl BX,1
-   test word ptr [BX+C23E],4000
+   test word ptr [BX+offset _kindflags],4000
    jz L11861e54
-   cmp word ptr [1098],+00
+   cmp word ptr [offset _first_hitknight],+00
    jz L11861e54
    mov AX,0002
    push AX
    push DS
    mov AX,offset Y2a171304
    push AX
-   call far A19dd059d
+   call far _putbotmsg
    add SP,+06
-   mov word ptr [1098],0000
+   mov word ptr [offset _first_hitknight],0000
 L11861e54:
    pop DI
    pop SI
@@ -20829,13 +20832,13 @@ L11861e54:
    pop BP
 ret far
 
-A11861e5a:
+_msg_beenest: ;; 11861e5a
    push BP
    mov BP,SP
    push SI
    push DI
    mov SI,[BP+06]
-   mov DI,[BC9A]
+   mov DI,[offset _kindtable+2*2d]
    mov CL,08
    shl DI,CL
    mov AX,[BP+08]
@@ -20855,7 +20858,7 @@ L11861e84:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+13],+01
@@ -20867,7 +20870,7 @@ L11861e9d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+13],+02
@@ -20876,7 +20879,7 @@ L11861e9d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -20892,7 +20895,7 @@ L11861ed3:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -20900,14 +20903,14 @@ L11861ed3:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push DI
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L118620ab
 L11861f0d:
@@ -20915,14 +20918,14 @@ L11861f0d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AL,[ES:BX]
    cbw
    mov BX,AX
    shl BX,1
-   test word ptr [BX+C23E],4000
+   test word ptr [BX+offset _kindflags],4000
    jnz L11861f30
 jmp near L118620ab
 L11861f30:
@@ -20930,7 +20933,7 @@ L11861f30:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -20938,12 +20941,12 @@ L11861f30:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
-   push [BD24]
-   call far A1e3e1fa4
+   push [offset _kindscore+2*2d]
+   call far _addscore
    add SP,+06
    mov AX,000A
    push AX
@@ -20951,7 +20954,7 @@ L11861f30:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -20959,26 +20962,26 @@ L11861f30:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push CS
-   call near offset A11860a35
+   call near offset _explode1
    add SP,+06
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
    mov AX,0020
    push AX
    mov AX,0003
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
 jmp near L118620ab
 L11861fac:
-   mov AX,[C23C]
+   mov AX,[offset _gamecount]
    and AX,0003
    cmp AX,0002
    jz L11861fba
@@ -20988,12 +20991,12 @@ L11861fba:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+13],+00
    jnz L11862027
-   call far A29b90016
+   call far _rand
    mov BX,0020
    cwd
    idiv BX
@@ -21003,14 +21006,14 @@ L11861fba:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+13],0001
    mov AX,SI
    mov DX,001F
    mul DX
-   add AX,offset Y2a17976e
+   add AX,offset _objs
    mov DX,DS
    add AX,0007
    push DX
@@ -21018,13 +21021,13 @@ L11861fba:
    mov AX,SI
    mov DX,001F
    mul DX
-   add AX,offset Y2a17976e
+   add AX,offset _objs
    mov DX,DS
    add AX,0005
    push DX
    push AX
    push SI
-   call far A1e3e0719
+   call far _seekplayer
    add SP,+0A
 jmp near L118620a8
 L11862022:
@@ -21035,7 +21038,7 @@ L11862027:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+13]
@@ -21046,7 +21049,7 @@ L11862027:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+13],0000
@@ -21054,7 +21057,7 @@ L11862027:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -21062,7 +21065,7 @@ L11862027:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -21071,7 +21074,7 @@ L11862027:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -21083,7 +21086,7 @@ L11862027:
    push DX
    mov AX,002E
    push AX
-   call far A1e3e18b9
+   call far _addobj
    add SP,+06
 L118620a8:
    mov AX,0001
@@ -21093,14 +21096,14 @@ L118620ab:
    pop BP
 ret far
 
-A118620af:
+_msg_beeswarm: ;; 118620af
    push BP
    mov BP,SP
    sub SP,+40
    push SI
    push DI
    mov SI,[BP+06]
-   mov DI,[BC9C]
+   mov DI,[offset _kindtable+2*2e]
    mov CL,08
    shl DI,CL
    push SS
@@ -21110,7 +21113,7 @@ A118620af:
    mov AX,offset Y2a17117c
    push AX
    mov CX,0040
-   call far A076a05d8
+   call far SCOPY@
    mov AX,[BP+08]
    or AX,AX
    jz L118620ee
@@ -21128,7 +21131,7 @@ L118620ee:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -21137,7 +21140,7 @@ L118620ee:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -21155,7 +21158,7 @@ L1186211f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -21163,14 +21166,14 @@ L1186211f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push DI
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L11862331
 L11862161:
@@ -21179,7 +21182,7 @@ L11862161:
 jmp near L11862331
 L1186216a:
    push SI
-   call far A1e3e257f
+   call far _hitplayer
    pop CX
 jmp near L11862331
 L11862174:
@@ -21187,7 +21190,7 @@ L11862174:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+0D]
@@ -21195,13 +21198,13 @@ L11862174:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],00A0
    jle L118621a8
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
 jmp near L1186232e
 L118621a8:
@@ -21209,7 +21212,7 @@ L118621a8:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+13]
@@ -21220,7 +21223,7 @@ L118621a8:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+13],0000
@@ -21228,7 +21231,7 @@ L118621d9:
    mov AX,SI
    mov DX,001F
    mul DX
-   add AX,offset Y2a17976e
+   add AX,offset _objs
    mov DX,DS
    add AX,0007
    push DX
@@ -21236,15 +21239,15 @@ L118621d9:
    mov AX,SI
    mov DX,001F
    mul DX
-   add AX,offset Y2a17976e
+   add AX,offset _objs
    mov DX,DS
    add AX,0005
    push DX
    push AX
    push SI
-   call far A1e3e0719
+   call far _seekplayer
    add SP,+0A
-   call far A29b90016
+   call far _rand
    mov BX,0002
    cwd
    idiv BX
@@ -21254,7 +21257,7 @@ L118621d9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -21267,7 +21270,7 @@ L118621d9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+0D]
@@ -21285,12 +21288,12 @@ L118621d9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    mov [ES:BX+05],AX
-   call far A29b90016
+   call far _rand
    mov BX,0002
    cwd
    idiv BX
@@ -21300,7 +21303,7 @@ L118621d9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+07]
@@ -21313,7 +21316,7 @@ L118621d9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+0D]
@@ -21332,7 +21335,7 @@ L118621d9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -21341,7 +21344,7 @@ L118621d9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -21350,7 +21353,7 @@ L118621d9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -21360,7 +21363,7 @@ L118621d9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -21369,14 +21372,14 @@ L118621d9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    add AX,[ES:BX+05]
    push AX
    push SI
-   call far A1e3e1d7e
+   call far _justmove
    add SP,+06
 L1186232e:
    mov AX,0001
@@ -21387,13 +21390,13 @@ L11862331:
    pop BP
 ret far
 
-A11862337:
+_msg_crab: ;; 11862337
    push BP
    mov BP,SP
    push SI
    push DI
    mov SI,[BP+06]
-   mov DI,[BC9E]
+   mov DI,[offset _kindtable+2*2f]
    mov CL,08
    shl DI,CL
    mov AX,[BP+08]
@@ -21409,7 +21412,7 @@ L1186235b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -21417,7 +21420,7 @@ L1186235b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
@@ -21425,15 +21428,15 @@ L1186235b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
    add AX,DI
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L118626e0
 L118623aa:
@@ -21442,7 +21445,7 @@ L118623aa:
 jmp near L118626e0
 L118623b3:
    push SI
-   call far A1e3e257f
+   call far _hitplayer
    pop CX
 jmp near L118626e0
 L118623bd:
@@ -21450,7 +21453,7 @@ L118623bd:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -21461,7 +21464,7 @@ L118623bd:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -21470,7 +21473,7 @@ L118623bd:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+00
@@ -21481,12 +21484,12 @@ L11862402:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
    jnz L11862441
-   call far A29b90016
+   call far _rand
    mov BX,0002
    cwd
    idiv BX
@@ -21499,7 +21502,7 @@ L11862402:
    push DX
    mul BX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -21509,7 +21512,7 @@ L11862441:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    test word ptr [ES:BX+01],000F
@@ -21520,7 +21523,7 @@ L11862441:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -21528,16 +21531,16 @@ L11862441:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e21fd
+   call far _cando
    add SP,+08
    or AX,AX
    jnz L118624b3
-   call far A29b90016
+   call far _rand
    mov BX,0002
    cwd
    idiv BX
@@ -21547,7 +21550,7 @@ L11862441:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0001
@@ -21556,7 +21559,7 @@ L118624b3:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+00
@@ -21567,12 +21570,12 @@ L118624b3:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+05]
    push SI
-   call far A1e3e1f29
+   call far _crawl
    add SP,+06
    or AX,AX
    jnz L11862516
@@ -21580,7 +21583,7 @@ L118624b3:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -21590,7 +21593,7 @@ L118624b3:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -21600,7 +21603,7 @@ L11862516:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+01
@@ -21611,12 +21614,12 @@ L1186252f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
    jnz L1186256c
-   call far A29b90016
+   call far _rand
    mov BX,0002
    cwd
    idiv BX
@@ -21628,7 +21631,7 @@ L1186252f:
    push DX
    mul BX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -21638,7 +21641,7 @@ L1186256c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -21647,7 +21650,7 @@ L1186256c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -21657,12 +21660,12 @@ L1186256c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e1d7e
+   call far _justmove
    add SP,+06
    or AX,AX
    jnz L11862624
@@ -21670,7 +21673,7 @@ L1186256c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+07]
@@ -21680,7 +21683,7 @@ L1186256c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -21689,7 +21692,7 @@ L1186256c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -21698,7 +21701,7 @@ L1186256c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -21708,19 +21711,19 @@ L1186256c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e1d7e
+   call far _justmove
    add SP,+06
 L11862624:
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    test word ptr [ES:BX+03],000F
@@ -21733,12 +21736,12 @@ L1186263e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+05]
    push SI
-   call far A1e3e1f29
+   call far _crawl
    add SP,+06
    or AX,AX
    jz L11862678
@@ -21746,7 +21749,7 @@ L1186263e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0000
@@ -21758,14 +21761,14 @@ L11862678:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
    neg AX
    push AX
    push SI
-   call far A1e3e1f29
+   call far _crawl
    add SP,+06
    or AX,AX
    jz L118626dd
@@ -21773,7 +21776,7 @@ L11862678:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0000
@@ -21781,7 +21784,7 @@ L11862678:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -21791,7 +21794,7 @@ L11862678:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -21804,7 +21807,7 @@ L118626e0:
    pop BP
 ret far
 
-A118626e4:
+_msg_croc: ;; 118626e4
    push BP
    mov BP,SP
    sub SP,+14
@@ -21818,7 +21821,7 @@ A118626e4:
    mov AX,offset Y2a1711bc
    push AX
    mov CX,0008
-   call far A076a05d8
+   call far SCOPY@
    push SS
    lea AX,[BP-0C]
    push AX
@@ -21826,8 +21829,8 @@ A118626e4:
    mov AX,offset Y2a1711c4
    push AX
    mov CX,0008
-   call far A076a05d8
-   mov DI,[BCA0]
+   call far SCOPY@
+   mov DI,[offset _kindtable+2*30]
    mov CL,08
    shl DI,CL
    mov AX,[BP+08]
@@ -21847,7 +21850,7 @@ L11862735:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -21858,7 +21861,7 @@ L1186274e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -21866,7 +21869,7 @@ L1186274e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -21876,7 +21879,7 @@ L1186274e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+13]
@@ -21886,15 +21889,15 @@ L1186274e:
    mov AX,[SS:BX]
    add AX,DI
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -21902,7 +21905,7 @@ L1186274e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
@@ -21910,7 +21913,7 @@ L1186274e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+13]
@@ -21920,9 +21923,9 @@ L1186274e:
    mov AX,[SS:BX]
    add AX,DI
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L11862a33
 L11862801:
@@ -21930,7 +21933,7 @@ L11862801:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -21938,7 +21941,7 @@ L11862801:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
@@ -21946,7 +21949,7 @@ L11862801:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+13]
@@ -21957,15 +21960,15 @@ L11862801:
    add AX,DI
    add AX,0008
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -21973,7 +21976,7 @@ L11862801:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -21983,7 +21986,7 @@ L11862801:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+13]
@@ -21994,9 +21997,9 @@ L11862801:
    add AX,DI
    add AX,0008
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L11862a33
 L118628ba:
@@ -22004,7 +22007,7 @@ L118628ba:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+00
@@ -22013,7 +22016,7 @@ L118628ba:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    dec word ptr [ES:BX+0D]
@@ -22022,7 +22025,7 @@ L118628e3:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -22033,7 +22036,7 @@ L118628e3:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -22044,12 +22047,12 @@ L118628e3:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+05]
    push SI
-   call far A1e3e1f29
+   call far _crawl
    add SP,+06
    or AX,AX
    jnz L1186296b
@@ -22057,7 +22060,7 @@ L118628e3:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -22067,7 +22070,7 @@ L118628e3:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -22077,7 +22080,7 @@ L1186295e:
    cmp word ptr [BP+0A],+00
    jnz L11862971
    push SI
-   call far A1e3e257f
+   call far _hitplayer
    pop CX
 L1186296b:
    mov AX,0001
@@ -22087,7 +22090,7 @@ L11862971:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AL,[ES:BX]
@@ -22096,7 +22099,7 @@ L11862971:
    shl BX,1
    shl BX,1
    shl BX,1
-   add BX,offset Y2a1784ae
+   add BX,offset _info
    push DS
    pop ES
    test word ptr [ES:BX+02],4000
@@ -22107,7 +22110,7 @@ L1186299e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+00
@@ -22115,13 +22118,13 @@ L1186299e:
 jmp near L11862a33
 L118629b7:
    push SI
-   call far A1e3e0198
+   call far _notemod
    pop CX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0010
@@ -22132,13 +22135,13 @@ L118629b7:
    lea AX,[BP-04]
    push AX
    push SI
-   call far A1e3e0719
+   call far _seekplayer
    add SP,+0A
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -22149,7 +22152,7 @@ L118629b7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -22159,7 +22162,7 @@ L118629b7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -22167,7 +22170,7 @@ L118629b7:
 jmp near L11862a33
 L11862a2c:
    push SI
-   call far A1e3e00fe
+   call far _playerkill
    pop CX
 L11862a33:
    pop DI
@@ -22176,7 +22179,7 @@ L11862a33:
    pop BP
 ret far
 
-A11862a39:
+_msg_epic: ;; 11862a39
    push BP
    mov BP,SP
    push SI
@@ -22194,7 +22197,7 @@ L11862a54:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -22202,20 +22205,20 @@ L11862a54:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
-   mov AX,[BCA2]
+   mov AX,[offset _kindtable+2*31]
    mov CL,08
    shl AX,CL
-   mov DX,[C23C]
+   mov DX,[offset _gamecount]
    and DX,0007
    add AX,DX
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L11862b54
 L11862a9f:
@@ -22230,7 +22233,7 @@ L11862aae:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -22238,19 +22241,19 @@ L11862aae:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    mov AX,0019
    push AX
-   call far A1e3e1fa4
+   call far _addscore
    add SP,+06
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+0D]
@@ -22263,7 +22266,7 @@ L11862aae:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -22271,21 +22274,21 @@ L11862aae:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push CS
-   call near offset A11860a35
+   call near offset _explode1
    add SP,+06
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
    mov AX,0030
    push AX
    mov AX,0003
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
 jmp near L11862b54
@@ -22294,7 +22297,7 @@ L11862b45:
    push AX
    mov AX,0002
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
 L11862b54:
@@ -22302,7 +22305,7 @@ L11862b54:
    pop BP
 ret far
 
-A11862b57:
+_msg_spinblad: ;; 11862b57
    push BP
    mov BP,SP
    sub SP,+0C
@@ -22326,7 +22329,7 @@ L11862b83:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -22334,11 +22337,11 @@ L11862b83:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
-   mov AX,[BCA4]
+   mov AX,[offset _kindtable+2*32]
    mov CL,08
    shl AX,CL
    push AX
@@ -22346,15 +22349,15 @@ L11862b83:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    add AX,[ES:BX+13]
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L11863054
 L11862bd9:
@@ -22364,13 +22367,13 @@ L11862bd9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0F],+07
    jle L11862bff
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
 jmp near L11863054
 L11862bff:
@@ -22378,28 +22381,28 @@ L11862bff:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AL,[ES:BX]
    cbw
    mov BX,AX
    shl BX,1
-   test word ptr [BX+C23E],0400
+   test word ptr [BX+offset _kindflags],0400
    jnz L11862c22
 jmp near L11863054
 L11862c22:
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
    push [BP+0A]
-   call far A1e3e00fe
+   call far _playerkill
    pop CX
    mov AX,000A
    push AX
    mov AX,0003
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
 jmp near L11863054
@@ -22408,7 +22411,7 @@ L11862c44:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -22423,7 +22426,7 @@ L11862c61:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -22440,7 +22443,7 @@ L11862c7f:
    push DX
    mul BX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -22451,7 +22454,7 @@ L11862c7f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -22460,7 +22463,7 @@ L11862c7f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+0F]
@@ -22470,7 +22473,7 @@ L11862c7f:
 jmp near L1186304a
 L11862cce:
    push SI
-   call far A1e3e1db1
+   call far _onscreen
    pop CX
    or AX,AX
    jnz L11862cdc
@@ -22483,25 +22486,25 @@ jmp near L11862d3d
 L11862cea:
    mov BX,DI
    shl BX,1
-   mov AX,[BX+BDAE]
+   mov AX,[BX+offset _scrnobjs]
    mov [BP-0C],AX
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AL,[ES:BX]
    cbw
    mov BX,AX
    shl BX,1
-   test word ptr [BX+C23E],0400
+   test word ptr [BX+offset _kindflags],0400
    jz L11862d3c
    cmp word ptr [BP-0C],+00
    jz L11862d3c
    push [BP-0C]
    push SI
-   call far A1e3e26f4
+   call far _vectdist
    pop CX
    pop CX
    mov [BP-06],AX
@@ -22516,7 +22519,7 @@ L11862cea:
 L11862d3c:
    inc DI
 L11862d3d:
-   cmp DI,[C2CE]
+   cmp DI,[offset _numscrnobjs]
    jl L11862cea
    cmp word ptr [BP-0A],+00
    jl L11862d63
@@ -22530,7 +22533,7 @@ L11862d3d:
    push AX
    push SI
    push [BP-0A]
-   call far A1e3e25ff
+   call far _pointvect
    add SP,+0E
 L11862d63:
    mov word ptr [BP-02],0001
@@ -22540,7 +22543,7 @@ L11862d63:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -22549,7 +22552,7 @@ L11862d63:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+0C
@@ -22558,7 +22561,7 @@ L11862d63:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+05],000C
@@ -22567,7 +22570,7 @@ L11862dab:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],-0C
@@ -22576,7 +22579,7 @@ L11862dab:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+05],FFF4
@@ -22587,7 +22590,7 @@ L11862dd6:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -22596,7 +22599,7 @@ L11862dd6:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+0C
@@ -22605,7 +22608,7 @@ L11862dd6:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],000C
@@ -22614,7 +22617,7 @@ L11862e19:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],-0C
@@ -22623,7 +22626,7 @@ L11862e19:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],FFF4
@@ -22632,7 +22635,7 @@ L11862e44:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -22641,7 +22644,7 @@ L11862e44:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -22651,7 +22654,7 @@ L11862e44:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -22660,14 +22663,14 @@ L11862e44:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    add AX,[ES:BX+05]
    push AX
    push SI
-   call far A1e3e275d
+   call far _trybreakwall
    add SP,+06
    mov DX,000A
    mul DX
@@ -22676,7 +22679,7 @@ L11862e44:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -22685,7 +22688,7 @@ L11862e44:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -22693,7 +22696,7 @@ L11862e44:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -22702,14 +22705,14 @@ L11862e44:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    add AX,[ES:BX+05]
    push AX
    push SI
-   call far A1e3e1d7e
+   call far _justmove
    add SP,+06
    or AX,AX
    jnz L11862f2c
@@ -22717,7 +22720,7 @@ L11862e44:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -22727,7 +22730,7 @@ L11862e44:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -22737,7 +22740,7 @@ L11862f2c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov DI,[ES:BX+03]
@@ -22745,18 +22748,18 @@ L11862f2c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    add DI,[ES:BX+07]
    and DI,FFF0
    add DI,+10
-   sub DI,[B866]
+   sub DI,[offset _kindyl+2*32]
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -22765,7 +22768,7 @@ L11862f2c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -22775,12 +22778,12 @@ L11862f2c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e1d7e
+   call far _justmove
    add SP,+06
    or AX,AX
    jnz L11863017
@@ -22788,14 +22791,14 @@ L11862f2c:
    push AX
    mov AX,0001
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -22806,12 +22809,12 @@ L11862f2c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e1d7e
+   call far _justmove
    add SP,+06
    or AX,AX
    jnz L11863017
@@ -22820,7 +22823,7 @@ L11862fed:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+07]
@@ -22830,7 +22833,7 @@ L11862fed:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -22840,7 +22843,7 @@ L11863017:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -22848,18 +22851,18 @@ L11863017:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e1d7e
+   call far _justmove
    add SP,+06
    or AX,AX
    jnz L11863051
 L1186304a:
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
 L11863051:
    mov AX,0001
@@ -22870,14 +22873,14 @@ L11863054:
    pop BP
 ret far
 
-A1186305a:
+_msg_skull: ;; 1186305a
    push BP
    mov BP,SP
    sub SP,+18
    push SI
    push DI
    mov SI,[BP+06]
-   mov DI,[BCA6]
+   mov DI,[offset _kindtable+2*33]
    mov CL,08
    shl DI,CL
    push SS
@@ -22887,7 +22890,7 @@ A1186305a:
    mov AX,offset Y2a1711cc
    push AX
    mov CX,0010
-   call far A076a05d8
+   call far SCOPY@
    push SS
    lea AX,[BP-08]
    push AX
@@ -22895,7 +22898,7 @@ A1186305a:
    mov AX,offset Y2a1711dc
    push AX
    mov CX,0008
-   call far A076a05d8
+   call far SCOPY@
    mov AX,[BP+08]
    or AX,AX
    jz L118630ab
@@ -22913,7 +22916,7 @@ L118630ab:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -22921,7 +22924,7 @@ L118630ab:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
@@ -22929,7 +22932,7 @@ L118630ab:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+11]
@@ -22944,15 +22947,15 @@ L118630ab:
    mov AX,[SS:BX]
    add AX,DI
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+00
@@ -22963,7 +22966,7 @@ L11863126:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -22973,7 +22976,7 @@ L11863126:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
@@ -22981,7 +22984,7 @@ L11863126:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+11]
@@ -22991,15 +22994,15 @@ L11863126:
    mov AX,[SS:BX]
    add AX,DI
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -23009,7 +23012,7 @@ L11863126:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -23019,7 +23022,7 @@ L11863126:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+11]
@@ -23031,9 +23034,9 @@ L11863126:
    mov AX,[SS:BX]
    add AX,DI
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L11863285
 L118631e8:
@@ -23041,7 +23044,7 @@ L118631e8:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+00
@@ -23052,7 +23055,7 @@ L11863201:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+11]
@@ -23063,7 +23066,7 @@ L11863201:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -23074,7 +23077,7 @@ L1186322f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+00
@@ -23083,7 +23086,7 @@ L1186322f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0001
@@ -23091,7 +23094,7 @@ L1186322f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+11],0000
@@ -23099,7 +23102,7 @@ L1186322f:
    push AX
    mov AX,0004
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
 L1186327e:
@@ -23114,7 +23117,7 @@ L11863285:
    pop BP
 ret far
 
-A1186328b:
+_msg_button: ;; 1186328b
    push BP
    mov BP,SP
    push SI
@@ -23136,7 +23139,7 @@ L118632ac:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -23144,11 +23147,11 @@ L118632ac:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
-   mov AX,[BCA8]
+   mov AX,[offset _kindtable+2*34]
    mov CL,08
    shl AX,CL
    inc AX
@@ -23157,7 +23160,7 @@ L118632ac:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -23167,7 +23170,7 @@ L118632ac:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -23181,9 +23184,9 @@ L1186330d:
    pop DX
    add DX,AX
    push DX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L11863418
 L11863326:
@@ -23191,7 +23194,7 @@ L11863326:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0F],+00
@@ -23202,7 +23205,7 @@ L1186333f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,0001
@@ -23213,7 +23216,7 @@ L1186333f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -23222,7 +23225,7 @@ L1186333f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+01
@@ -23234,11 +23237,11 @@ L1186333f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+13]
-   call far A1e3e20e1
+   call far _sendtrig
    add SP,+06
 jmp near L118633c4
 L118633a4:
@@ -23249,18 +23252,18 @@ L118633a4:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+13]
-   call far A1e3e20e1
+   call far _sendtrig
    add SP,+06
 L118633c4:
    mov AX,002C
    push AX
    mov AX,0003
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
 L118633d3:
@@ -23268,7 +23271,7 @@ L118633d3:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0F],0003
@@ -23279,7 +23282,7 @@ L118633ed:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0F],+00
@@ -23288,7 +23291,7 @@ L118633ed:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    dec word ptr [ES:BX+0F]
@@ -23299,14 +23302,14 @@ L11863418:
    pop BP
 ret far
 
-A1186341b:
+_msg_pac: ;; 1186341b
    push BP
    mov BP,SP
    sub SP,+0C
    push SI
    push DI
    mov SI,[BP+06]
-   mov AX,[BCAA]
+   mov AX,[offset _kindtable+2*35]
    mov CL,08
    shl AX,CL
    mov [BP-0C],AX
@@ -23324,7 +23327,7 @@ L11863447:
    cmp word ptr [BP+0A],+00
    jnz L11863457
    push SI
-   call far A1e3e257f
+   call far _hitplayer
    pop CX
 jmp near L11863840
 L11863457:
@@ -23332,7 +23335,7 @@ L11863457:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp byte ptr [ES:BX],3E
@@ -23340,7 +23343,7 @@ L11863457:
 jmp near L11863840
 L11863470:
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
 jmp near L11863840
 L1186347a:
@@ -23348,7 +23351,7 @@ L1186347a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -23360,7 +23363,7 @@ L11863495:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
@@ -23372,7 +23375,7 @@ L118634b1:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
@@ -23383,7 +23386,7 @@ L118634cb:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -23391,14 +23394,14 @@ L118634cb:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push [BP-0C]
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L11863840
 L11863507:
@@ -23406,7 +23409,7 @@ L11863507:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    test word ptr [ES:BX+01],000F
@@ -23417,7 +23420,7 @@ L11863521:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    test word ptr [ES:BX+03],000F
@@ -23428,7 +23431,7 @@ L1186353b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -23440,7 +23443,7 @@ L1186353b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -23451,7 +23454,7 @@ L1186353b:
    mov BX,[BP-08]
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    shl AX,1
@@ -23463,7 +23466,7 @@ L1186353b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -23478,7 +23481,7 @@ L118635aa:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -23494,7 +23497,7 @@ L118635c8:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
@@ -23509,7 +23512,7 @@ L118635e8:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
@@ -23526,7 +23529,7 @@ L11863606:
    jnz L1186362d
    or DX,DX
    jnz L1186362d
-   call far A29b90016
+   call far _rand
    mov BX,0002
    cwd
    idiv BX
@@ -23541,7 +23544,7 @@ L1186362d:
    add BX,DI
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,[BP-06]
@@ -23554,7 +23557,7 @@ L1186362d:
    jnz L11863654
 jmp near L1186378d
 L11863654:
-   call far A29b90016
+   call far _rand
    mov BX,0002
    cwd
    idiv BX
@@ -23575,7 +23578,7 @@ L11863654:
    add BX,DI
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,[BP-06]
@@ -23600,7 +23603,7 @@ L118636a7:
    add BX,DI
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,[BP-06]
@@ -23617,7 +23620,7 @@ L118636e2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -23632,7 +23635,7 @@ L118636ff:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -23649,7 +23652,7 @@ L1186371d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
@@ -23664,7 +23667,7 @@ L1186373f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
@@ -23682,7 +23685,7 @@ L1186375d:
    add BX,DI
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,[BP-06]
@@ -23700,7 +23703,7 @@ L1186378d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -23710,7 +23713,7 @@ L1186378d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -23719,7 +23722,7 @@ L1186378d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -23729,7 +23732,7 @@ L1186378d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -23739,7 +23742,7 @@ L118637e2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -23748,7 +23751,7 @@ L118637e2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -23758,7 +23761,7 @@ L118637e2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -23767,14 +23770,14 @@ L118637e2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    add AX,[ES:BX+05]
    push AX
    push SI
-   call far A1e3e1c9b
+   call far _trymove
    add SP,+06
    mov AX,0001
 L11863840:
@@ -23784,7 +23787,7 @@ L11863840:
    pop BP
 ret far
 
-A11863846:
+_msg_bubble: ;; 11863846
    push BP
    mov BP,SP
    push SI
@@ -23800,7 +23803,7 @@ L1186385c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -23808,11 +23811,11 @@ L1186385c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
-   mov AX,[BCB4]
+   mov AX,[offset _kindtable+2*3a]
    mov CL,08
    shl AX,CL
    push AX
@@ -23820,20 +23823,20 @@ L1186385c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    add AX,[ES:BX+13]
    add AX,0006
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L1186395b
 L118638b5:
-   call far A29b90016
+   call far _rand
    mov BX,000F
    cwd
    idiv BX
@@ -23843,7 +23846,7 @@ L118638b5:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+13]
@@ -23852,13 +23855,13 @@ L118638d7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+13],+02
    jg L11863951
    push SI
-   call far A1e3e1db1
+   call far _onscreen
    pop CX
    or AX,AX
    jz L11863951
@@ -23866,7 +23869,7 @@ L118638d7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -23875,14 +23878,14 @@ L118638d7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    sub AX,[ES:BX+13]
    dec AX
    push AX
-   call far A29b90016
+   call far _rand
    mov BX,0003
    cwd
    idiv BX
@@ -23891,7 +23894,7 @@ L118638d7:
    push DX
    mul BX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -23899,13 +23902,13 @@ L118638d7:
    dec AX
    push AX
    push SI
-   call far A1e3e25cc
+   call far _fishdo
    add SP,+06
    or AX,AX
    jnz L11863958
 L11863951:
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
 L11863958:
    mov AX,0001
@@ -23914,7 +23917,7 @@ L1186395b:
    pop BP
 ret far
 
-A1186395e:
+_msg_jellyfish: ;; 1186395e
    push BP
    mov BP,SP
    sub SP,+14
@@ -23927,7 +23930,7 @@ A1186395e:
    mov AX,offset Y2a1711e4
    push AX
    mov CX,0014
-   call far A076a05d8
+   call far SCOPY@
    mov AX,[BP+08]
    or AX,AX
    jz L11863991
@@ -23943,7 +23946,7 @@ L11863991:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -23951,7 +23954,7 @@ L11863991:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
@@ -23959,7 +23962,7 @@ L11863991:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+13]
@@ -23967,14 +23970,14 @@ L11863991:
    lea AX,[BP-14]
    add BX,AX
    mov AX,[SS:BX]
-   mov DX,[BCB6]
+   mov DX,[offset _kindtable+2*3b]
    mov CL,08
    shl DX,CL
    add AX,DX
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L11863d03
 L118639f2:
@@ -23982,7 +23985,7 @@ L118639f2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+13]
@@ -23993,12 +23996,12 @@ L118639f2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+13],0000
 L11863a23:
-   call far A29b90016
+   call far _rand
    mov BX,0003
    cwd
    idiv BX
@@ -24009,7 +24012,7 @@ L11863a23:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -24031,7 +24034,7 @@ L11863a56:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -24040,7 +24043,7 @@ L11863a56:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+06
@@ -24052,7 +24055,7 @@ L11863a8a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -24066,7 +24069,7 @@ L11863aa7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+06
@@ -24078,7 +24081,7 @@ L11863ac2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -24088,12 +24091,12 @@ L11863ad5:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    mov [ES:BX+05],AX
-   call far A29b90016
+   call far _rand
    mov BX,0003
    cwd
    idiv BX
@@ -24104,7 +24107,7 @@ L11863ad5:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+02
@@ -24126,7 +24129,7 @@ L11863b16:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -24135,7 +24138,7 @@ L11863b16:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+06
@@ -24147,7 +24150,7 @@ L11863b51:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+07]
@@ -24161,7 +24164,7 @@ L11863b6e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+06
@@ -24173,7 +24176,7 @@ L11863b89:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+07]
@@ -24183,7 +24186,7 @@ L11863b9c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -24192,7 +24195,7 @@ L11863b9c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -24200,7 +24203,7 @@ L11863b9c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -24209,14 +24212,14 @@ L11863b9c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    add AX,[ES:BX+05]
    push AX
    push SI
-   call far A1e3e25cc
+   call far _fishdo
    add SP,+06
    or AX,AX
    jnz L11863c24
@@ -24224,7 +24227,7 @@ L11863b9c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -24234,7 +24237,7 @@ L11863b9c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -24244,7 +24247,7 @@ L11863c24:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -24253,7 +24256,7 @@ L11863c24:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -24263,12 +24266,12 @@ L11863c24:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e25cc
+   call far _fishdo
    add SP,+06
    or AX,AX
    jnz L11863c97
@@ -24276,7 +24279,7 @@ L11863c24:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+07]
@@ -24286,7 +24289,7 @@ L11863c24:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -24298,7 +24301,7 @@ L11863c9c:
    cmp word ptr [BP+0A],+00
    jnz L11863cab
    push SI
-   call far A1e3e257f
+   call far _hitplayer
    pop CX
 jmp near L11863d03
 L11863cab:
@@ -24306,14 +24309,14 @@ L11863cab:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AL,[ES:BX]
    cbw
    mov BX,AX
    shl BX,1
-   test word ptr [BX+C23E],4000
+   test word ptr [BX+offset _kindflags],4000
    jz L11863d03
    mov AX,0014
    push AX
@@ -24321,7 +24324,7 @@ L11863cab:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -24329,15 +24332,15 @@ L11863cab:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push CS
-   call near offset A11860a35
+   call near offset _explode1
    add SP,+06
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
 L11863d03:
    pop SI
@@ -24345,7 +24348,7 @@ L11863d03:
    pop BP
 ret far
 
-A11863d08:
+_msg_badfish: ;; 11863d08
    push BP
    mov BP,SP
    sub SP,+08
@@ -24358,7 +24361,7 @@ A11863d08:
    mov AX,offset Y2a1711f8
    push AX
    mov CX,0008
-   call far A076a05d8
+   call far SCOPY@
    mov AX,[BP+08]
    or AX,AX
    jz L11863d3e
@@ -24376,7 +24379,7 @@ L11863d3e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -24384,7 +24387,7 @@ L11863d3e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
@@ -24392,7 +24395,7 @@ L11863d3e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+13]
@@ -24401,7 +24404,7 @@ L11863d3e:
    lea AX,[BP-08]
    add BX,AX
    mov AX,[SS:BX]
-   mov DX,[BCB8]
+   mov DX,[offset _kindtable+2*3c]
    mov CL,08
    shl DX,CL
    add AX,DX
@@ -24410,7 +24413,7 @@ L11863d3e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -24426,9 +24429,9 @@ L11863dad:
    add DX,AX
    add DX,+0F
    push DX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L11863fe6
 L11863dcc:
@@ -24436,11 +24439,11 @@ L11863dcc:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+13]
-   call far A29b90016
+   call far _rand
    mov BX,0014
    cwd
    idiv BX
@@ -24448,7 +24451,7 @@ L11863dcc:
    jz L11863df1
 jmp near L11863e7c
 L11863df1:
-   call far A29b90016
+   call far _rand
    mov BX,0003
    cwd
    idiv BX
@@ -24460,7 +24463,7 @@ L11863df1:
    push DX
    mul BX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -24469,12 +24472,12 @@ L11863df1:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
    jnz L11863e57
-   call far A29b90016
+   call far _rand
    mov BX,0002
    cwd
    idiv BX
@@ -24486,14 +24489,14 @@ L11863df1:
    push DX
    mul BX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    mov [ES:BX+07],AX
 jmp near L11863e7c
 L11863e57:
-   call far A29b90016
+   call far _rand
    mov BX,0003
    cwd
    idiv BX
@@ -24504,7 +24507,7 @@ L11863e57:
    push DX
    mul BX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -24514,7 +24517,7 @@ L11863e7c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -24522,7 +24525,7 @@ L11863e7c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -24531,14 +24534,14 @@ L11863e7c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    add AX,[ES:BX+05]
    push AX
    push SI
-   call far A1e3e25cc
+   call far _fishdo
    add SP,+06
    or AX,AX
    jnz L11863eef
@@ -24546,7 +24549,7 @@ L11863e7c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -24556,7 +24559,7 @@ L11863e7c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -24566,7 +24569,7 @@ L11863eef:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -24575,7 +24578,7 @@ L11863eef:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -24585,12 +24588,12 @@ L11863eef:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e25cc
+   call far _fishdo
    add SP,+06
    or AX,AX
    jnz L11863f62
@@ -24598,7 +24601,7 @@ L11863eef:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+07]
@@ -24608,13 +24611,13 @@ L11863eef:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    mov [ES:BX+07],AX
 L11863f62:
-   call far A29b90016
+   call far _rand
    mov BX,0004
    cwd
    idiv BX
@@ -24624,7 +24627,7 @@ L11863f62:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -24634,7 +24637,7 @@ L11863f62:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -24642,7 +24645,7 @@ L11863f62:
    push AX
    mov AX,003A
    push AX
-   call far A1e3e18b9
+   call far _addobj
    add SP,+06
 L11863fab:
    mov AX,0001
@@ -24651,7 +24654,7 @@ L11863fb0:
    cmp word ptr [BP+0A],+00
    jnz L11863fbf
    push SI
-   call far A1e3e257f
+   call far _hitplayer
    pop CX
 jmp near L11863fe6
 L11863fbf:
@@ -24659,17 +24662,17 @@ L11863fbf:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AL,[ES:BX]
    cbw
    mov BX,AX
    shl BX,1
-   test word ptr [BX+C23E],4000
+   test word ptr [BX+offset _kindflags],4000
    jz L11863fe6
    push SI
-   call far A1e3e00fe
+   call far _playerkill
    pop CX
 L11863fe6:
    pop SI
@@ -24677,7 +24680,7 @@ L11863fe6:
    pop BP
 ret far
 
-A11863feb:
+_msg_elev: ;; 11863feb
    push BP
    mov BP,SP
    sub SP,+02
@@ -24688,7 +24691,7 @@ A11863feb:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -24699,7 +24702,7 @@ A11863feb:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov DI,[ES:BX+03]
@@ -24722,7 +24725,7 @@ L11864041:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp byte ptr [ES:BX],00
@@ -24733,22 +24736,22 @@ L1186405a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0006
-   cmp word ptr [1096],+00
+   cmp word ptr [offset _first_elev],+00
    jz L1186408d
-   mov word ptr [1096],0000
+   mov word ptr [offset _first_elev],0000
    mov AX,0002
    push AX
    push DS
    mov AX,offset Y2a17131f
    push AX
-   call far A19dd059d
+   call far _putbotmsg
    add SP,+06
 L1186408d:
-   cmp word ptr [3D7C],+00
+   cmp word ptr [offset _dy1],+00
    jl L11864097
 jmp near L1186413b
 L11864097:
@@ -24756,7 +24759,7 @@ L11864097:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],0000
@@ -24764,17 +24767,17 @@ L11864097:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+0F]
-   cmp AX,[3D7C]
+   cmp AX,[offset _dy1]
    jz L118640d5
    mov AX,001D
    push AX
    mov AX,0002
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
 L118640d5:
@@ -24783,10 +24786,10 @@ L118640d5:
    mov CL,04
    shl AX,CL
    push AX
-   push [976F]
+   push [offset _objs+01]
    xor AX,AX
    push AX
-   call far A1e3e1d7e
+   call far _justmove
    add SP,+06
    or AX,AX
    jnz L118640f5
@@ -24796,7 +24799,7 @@ L118640f5:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -24806,22 +24809,22 @@ L118640f5:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e1aeb
+   call far _moveobj
    add SP,+06
    mov AX,008A
    push AX
    push DI
    push [BP-02]
-   call far A1e3e0004
+   call far _setboard
    add SP,+06
 jmp near L11864214
 L1186413b:
-   cmp word ptr [3D7C],+00
+   cmp word ptr [offset _dy1],+00
    jg L11864145
 jmp near L11864214
 L11864145:
@@ -24829,7 +24832,7 @@ L11864145:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],0000
@@ -24837,24 +24840,24 @@ L11864145:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+0F]
-   cmp AX,[3D7C]
+   cmp AX,[offset _dy1]
    jz L11864183
    mov AX,001E
    push AX
    mov AX,0002
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
 L11864183:
    mov BX,[BP-02]
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,DI
@@ -24868,7 +24871,7 @@ L11864183:
    mov BX,[BP-02]
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,DI
@@ -24881,13 +24884,13 @@ L11864183:
    inc AX
    push AX
    push [BP-02]
-   call far A1e3e0004
+   call far _setboard
    add SP,+06
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -24897,30 +24900,30 @@ L11864183:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e1aeb
+   call far _moveobj
    add SP,+06
    mov AX,DI
    mov CL,04
    shl AX,CL
    push AX
-   push [976F]
+   push [offset _objs+01]
    xor AX,AX
    push AX
-   call far A1e3e1d7e
+   call far _justmove
    add SP,+06
 L11864214:
-   mov AX,[3D7C]
+   mov AX,[offset _dy1]
    push AX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -24931,7 +24934,7 @@ L1186422f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+00
@@ -24940,7 +24943,7 @@ L1186422f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    dec word ptr [ES:BX+0D]
@@ -24949,7 +24952,7 @@ L11864258:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+00
@@ -24959,7 +24962,7 @@ L11864271:
    mov BX,[BP-02]
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,DI
@@ -24974,7 +24977,7 @@ L11864271:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+13],-01
@@ -24982,7 +24985,7 @@ L11864271:
    mov BX,[BP-02]
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,DI
@@ -24995,13 +24998,13 @@ L11864271:
    inc AX
    push AX
    push [BP-02]
-   call far A1e3e0004
+   call far _setboard
    add SP,+06
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -25011,12 +25014,12 @@ L11864271:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e1aeb
+   call far _moveobj
    add SP,+06
 L11864302:
    mov AX,0001
@@ -25029,7 +25032,7 @@ L1186430b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -25037,15 +25040,15 @@ L1186430b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    mov AX,0E2C
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 L11864345:
    pop DI
@@ -25054,7 +25057,7 @@ L11864345:
    pop BP
 ret far
 
-A1186434b:
+_msg_firebullet: ;; 1186434b
    push BP
    mov BP,SP
    sub SP,+28
@@ -25067,7 +25070,7 @@ A1186434b:
    mov AX,offset Y2a171200
    push AX
    mov CX,0028
-   call far A076a05d8
+   call far SCOPY@
    mov AX,[BP+08]
    or AX,AX
    jz L1186437e
@@ -25083,7 +25086,7 @@ L1186437e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -25091,11 +25094,11 @@ L1186437e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
-   mov AX,[BCBC]
+   mov AX,[offset _kindtable+2*3e]
    mov CL,08
    shl AX,CL
    push AX
@@ -25103,26 +25106,26 @@ L1186437e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    add AX,[ES:BX+13]
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L118645b2
 L118643d4:
    push SI
-   call far A1e3e1db1
+   call far _onscreen
    pop CX
    or AX,AX
    jnz L118643e9
 L118643df:
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
 jmp near L118645af
 L118643e9:
@@ -25130,7 +25133,7 @@ L118643e9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -25141,7 +25144,7 @@ L118643e9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -25150,7 +25153,7 @@ L118643e9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+0D]
@@ -25161,7 +25164,7 @@ L118643e9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0000
@@ -25170,7 +25173,7 @@ L11864446:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -25179,7 +25182,7 @@ L11864446:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -25189,7 +25192,7 @@ L11864446:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -25198,20 +25201,20 @@ L11864446:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    add AX,[ES:BX+05]
    push AX
    push SI
-   call far A1e3e275d
+   call far _trybreakwall
    add SP,+06
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+0D]
@@ -25224,7 +25227,7 @@ L11864446:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -25234,7 +25237,7 @@ L11864446:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -25244,18 +25247,18 @@ L11864446:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e1d7e
+   call far _justmove
    add SP,+06
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -25263,7 +25266,7 @@ L11864446:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -25272,14 +25275,14 @@ L11864446:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    add AX,[ES:BX+05]
    push AX
    push SI
-   call far A1e3e1d7e
+   call far _justmove
    add SP,+06
    or AX,AX
    jnz L11864551
@@ -25289,7 +25292,7 @@ L11864551:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+0F]
@@ -25302,26 +25305,26 @@ L11864570:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AL,[ES:BX]
    cbw
    mov BX,AX
    shl BX,1
-   test word ptr [BX+C23E],0080
+   test word ptr [BX+offset _kindflags],0080
    jz L118645af
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
    push [BP+0A]
-   call far A1e3e00fe
+   call far _playerkill
    pop CX
    mov AX,000A
    push AX
    mov AX,0003
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
 L118645af:
@@ -25332,7 +25335,7 @@ L118645b2:
    pop BP
 ret far
 
-A118645b7:
+_msg_fishbullet: ;; 118645b7
    push BP
    mov BP,SP
    push SI
@@ -25348,7 +25351,7 @@ L118645cd:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -25356,11 +25359,11 @@ L118645cd:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
-   mov AX,[BCBE]
+   mov AX,[offset _kindtable+2*3f]
    mov CL,08
    shl AX,CL
    push AX
@@ -25368,7 +25371,7 @@ L118645cd:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -25382,19 +25385,19 @@ L11864618:
    add DX,AX
    add DX,+15
    push DX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L1186469a
 L11864631:
    push SI
-   call far A1e3e1db1
+   call far _onscreen
    pop CX
    or AX,AX
    jnz L11864647
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
    xor AX,AX
 jmp near L1186469a
@@ -25403,7 +25406,7 @@ L11864647:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -25411,7 +25414,7 @@ L11864647:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -25420,19 +25423,19 @@ L11864647:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    add AX,[ES:BX+05]
    push AX
    push SI
-   call far A1e3e1d7e
+   call far _justmove
    add SP,+06
    or AX,AX
    jnz L11864697
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
 L11864697:
    mov AX,0001
@@ -25441,7 +25444,7 @@ L1186469a:
    pop BP
 ret far
 
-A1186469d:
+_msg_searock: ;; 1186469d
    push BP
    mov BP,SP
    push SI
@@ -25457,7 +25460,7 @@ L118646b3:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -25465,22 +25468,22 @@ L118646b3:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
-   mov AX,[BC90]
+   mov AX,[offset _kindtable+2*28]
    mov CL,08
    shl AX,CL
    add AX,0022
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L11864745
 L118646f6:
-   call far A29b90016
+   call far _rand
    mov BX,000C
    cwd
    idiv BX
@@ -25490,7 +25493,7 @@ L118646f6:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -25500,7 +25503,7 @@ L118646f6:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -25509,7 +25512,7 @@ L118646f6:
    push AX
    mov AX,003A
    push AX
-   call far A1e3e18b9
+   call far _addobj
    add SP,+06
    mov AX,0001
 jmp near L11864745
@@ -25520,14 +25523,14 @@ L11864745:
    pop BP
 ret far
 
-A11864748:
+_msg_eyes: ;; 11864748
    push BP
    mov BP,SP
    sub SP,+04
    push SI
    push DI
    mov SI,[BP+06]
-   mov DI,[BCC0]
+   mov DI,[offset _kindtable+2*40]
    mov CL,08
    shl DI,CL
    mov AX,[BP+08]
@@ -25543,7 +25546,7 @@ L1186476d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -25551,20 +25554,20 @@ L1186476d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push DI
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -25573,7 +25576,7 @@ L1186476d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -25584,7 +25587,7 @@ L1186476d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -25593,7 +25596,7 @@ L1186476d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -25603,9 +25606,9 @@ L1186476d:
    mov AX,DI
    inc AX
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L118648b7
 L11864813:
@@ -25620,7 +25623,7 @@ L11864813:
    push SI
    xor AX,AX
    push AX
-   call far A1e3e25ff
+   call far _pointvect
    add SP,+0E
    cmp word ptr [BP-02],+01
    jle L1186483a
@@ -25640,7 +25643,7 @@ L11864850:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -25650,7 +25653,7 @@ L11864850:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+07]
@@ -25663,7 +25666,7 @@ L11864880:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -25674,7 +25677,7 @@ L11864880:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -25690,7 +25693,7 @@ L118648b7:
    pop BP
 ret far
 
-A118648bd:
+_msg_vineclimb: ;; 118648bd
    push BP
    mov BP,SP
    push SI
@@ -25711,7 +25714,7 @@ L118648dc:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -25719,11 +25722,11 @@ L118648dc:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
-   mov AX,[BCC2]
+   mov AX,[offset _kindtable+2*41]
    mov CL,08
    shl AX,CL
    push AX
@@ -25731,7 +25734,7 @@ L118648dc:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -25741,9 +25744,9 @@ L118648dc:
    pop DX
    add DX,AX
    push DX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L11864ab3
 L1186493a:
@@ -25751,36 +25754,36 @@ L1186493a:
    jz L11864943
 jmp near L11864ab3
 L11864943:
-   mov BX,[977B]
+   mov BX,[offset _objs+0d]
    shl BX,1
-   test word ptr [BX+C22E],0002
+   test word ptr [BX+offset _stateinfo],0002
    jnz L11864991
-   push [9771]
-   mov AX,[976F]
+   push [offset _objs+03]
+   mov AX,[offset _objs+01]
    add AX,FFF8
    push AX
    xor AX,AX
    push AX
-   call far A1e3e1d7e
+   call far _justmove
    add SP,+06
    mov DI,AX
    or DI,DI
    jnz L11864985
-   push [9771]
-   mov AX,[976F]
+   push [offset _objs+03]
+   mov AX,[offset _objs+01]
    add AX,0008
    push AX
    xor AX,AX
    push AX
-   call far A1e3e1d7e
+   call far _justmove
    add SP,+06
    mov DI,AX
 L11864985:
-   mov word ptr [977B],0000
-   mov word ptr [977D],0000
+   mov word ptr [offset _objs+0d],0000
+   mov word ptr [offset _objs+0f],0000
 L11864991:
    push SI
-   call far A1e3e257f
+   call far _hitplayer
    pop CX
 jmp near L11864ab3
 L1186499b:
@@ -25788,7 +25791,7 @@ L1186499b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -25799,7 +25802,7 @@ L1186499b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -25808,7 +25811,7 @@ L1186499b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
@@ -25817,7 +25820,7 @@ L1186499b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],0002
@@ -25828,7 +25831,7 @@ L118649f2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -25837,7 +25840,7 @@ L118649f2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -25847,12 +25850,12 @@ L118649f2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e22ff
+   call far _objdo
    add SP,+08
    or AX,AX
    jnz L11864a86
@@ -25860,7 +25863,7 @@ L118649f2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -25869,7 +25872,7 @@ L118649f2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -25879,12 +25882,12 @@ L118649f2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e1aeb
+   call far _moveobj
    add SP,+06
 jmp near L11864ab0
 L11864a86:
@@ -25892,7 +25895,7 @@ L11864a86:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+07]
@@ -25902,7 +25905,7 @@ L11864a86:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -25915,7 +25918,7 @@ L11864ab3:
    pop BP
 ret far
 
-A11864ab7:
+_msg_flag: ;; 11864ab7
    push BP
    mov BP,SP
    push SI
@@ -25935,7 +25938,7 @@ L11864ad5:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -25943,14 +25946,14 @@ L11864ad5:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
    inc AX
    inc AX
    push AX
-   mov AX,[BCC4]
+   mov AX,[offset _kindtable+2*42]
    mov CL,08
    shl AX,CL
    push AX
@@ -25958,7 +25961,7 @@ L11864ad5:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -25969,9 +25972,9 @@ L11864ad5:
    add DX,AX
    inc DX
    push DX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L11864c35
 L11864b37:
@@ -25979,7 +25982,7 @@ L11864b37:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+13]
@@ -25990,7 +25993,7 @@ L11864b37:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+13],0000
@@ -25999,7 +26002,7 @@ L11864b68:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    test word ptr [ES:BX+13],0001
@@ -26019,7 +26022,7 @@ L11864b92:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+00
@@ -26030,7 +26033,7 @@ L11864bab:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0001
@@ -26038,7 +26041,7 @@ L11864bab:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -26046,19 +26049,19 @@ L11864bab:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    mov AX,0006
    push AX
-   call far A1e3e1fa4
+   call far _addscore
    add SP,+06
    mov AX,0020
    push AX
    mov AX,0002
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
    mov AX,0005
@@ -26067,7 +26070,7 @@ L11864bab:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -26075,12 +26078,12 @@ L11864bab:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push CS
-   call near offset A11860a35
+   call near offset _explode1
    add SP,+06
 L11864c32:
    mov AX,0001
@@ -26089,7 +26092,7 @@ L11864c35:
    pop BP
 ret far
 
-A11864c38:
+_msg_macrotrig: ;; 11864c38
    push BP
    mov BP,SP
    mov AX,[BP+08]
@@ -26102,7 +26105,7 @@ L11864c48:
    pop BP
 ret far
 
-A11864c4a:
+_msg_txtmsg: ;; 11864c4a
    push BP
    mov BP,SP
    push SI
@@ -26118,7 +26121,7 @@ L11864c61:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+00
@@ -26127,7 +26130,7 @@ L11864c61:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    dec word ptr [ES:BX+0D]
@@ -26137,7 +26140,7 @@ L11864c8c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+00
@@ -26148,18 +26151,18 @@ L11864c8c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+19]
    push [ES:BX+17]
-   call far A19dd059d
+   call far _putbotmsg
    add SP,+06
    mov AX,0014
    push AX
    mov AX,0003
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
 L11864cd4:
@@ -26167,7 +26170,7 @@ L11864cd4:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0008
@@ -26176,7 +26179,7 @@ L11864ce9:
    pop BP
 ret far
 
-A11864cec:
+_msg_mapdemo: ;; 11864cec
    push BP
    mov BP,SP
    sub SP,+08
@@ -26190,7 +26193,7 @@ A11864cec:
    mov AX,offset Y2a171228
    push AX
    mov CX,0004
-   call far A076a05d8
+   call far SCOPY@
    push SS
    lea AX,[BP-04]
    push AX
@@ -26198,7 +26201,7 @@ A11864cec:
    mov AX,offset Y2a17122c
    push AX
    mov CX,0004
-   call far A076a05d8
+   call far SCOPY@
    mov AX,[BP+08]
    or AX,AX
    jz L11864d2d
@@ -26208,7 +26211,7 @@ jmp near L11864dce
 L11864d2a:
 jmp near L11864e20
 L11864d2d:
-   cmp byte ptr [3B53],00
+   cmp byte ptr [offset _x_ourmode],00
    jnz L11864d37
 jmp near L11864e20
 L11864d37:
@@ -26219,7 +26222,7 @@ L11864d3b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -26227,7 +26230,7 @@ L11864d3b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -26240,7 +26243,7 @@ L11864d3b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+05]
@@ -26248,16 +26251,16 @@ L11864d3b:
    lea AX,[BP-08]
    add BX,AX
    mov AX,[SS:BX]
-   mov DX,[BCC6]
+   mov DX,[offset _kindtable+2*43]
    mov CL,08
    shl DX,CL
    add AX,DX
    add AX,DI
    add AX,4000
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
    inc DI
 L11864da8:
@@ -26265,7 +26268,7 @@ L11864da8:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+05]
@@ -26279,32 +26282,32 @@ jmp near L11864d3b
 L11864dcc:
 jmp near L11864e20
 L11864dce:
-   cmp word ptr [13C4],+00
+   cmp word ptr [offset _designflag],+00
    jnz L11864e1d
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+08]
-   add AX,[BB72]
+   add AX,[offset _scrollxd]
    add AX,0010
    push AX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    mov [ES:BX+01],AX
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+0A]
-   add AX,[BB74]
+   add AX,[offset _scrollyd]
    add AX,0004
    push AX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -26319,7 +26322,7 @@ L11864e20:
 ret far
 
 Segment 1668 ;; JOBJ3.C:JOBJ3
-A16680006:
+_msg_block: ;; 16680006
    push BP
    mov BP,SP
    sub SP,+0A
@@ -26329,7 +26332,7 @@ A16680006:
    mov BX,DI
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,[BP+08]
@@ -26337,7 +26340,7 @@ A16680006:
    add BX,AX
    mov SI,[ES:BX]
    and SI,3FFF
-   mov AX,[C23C]
+   mov AX,[offset _gamecount]
    and AX,0003
    mov [BP-0A],AX
    mov AX,DI
@@ -26369,12 +26372,12 @@ L16680061:
    push AX
    mov AX,0010
    push AX
-   call far A1e3e064c
+   call far _p_ouch
    pop CX
    pop CX
    xor AX,AX
    push AX
-   call far A118609bd
+   call far _explode2
    pop CX
 jmp near L16680779
 L16680088:
@@ -26393,7 +26396,7 @@ L166800a6:
    push AX
    mov AX,0010
    push AX
-   call far A1e3e064c
+   call far _p_ouch
    pop CX
    pop CX
 jmp near L16680779
@@ -26402,11 +26405,11 @@ L166800b8:
    jl L166800ea
    cmp SI,0197
    jg L166800ea
-   cmp byte ptr [976E],39
+   cmp byte ptr [offset _objs],39
    jnz L166800ce
 jmp near L16680779
 L166800ce:
-   cmp byte ptr [976E],36
+   cmp byte ptr [offset _objs],36
    jnz L166800d8
 jmp near L16680779
 L166800d8:
@@ -26414,7 +26417,7 @@ L166800d8:
    push AX
    mov AX,0010
    push AX
-   call far A1e3e064c
+   call far _p_ouch
    pop CX
    pop CX
 jmp near L16680779
@@ -26427,20 +26430,20 @@ L166800f3:
    jle L166800fc
 jmp near L16680779
 L166800fc:
-   mov AX,[C23C]
-   sub AX,[4460]
+   mov AX,[offset _gamecount]
+   sub AX,[offset _lastwater]
    cmp AX,000A
    jle L16680117
    mov AX,0004
    push AX
    mov AX,0002
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
 L16680117:
-   mov AX,[C23C]
-   mov [4460],AX
+   mov AX,[offset _gamecount]
+   mov [offset _lastwater],AX
 jmp near L16680779
 L16680120:
    cmp SI,0186
@@ -26452,7 +26455,7 @@ L16680120:
    mov BX,DI
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,[BP+08]
@@ -26464,12 +26467,12 @@ L16680120:
    push AX
    push [BP+08]
    push DI
-   call far A1e3e0004
+   call far _setboard
    add SP,+06
    mov BX,DI
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,[BP+08]
@@ -26485,7 +26488,7 @@ L1668017a:
    push AX
    push [BP+08]
    push DI
-   call far A1e3e0004
+   call far _setboard
    add SP,+06
 jmp near L16680418
 L1668018d:
@@ -26514,31 +26517,31 @@ jmp near L16680418
 L166801c0:
    cmp SI,0081
    jnz L16680213
-   mov AX,[C23C]
+   mov AX,[offset _gamecount]
    and AX,0007
    cmp AX,0002
    jnz L16680213
-   mov AX,[C23C]
+   mov AX,[offset _gamecount]
    sar AX,1
    sar AX,1
    sar AX,1
    and AX,000F
    mov [BP-0A],AX
-   or word ptr [88B8],0002
+   or word ptr [offset _info+8*0081+02],0002
    mov BX,AX
    shl BX,1
-   mov AX,[BX+133E]
-   mov DX,[88B6]
+   mov AX,[BX+offset _blinkshtab]
+   mov DX,[offset _info+8*0081]
    and DX,FF00
    add AX,DX
-   mov [88B6],AX
+   mov [offset _info+8*0081],AX
    cmp word ptr [BP-0A],+08
    jl L1668020a
    cmp word ptr [BP-0A],+0D
    jge L1668020a
 jmp near L16680418
 L1668020a:
-   xor word ptr [88B8],0002
+   xor word ptr [offset _info+8*0081+02],0002
 jmp near L16680418
 L16680213:
    cmp SI,015F
@@ -26549,13 +26552,13 @@ jmp near L166802a0
 L16680222:
    cmp SI,0160
    jnz L16680235
-   mov AX,[C23C]
+   mov AX,[offset _gamecount]
    sub AX,DI
    and AX,001F
    mov [BP-04],AX
 jmp near L16680240
 L16680235:
-   mov AX,[C23C]
+   mov AX,[offset _gamecount]
    add AX,DI
    and AX,001F
    mov [BP-04],AX
@@ -26571,12 +26574,12 @@ L16680252:
    cmp SI,015F
    jnz L16680271
    mov AX,[BP-06]
-   sub AX,[B840]
+   sub AX,[offset _kindyl+2*1f]
    push AX
    push [BP-08]
    mov AX,001F
    push AX
-   call far A1e3e18b9
+   call far _addobj
    add SP,+06
 jmp near L166802cf
 L16680271:
@@ -26586,14 +26589,14 @@ L16680271:
    push [BP-08]
    mov AX,001F
    push AX
-   call far A1e3e18b9
+   call far _addobj
    add SP,+06
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    dec AX
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],0001
@@ -26601,28 +26604,28 @@ jmp near L166802e6
 L166802a0:
    cmp SI,+21
    jnz L166802f8
-   mov AX,[C23C]
+   mov AX,[offset _gamecount]
    and AX,003F
    mov DX,DI
    and DX,003F
    cmp AX,DX
    jnz L166802f8
    mov AX,[BP-06]
-   sub AX,[B840]
+   sub AX,[offset _kindyl+2*1f]
    add AX,0008
    push AX
    push [BP-08]
    mov AX,001F
    push AX
-   call far A1e3e18b9
+   call far _addobj
    add SP,+06
 L166802cf:
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    dec AX
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],FFFF
@@ -26631,7 +26634,7 @@ L166802e6:
    push AX
    mov AX,0003
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
 jmp near L16680779
@@ -26651,7 +26654,7 @@ L16680314:
    mov BX,DI
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,[BP+08]
@@ -26663,12 +26666,12 @@ L16680314:
    push AX
    push [BP+08]
    push DI
-   call far A1e3e0004
+   call far _setboard
    add SP,+06
    mov BX,DI
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,[BP+08]
@@ -26692,7 +26695,7 @@ L1668038e:
    push AX
    push [BP+08]
    push DI
-   call far A1e3e0004
+   call far _setboard
    add SP,+06
 jmp near L16680418
 L166803a0:
@@ -26700,7 +26703,7 @@ L166803a0:
    push AX
    push [BP+08]
    push DI
-   call far A1e3e0004
+   call far _setboard
    add SP,+06
 jmp near L16680418
 L166803b2:
@@ -26708,7 +26711,7 @@ L166803b2:
    push AX
    push [BP+08]
    push DI
-   call far A1e3e0004
+   call far _setboard
    add SP,+06
 jmp near L16680418
 L166803c4:
@@ -26716,7 +26719,7 @@ L166803c4:
    push AX
    push [BP+08]
    push DI
-   call far A1e3e0004
+   call far _setboard
    add SP,+06
 jmp near L16680418
 L166803d6:
@@ -26724,7 +26727,7 @@ L166803d6:
    push AX
    push [BP+08]
    push DI
-   call far A1e3e0004
+   call far _setboard
    add SP,+06
 jmp near L16680418
 L166803e8:
@@ -26732,7 +26735,7 @@ L166803e8:
    push AX
    push [BP+08]
    push DI
-   call far A1e3e0004
+   call far _setboard
    add SP,+06
 jmp near L16680418
 L166803fa:
@@ -26744,7 +26747,7 @@ L16680402:
    jle L1668040a
 jmp near L16680779
 L1668040a:
-   mov AX,[C23C]
+   mov AX,[offset _gamecount]
    and AX,0007
    cmp AX,0002
    jz L16680418
@@ -26762,20 +26765,20 @@ L1668042a:
    shl BX,1
    shl BX,1
    shl BX,1
-   add BX,offset Y2a1784ae
+   add BX,offset _info
    push DS
    pop ES
    mov AX,[ES:BX]
    mov [BP-02],AX
    cmp SI,0160
    jnz L16680451
-   mov AX,[C23C]
+   mov AX,[offset _gamecount]
    sub AX,DI
    and AX,001F
    mov [BP-04],AX
 jmp near L1668045c
 L16680451:
-   mov AX,[C23C]
+   mov AX,[offset _gamecount]
    add AX,DI
    and AX,001F
    mov [BP-04],AX
@@ -26788,15 +26791,15 @@ L1668045c:
    idiv BX
    mov BX,AX
    shl BX,1
-   mov AX,[BX+135E]
+   mov AX,[BX+offset _pooftab]
    add [BP-02],AX
 L16680476:
    push [BP-06]
    push [BP-08]
    push [BP-02]
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L16680779
 L16680492:
@@ -26810,7 +26813,7 @@ L16680492:
    dec BX
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,[BP+08]
@@ -26821,13 +26824,13 @@ L16680492:
    shl BX,1
    shl BX,1
    shl BX,1
-   add BX,offset Y2a1784ae
+   add BX,offset _info
    push DS
    pop ES
    push [ES:BX]
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L166805ba
 L166804df:
@@ -26840,7 +26843,7 @@ L166804df:
    mov BX,DI
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,[BP+08]
@@ -26852,13 +26855,13 @@ L166804df:
    shl BX,1
    shl BX,1
    shl BX,1
-   add BX,offset Y2a1784ae
+   add BX,offset _info
    push DS
    pop ES
    push [ES:BX]
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L166805ba
 L1668052c:
@@ -26866,15 +26869,15 @@ L1668052c:
    jnz L1668055a
    push [BP-06]
    push [BP-08]
-   mov AX,[C23C]
+   mov AX,[offset _gamecount]
    sar AX,1
    sar AX,1
    and AX,0003
-   add AX,[8A9E]
+   add AX,[offset _info+8*00be]
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L16680779
 L1668055a:
@@ -26882,15 +26885,15 @@ L1668055a:
    jnz L16680588
    push [BP-06]
    push [BP-08]
-   mov AX,[C23C]
+   mov AX,[offset _gamecount]
    sar AX,1
    sar AX,1
    and AX,0003
-   add AX,[89DE]
+   add AX,[offset _info+8*00a6]
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L16680779
 L16680588:
@@ -26898,15 +26901,15 @@ L16680588:
    jnz L166805b5
    push [BP-06]
    push [BP-08]
-   mov AX,[C23C]
+   mov AX,[offset _gamecount]
    sar AX,1
    sar AX,1
    and AX,0003
-   add AX,[881E]
+   add AX,[offset _info+8*006e]
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L16680779
 L166805b5:
@@ -26919,15 +26922,15 @@ L166805ba:
    shl BX,1
    shl BX,1
    shl BX,1
-   add BX,offset Y2a1784ae
+   add BX,offset _info
    push DS
    pop ES
    mov AX,[ES:BX]
    xor AX,4000
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L16680779
 L166805e8:
@@ -26939,7 +26942,7 @@ L166805f0:
    jle L166805f8
 jmp near L16680779
 L166805f8:
-   mov AX,[C23C]
+   mov AX,[offset _gamecount]
    sar AX,1
    sar AX,1
    sar AX,1
@@ -26958,15 +26961,15 @@ L16680614:
    shl BX,1
    shl BX,1
    shl BX,1
-   add BX,offset Y2a1784ae
+   add BX,offset _info
    push DS
    pop ES
    mov AX,[ES:BX]
    add AX,[BP-04]
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
    mov word ptr [BP-04],0001
    mov word ptr [BP-02],0000
@@ -26983,7 +26986,7 @@ L1668065a:
    mov BX,[BP-08]
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,[BP-06]
@@ -27030,9 +27033,9 @@ L1668069b:
    push [BP-08]
    mov AX,2A05
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L16680779
 L166806df:
@@ -27044,9 +27047,9 @@ L166806df:
    push [BP-08]
    mov AX,2A01
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L16680779
 L16680706:
@@ -27058,9 +27061,9 @@ L16680706:
    push [BP-08]
    mov AX,2A02
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L16680779
 L1668072d:
@@ -27072,9 +27075,9 @@ L1668072d:
    push [BP-08]
    mov AX,2A03
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L16680779
 L16680754:
@@ -27086,9 +27089,9 @@ L16680754:
    push [BP-08]
    mov AX,2A04
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 L16680779:
    xor AX,AX
@@ -27100,78 +27103,78 @@ L1668077b:
 ret far
 
 Segment 16e0 ;; JPLAYER.C:JPLAYER
-A16e00001:
+_calc_scroll: ;; 16e00001
    push BP
    mov BP,SP
    sub SP,+04
    push SI
    push DI
    mov SI,0008
-   cmp word ptr [9777],+04
+   cmp word ptr [offset _objs+09],+04
    jnz L16e00023
-   mov AL,[3B53]
+   mov AL,[offset _x_ourmode]
    mov AH,00
    and AX,00FE
    cmp AX,0002
    jz L16e00023
    mov SI,0004
 L16e00023:
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+08]
    add AX,0058
-   cmp AX,[976F]
+   cmp AX,[offset _objs+01]
    jle L16e00044
    cmp word ptr [ES:BX+08],+08
    jl L16e00077
    mov AX,SI
    neg AX
-   mov [BB72],AX
+   mov [offset _scrollxd],AX
 jmp near L16e00077
 L16e00044:
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+08]
-   mov DX,[BA5A]
+   mov DX,[offset _scrnxs]
    mov CL,04
    shl DX,CL
    add AX,DX
    add AX,FF98
-   cmp AX,[976F]
+   cmp AX,[offset _objs+01]
    jge L16e00077
    mov AX,[ES:BX+08]
    mov DX,0080
-   sub DX,[BA5A]
+   sub DX,[offset _scrnxs]
    dec DX
    mov CL,04
    shl DX,CL
    cmp AX,DX
    jge L16e00077
-   mov [BB72],SI
+   mov [offset _scrollxd],SI
 L16e00077:
    mov AX,0040
-   sub AX,[BA5C]
+   sub AX,[offset _scrnys]
    inc AX
    mov CL,04
    shl AX,CL
-   mov DX,[BA5C]
+   mov DX,[offset _scrnys]
    mov CL,04
    shl DX,CL
-   mov BX,[9771]
+   mov BX,[offset _objs+03]
    sub BX,DX
    add BX,+60
    cmp AX,BX
    jge L16e000a6
    mov AX,0040
-   sub AX,[BA5C]
+   sub AX,[offset _scrnys]
    inc AX
    mov CL,04
    shl AX,CL
 jmp near L16e000b7
 L16e000a6:
-   mov AX,[BA5C]
+   mov AX,[offset _scrnys]
    mov CL,04
    shl AX,CL
    push AX
-   mov AX,[9771]
+   mov AX,[offset _objs+03]
    pop DX
    sub AX,DX
    add AX,0060
@@ -27182,49 +27185,49 @@ L16e000b7:
 jmp near L16e000fe
 L16e000bf:
    mov AX,0040
-   sub AX,[BA5C]
+   sub AX,[offset _scrnys]
    inc AX
    mov CL,04
    shl AX,CL
-   mov DX,[BA5C]
+   mov DX,[offset _scrnys]
    mov CL,04
    shl DX,CL
-   mov BX,[9771]
+   mov BX,[offset _objs+03]
    sub BX,DX
    add BX,+60
    cmp AX,BX
    jge L16e000ee
    mov DI,0040
-   sub DI,[BA5C]
+   sub DI,[offset _scrnys]
    inc DI
    mov CL,04
    shl DI,CL
 jmp near L16e000fe
 L16e000ee:
-   mov AX,[BA5C]
+   mov AX,[offset _scrnys]
    mov CL,04
    shl AX,CL
-   mov DI,[9771]
+   mov DI,[offset _objs+03]
    sub DI,AX
    add DI,+60
 L16e000fe:
    mov AX,0040
-   sub AX,[BA5C]
+   sub AX,[offset _scrnys]
    inc AX
    mov CL,04
    shl AX,CL
-   mov DX,[9771]
+   mov DX,[offset _objs+03]
    add DX,-20
    cmp AX,DX
    jge L16e00123
    mov AX,0040
-   sub AX,[BA5C]
+   sub AX,[offset _scrnys]
    inc AX
    mov CL,04
    shl AX,CL
 jmp near L16e00129
 L16e00123:
-   mov AX,[9771]
+   mov AX,[offset _objs+03]
    add AX,FFE0
 L16e00129:
    or AX,AX
@@ -27233,26 +27236,26 @@ L16e00129:
 jmp near L16e0015c
 L16e00131:
    mov AX,0040
-   sub AX,[BA5C]
+   sub AX,[offset _scrnys]
    inc AX
    mov CL,04
    shl AX,CL
-   mov DX,[9771]
+   mov DX,[offset _objs+03]
    add DX,-20
    cmp AX,DX
    jge L16e00156
    mov AX,0040
-   sub AX,[BA5C]
+   sub AX,[offset _scrnys]
    inc AX
    mov CL,04
    shl AX,CL
 jmp near L16e0015c
 L16e00156:
-   mov AX,[9771]
+   mov AX,[offset _objs+03]
    add AX,FFE0
 L16e0015c:
    mov [BP-04],AX
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+0A]
    add AX,[BP+06]
    mov [BP-02],AX
@@ -27261,27 +27264,27 @@ L16e0015c:
    cmp AX,[BP-04]
    jg L16e0017e
    mov AX,[BP+06]
-   mov [BB74],AX
+   mov [offset _scrollyd],AX
 jmp near L16e001b0
 L16e0017e:
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+0A]
    cmp AX,[BP-04]
    jle L16e00199
    mov AX,[BP-04]
    mov DX,[ES:BX+0A]
    sub AX,DX
-   mov [BB74],AX
+   mov [offset _scrollyd],AX
 jmp near L16e001b0
 L16e00199:
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+0A]
    cmp AX,DI
    jge L16e001b0
    mov AX,DI
    mov DX,[ES:BX+0A]
    sub AX,DX
-   mov [BB74],AX
+   mov [offset _scrollyd],AX
 L16e001b0:
    pop DI
    pop SI
@@ -27289,14 +27292,14 @@ L16e001b0:
    pop BP
 ret far
 
-A16e001b6:
+_msg_player: ;; 16e001b6
    push BP
    mov BP,SP
    sub SP,+30
    push SI
    push DI
    mov SI,[BP+06]
-   mov DI,[BC40]
+   mov DI,[offset _kindtable]
    mov CL,08
    shl DI,CL
    mov word ptr [BP-2C],0000
@@ -27307,7 +27310,7 @@ A16e001b6:
    mov AX,offset Y2a171386
    push AX
    mov CX,0007
-   call far A076a05d8
+   call far SCOPY@
    push SS
    lea AX,[BP-20]
    push AX
@@ -27315,7 +27318,7 @@ A16e001b6:
    mov AX,offset Y2a17138d
    push AX
    mov CX,0007
-   call far A076a05d8
+   call far SCOPY@
    push SS
    lea AX,[BP-18]
    push AX
@@ -27323,7 +27326,7 @@ A16e001b6:
    mov AX,offset Y2a171394
    push AX
    mov CX,0015
-   call far A076a05d8
+   call far SCOPY@
    mov word ptr [BP-02],0000
    cmp word ptr [BP+08],+00
    jz L16e00212
@@ -27333,7 +27336,7 @@ L16e00212:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+0D]
@@ -27350,7 +27353,7 @@ L16e00242:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+11],+00
@@ -27359,7 +27362,7 @@ L16e00242:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+1B],+00
@@ -27371,7 +27374,7 @@ L16e00273:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+1B],+00
@@ -27388,7 +27391,7 @@ L16e00295:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+11],-04
@@ -27397,7 +27400,7 @@ L16e00295:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+11],-05
@@ -27411,7 +27414,7 @@ L16e002c8:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
@@ -27423,7 +27426,7 @@ L16e002e4:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+03
@@ -27435,7 +27438,7 @@ L16e00300:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
@@ -27447,7 +27450,7 @@ L16e0031c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+1B],+00
@@ -27456,7 +27459,7 @@ L16e0031c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -27467,7 +27470,7 @@ L16e0034b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+11],+03
@@ -27478,7 +27481,7 @@ L16e00364:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+11],+14
@@ -27487,7 +27490,7 @@ L16e00364:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+1B],+00
@@ -27496,7 +27499,7 @@ L16e00364:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+1B],+00
@@ -27514,16 +27517,16 @@ L16e003b5:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+11],010C
    jle L16e00408
-   mov BX,[4462]
+   mov BX,[offset _fidgetnum]
    shl BX,1
    shl BX,1
    shl BX,1
-   add BX,offset Y2a171366
+   add BX,offset _fidgetseq
    push DS
    pop ES
    mov AX,SI
@@ -27532,7 +27535,7 @@ L16e003b5:
    push ES
    push BX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+11]
@@ -27552,7 +27555,7 @@ L16e00408:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+11],0096
@@ -27567,7 +27570,7 @@ L16e0042b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0F],+08
@@ -27576,7 +27579,7 @@ L16e0042b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -27594,7 +27597,7 @@ L16e00466:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+0F]
@@ -27604,7 +27607,7 @@ L16e00466:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -27623,7 +27626,7 @@ L16e004a2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -27632,7 +27635,7 @@ L16e004a2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0F],+00
@@ -27644,7 +27647,7 @@ L16e004d4:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0F],+01
@@ -27656,7 +27659,7 @@ L16e004f0:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
@@ -27671,7 +27674,7 @@ L16e00512:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0F],+00
@@ -27683,7 +27686,7 @@ L16e0052d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0F],+01
@@ -27695,7 +27698,7 @@ L16e00548:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
@@ -27709,7 +27712,7 @@ L16e00566:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -27723,7 +27726,7 @@ L16e00585:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+0F]
@@ -27738,7 +27741,7 @@ L16e005a6:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+11],+10
@@ -27750,7 +27753,7 @@ L16e005c1:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+11],+18
@@ -27762,24 +27765,24 @@ L16e005dc:
 L16e005df:
    mov AX,0010
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
+   push [offset _gamevp+02]
+   push [offset _gamevp]
    push DS
-   mov AX,offset Y2a17ba48
+   mov AX,offset _tempvp
    push AX
-   call far A28a9000a
+   call far _memcpy
    add SP,+0A
-   les BX,[offset Y2a17b8b4]
-   mov AX,[9771]
-   add AX,[9779]
+   les BX,[offset _gamevp]
+   mov AX,[offset _objs+03]
+   add AX,[offset _objs+0b]
    mov DX,[ES:BX+0A]
    sub AX,DX
-   mov [BA4E],AX
+   mov [offset _tempvp+06],AX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -27789,7 +27792,7 @@ L16e005df:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -27799,15 +27802,15 @@ L16e005df:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push DI
    push DS
-   mov AX,offset Y2a17ba48
+   mov AX,offset _tempvp
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
 jmp near L16e0134f
 L16e0065c:
@@ -27815,7 +27818,7 @@ L16e0065c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+11],+00
@@ -27825,7 +27828,7 @@ L16e0065c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -27833,14 +27836,14 @@ L16e0065c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push DI
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L16e0134f
 L16e006af:
@@ -27848,7 +27851,7 @@ L16e006af:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+0F]
@@ -27864,7 +27867,7 @@ L16e006d3:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+11]
@@ -27879,7 +27882,7 @@ L16e006f3:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+11]
@@ -27894,7 +27897,7 @@ L16e00713:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+11]
@@ -27907,7 +27910,7 @@ L16e00713:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -27917,14 +27920,14 @@ L16e00713:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push DI
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L16e0134f
 L16e0076f:
@@ -27932,7 +27935,7 @@ L16e0076f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -27940,20 +27943,20 @@ L16e0076f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push DI
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+13],+00
@@ -27964,7 +27967,7 @@ L16e007bf:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -27974,7 +27977,7 @@ L16e007bf:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
@@ -27982,7 +27985,7 @@ L16e007bf:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -27992,9 +27995,9 @@ L16e007bf:
    mov DX,0E29
    sub DX,AX
    push DX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L16e01d5b
 L16e0081b:
@@ -28006,7 +28009,7 @@ L16e00824:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+0D]
@@ -28025,7 +28028,7 @@ L16e00854:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -28033,12 +28036,12 @@ L16e00854:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e21fd
+   call far _cando
    add SP,+08
    or AX,AX
    jnz L16e008b5
@@ -28046,7 +28049,7 @@ L16e00854:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0F],FFFF
@@ -28054,7 +28057,7 @@ L16e00854:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+1B],0000
@@ -28063,7 +28066,7 @@ L16e008b5:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
@@ -28072,7 +28075,7 @@ L16e008b5:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
@@ -28087,7 +28090,7 @@ L16e008e8:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
@@ -28104,7 +28107,7 @@ L16e00906:
    push DX
    mul BX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -28115,7 +28118,7 @@ L16e00923:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+11],+00
@@ -28125,7 +28128,7 @@ L16e00923:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+11],-01
@@ -28136,7 +28139,7 @@ L16e00957:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+11],0003
@@ -28146,31 +28149,31 @@ L16e0096f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
    jz L16e00988
 jmp near L16e00b25
 L16e00988:
-   cmp word ptr [3D7A],+00
+   cmp word ptr [offset _dx1],+00
    jz L16e009de
    mov word ptr [BP-2C],0001
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0F],0007
-   mov AX,[3D7A]
+   mov AX,[offset _dx1]
    push AX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -28179,7 +28182,7 @@ L16e00988:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+11],0000
@@ -28191,7 +28194,7 @@ L16e009de:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+11],012C
@@ -28200,7 +28203,7 @@ L16e009de:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+1B],0000
@@ -28208,7 +28211,7 @@ L16e009de:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+11],0014
@@ -28218,7 +28221,7 @@ L16e00a22:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+11],010C
@@ -28227,33 +28230,33 @@ L16e00a22:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+11],0102
    jnz L16e00a81
-   call far A29b90016
+   call far _rand
    mov BX,0004
    cwd
    idiv BX
-   mov [4462],DX
+   mov [offset _fidgetnum],DX
    mov AX,0002
    push AX
    mov BX,DX
    shl BX,1
    shl BX,1
-   push [BX+269F]
-   push [BX+269D]
-   call far A19dd059d
+   push [BX+offset _fidgetmsg+02]
+   push [BX+offset _fidgetmsg]
+   call far _putbotmsg
    add SP,+06
-   mov word ptr [B776],0019
+   mov word ptr [offset _bottime],0019
 jmp near L16e00a9c
 L16e00a81:
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+11],+03
@@ -28267,7 +28270,7 @@ L16e00a9c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -28278,12 +28281,12 @@ L16e00a9c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e21fd
+   call far _cando
    add SP,+08
    cmp AX,0003
    jz L16e00ade
@@ -28294,7 +28297,7 @@ L16e00ade:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0002
@@ -28302,7 +28305,7 @@ L16e00ade:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],0000
@@ -28310,13 +28313,13 @@ L16e00ade:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0F],0002
 jmp near L16e00cc0
 L16e00b25:
-   cmp word ptr [3D7A],+00
+   cmp word ptr [offset _dx1],+00
    jnz L16e00b2f
 jmp near L16e00c50
 L16e00b2f:
@@ -28325,11 +28328,11 @@ L16e00b2f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
-   cmp AX,[3D7A]
+   cmp AX,[offset _dx1]
    jz L16e00b50
 jmp near L16e00bfc
 L16e00b50:
@@ -28339,7 +28342,7 @@ L16e00b50:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -28347,22 +28350,22 @@ L16e00b50:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
-   mov DX,[3D7A]
+   mov DX,[offset _dx1]
    shl DX,1
    shl DX,1
    shl DX,1
    add AX,DX
    push AX
    push SI
-   call far A1e3e21fd
+   call far _cando
    add SP,+08
    or AX,AX
    jz L16e00bc7
-   mov AX,[3D7A]
+   mov AX,[offset _dx1]
    shl AX,1
    shl AX,1
    shl AX,1
@@ -28371,7 +28374,7 @@ L16e00b50:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -28380,7 +28383,7 @@ L16e00b50:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],0000
@@ -28389,7 +28392,7 @@ L16e00bc7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+0F]
@@ -28400,19 +28403,19 @@ L16e00bc7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    mov [ES:BX+0F],AX
-   mov word ptr [977F],0000
+   mov word ptr [offset _objs+11],0000
 jmp near L16e00cc0
 L16e00bfc:
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -28421,7 +28424,7 @@ L16e00bfc:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -28430,7 +28433,7 @@ L16e00bfc:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+05],0000
@@ -28438,7 +28441,7 @@ L16e00bfc:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+11],0004
@@ -28448,7 +28451,7 @@ L16e00c50:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+11],+02
@@ -28457,7 +28460,7 @@ L16e00c50:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0F],+00
@@ -28467,7 +28470,7 @@ L16e00c50:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+05],0000
@@ -28475,7 +28478,7 @@ L16e00c50:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0F],0000
@@ -28483,7 +28486,7 @@ L16e00c50:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+11],0000
@@ -28494,7 +28497,7 @@ L16e00cc0:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -28505,12 +28508,12 @@ L16e00cc0:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e21fd
+   call far _cando
    add SP,+08
    cmp AX,0003
    jnz L16e00d43
@@ -28519,7 +28522,7 @@ L16e00cc0:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0002
@@ -28527,7 +28530,7 @@ L16e00cc0:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],0000
@@ -28535,66 +28538,66 @@ L16e00cc0:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0F],0000
 L16e00d43:
-   cmp word ptr [3D8A],+20
+   cmp word ptr [offset _key],+20
    jz L16e00d4d
 jmp near L16e00e25
 L16e00d4d:
    mov AX,0006
    push AX
-   call far A1e3e1aaa
+   call far _invcount
    pop CX
    or AX,AX
    jnz L16e00d5e
 jmp near L16e00e25
 L16e00d5e:
-   mov AX,[9771]
+   mov AX,[offset _objs+03]
    add AX,0010
    push AX
-   mov AX,[9789]
+   mov AX,[offset _objs+1b]
    mov CL,04
    shl AX,CL
-   add AX,[976F]
+   add AX,[offset _objs+01]
    push AX
    mov AX,001C
    push AX
-   call far A1e3e18b9
+   call far _addobj
    add SP,+06
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    dec AX
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+13],0006
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    dec AX
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    dec AX
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    dec AX
    push AX
-   call far A1e3e1c9b
+   call far _trymove
    add SP,+06
    or AX,AX
    jz L16e00e1a
@@ -28605,7 +28608,7 @@ L16e00dd6:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp byte ptr [ES:BX],1C
@@ -28614,44 +28617,44 @@ L16e00dd6:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+13],+06
    jnz L16e00e0c
    push [BP-2A]
-   call far A1e3e188a
+   call far _killobj
    pop CX
 L16e00e0c:
    inc word ptr [BP-2A]
 L16e00e0f:
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    dec AX
    cmp AX,[BP-2A]
    jg L16e00dd6
 jmp near L16e00e25
 L16e00e1a:
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    dec AX
    push AX
-   call far A1e3e188a
+   call far _killobj
    pop CX
 L16e00e25:
-   cmp word ptr [3D7E],+00
+   cmp word ptr [offset _fire1],+00
    jz L16e00ea4
-   mov word ptr [3EA2],0001
+   mov word ptr [offset _fire1off],0001
    mov word ptr [BP-2C],0001
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0002
    mov AX,0009
    push AX
-   call far A1e3e1aaa
+   call far _invcount
    pop CX
    shl AX,1
    shl AX,1
@@ -28662,7 +28665,7 @@ L16e00e25:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -28671,24 +28674,24 @@ L16e00e25:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0F],0000
-   mov AX,[3D7A]
+   mov AX,[offset _dx1]
    push AX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    mov [ES:BX+05],AX
 jmp near L16e017c8
 L16e00ea4:
-   cmp word ptr [3D7C],+00
+   cmp word ptr [offset _dy1],+00
    jnz L16e00eae
 jmp near L16e01a69
 L16e00eae:
@@ -28696,7 +28699,7 @@ L16e00eae:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    test word ptr [ES:BX+01],000F
@@ -28709,11 +28712,11 @@ L16e00ec8:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
-   mov DX,[3D7C]
+   mov DX,[offset _dy1]
    shl DX,1
    shl DX,1
    add AX,DX
@@ -28722,12 +28725,12 @@ L16e00ec8:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e21fd
+   call far _cando
    add SP,+08
    or AX,AX
    jnz L16e00f0d
@@ -28739,11 +28742,11 @@ L16e00f0d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
-   mov DX,[3D7C]
+   mov DX,[offset _dy1]
    shl DX,1
    shl DX,1
    add AX,DX
@@ -28752,12 +28755,12 @@ L16e00f0d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e21fd
+   call far _cando
    add SP,+08
    or AX,AX
    jnz L16e00fb8
@@ -28766,11 +28769,11 @@ L16e00f0d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
-   mov DX,[3D7C]
+   mov DX,[offset _dy1]
    shl DX,1
    shl DX,1
    add AX,DX
@@ -28779,18 +28782,18 @@ L16e00f0d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e1aeb
+   call far _moveobj
    add SP,+06
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0003
@@ -28798,7 +28801,7 @@ L16e00f0d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0F],0003
@@ -28807,7 +28810,7 @@ L16e00fb8:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+00
@@ -28818,7 +28821,7 @@ L16e00fd1:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -28829,11 +28832,11 @@ L16e00fea:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+07]
-   mov DX,[3D7C]
+   mov DX,[offset _dy1]
    shl DX,1
    add AX,DX
    cmp AX,FFFD
@@ -28845,11 +28848,11 @@ L16e0100f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+07]
-   mov DX,[3D7C]
+   mov DX,[offset _dy1]
    shl DX,1
    add AX,DX
 L16e0102a:
@@ -28859,11 +28862,11 @@ L16e0102a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+07]
-   mov DX,[3D7C]
+   mov DX,[offset _dy1]
    shl DX,1
    add AX,DX
    cmp AX,FFFD
@@ -28875,11 +28878,11 @@ L16e01054:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+07]
-   mov DX,[3D7C]
+   mov DX,[offset _dy1]
    shl DX,1
    add AX,DX
 L16e0106f:
@@ -28892,7 +28895,7 @@ L16e01074:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -28901,7 +28904,7 @@ L16e01074:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+05],0000
@@ -28909,7 +28912,7 @@ L16e01074:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+1B],0000
@@ -28917,7 +28920,7 @@ L16e01074:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+11],0003
@@ -28925,7 +28928,7 @@ L16e01074:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+01
@@ -28937,7 +28940,7 @@ L16e010e6:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],-01
@@ -28948,24 +28951,24 @@ L16e010ff:
 jmp near L16e01a69
 L16e01107:
    mov word ptr [BP-2C],0001
-   mov AX,[B778]
+   mov AX,[offset _kindxl]
    push AX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    mov [ES:BX+09],AX
-   mov AX,[B802]
+   mov AX,[offset _kindyl]
    push AX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -28974,7 +28977,7 @@ L16e01107:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+11],+20
@@ -28985,7 +28988,7 @@ L16e01155:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0000
@@ -28993,7 +28996,7 @@ L16e01155:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+05],0000
@@ -29001,7 +29004,7 @@ L16e01155:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+1B],0000
@@ -29009,7 +29012,7 @@ L16e01155:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],0000
@@ -29019,7 +29022,7 @@ L16e011ac:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+11],+00
@@ -29030,7 +29033,7 @@ L16e011c5:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0F],+02
@@ -29041,7 +29044,7 @@ L16e011de:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+07]
@@ -29053,7 +29056,7 @@ L16e011de:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+07]
@@ -29068,7 +29071,7 @@ L16e01212:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -29077,7 +29080,7 @@ L16e01212:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -29086,7 +29089,7 @@ L16e01212:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -29096,12 +29099,12 @@ L16e01212:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e1d7e
+   call far _justmove
    add SP,+06
    or AX,AX
    jnz L16e01273
@@ -29111,7 +29114,7 @@ L16e01273:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+11],FFFF
@@ -29121,7 +29124,7 @@ L16e0128b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+11],+01
@@ -29130,7 +29133,7 @@ L16e0128b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0F],+02
@@ -29139,7 +29142,7 @@ L16e0128b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+09],0020
@@ -29147,7 +29150,7 @@ L16e0128b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0B],0020
@@ -29155,7 +29158,7 @@ L16e0128b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -29165,12 +29168,12 @@ L16e0128b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e1aeb
+   call far _moveobj
    add SP,+06
 jmp near L16e0133c
 L16e01316:
@@ -29178,22 +29181,22 @@ L16e01316:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+11],+14
    jl L16e0133c
-   mov word ptr [offset Y2a17846a],0006
+   mov word ptr [offset _pl+02],0006
    mov AX,0001
    push AX
-   call far A1e3e051f
+   call far _p_reenter
    pop CX
 L16e0133c:
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+11]
@@ -29206,7 +29209,7 @@ L16e01355:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+13],0000
@@ -29214,7 +29217,7 @@ L16e01355:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    test word ptr [ES:BX+01],000F
@@ -29225,7 +29228,7 @@ L16e01355:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -29233,12 +29236,12 @@ L16e01355:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e21fd
+   call far _cando
    add SP,+08
    or AX,AX
    jnz L16e013da
@@ -29247,7 +29250,7 @@ L16e01355:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0003
@@ -29257,7 +29260,7 @@ L16e013da:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+0F]
@@ -29270,7 +29273,7 @@ L16e013f9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    add word ptr [ES:BX+07],+02
@@ -29278,7 +29281,7 @@ L16e013f9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+10
@@ -29287,28 +29290,28 @@ L16e013f9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],0010
 L16e01438:
-   cmp word ptr [3D7A],+00
+   cmp word ptr [offset _dx1],+00
    jz L16e0146c
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0F],0002
-   mov AX,[3D7A]
+   mov AX,[offset _dx1]
    push AX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -29318,7 +29321,7 @@ L16e0146c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0F],+08
@@ -29327,7 +29330,7 @@ L16e0146c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+05],0000
@@ -29336,7 +29339,7 @@ L16e01497:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -29345,7 +29348,7 @@ L16e01497:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -29355,18 +29358,18 @@ L16e01497:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
-   mov DX,[3D7A]
+   mov DX,[offset _dx1]
    shl DX,1
    shl DX,1
    shl DX,1
    add AX,DX
    push AX
    push SI
-   call far A1e3e1e6b
+   call far _trymovey
    add SP,+06
    or AX,AX
    jz L16e014f0
@@ -29376,7 +29379,7 @@ L16e014f0:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
@@ -29388,7 +29391,7 @@ L16e01509:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    test word ptr [ES:BX+03],000F
@@ -29397,7 +29400,7 @@ L16e01509:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -29408,18 +29411,18 @@ L16e01509:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
-   mov DX,[3D7A]
+   mov DX,[offset _dx1]
    shl DX,1
    shl DX,1
    shl DX,1
    add AX,DX
    push AX
    push SI
-   call far A1e3e1e6b
+   call far _trymovey
    add SP,+06
    or AX,AX
    jnz L16e01571
@@ -29434,7 +29437,7 @@ L16e0157a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0000
@@ -29442,7 +29445,7 @@ L16e0157a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+13],0006
@@ -29450,7 +29453,7 @@ L16e0157a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+10
@@ -29461,7 +29464,7 @@ L16e015bf:
    mov AX,FFFC
 L16e015c2:
    push AX
-   cmp word ptr [3D7A],+00
+   cmp word ptr [offset _dx1],+00
    jz L16e015cf
    mov AX,0001
 jmp near L16e015d1
@@ -29475,7 +29478,7 @@ L16e015d1:
    push DX
    mul BX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -29484,7 +29487,7 @@ L16e015d1:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+05],0000
@@ -29492,7 +29495,7 @@ L16e015d1:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],0000
@@ -29500,7 +29503,7 @@ L16e015d1:
    push AX
    mov AX,0001
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
 jmp near L16e01a69
@@ -29509,7 +29512,7 @@ L16e01625:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -29520,7 +29523,7 @@ L16e01625:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -29531,7 +29534,7 @@ L16e01657:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],0000
@@ -29542,18 +29545,18 @@ L16e0166f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
-   mov DX,[3D7A]
+   mov DX,[offset _dx1]
    shl DX,1
    shl DX,1
    shl DX,1
    add AX,DX
    push AX
    push SI
-   call far A1e3e1e6b
+   call far _trymovey
    add SP,+06
    or AX,AX
    jz L16e016a2
@@ -29561,7 +29564,7 @@ jmp near L16e01a69
 L16e016a2:
 jmp near L16e01657
 L16e016a4:
-   cmp word ptr [3D7A],+00
+   cmp word ptr [offset _dx1],+00
    jnz L16e016ae
 jmp near L16e017ef
 L16e016ae:
@@ -29569,7 +29572,7 @@ L16e016ae:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0F],+06
@@ -29582,7 +29585,7 @@ L16e016c7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -29590,18 +29593,18 @@ L16e016c7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
-   mov DX,[3D7A]
+   mov DX,[offset _dx1]
    shl DX,1
    shl DX,1
    shl DX,1
    add AX,DX
    push AX
    push SI
-   call far A1e3e21fd
+   call far _cando
    add SP,+08
    or AX,AX
    jnz L16e0170e
@@ -29611,7 +29614,7 @@ L16e0170e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+13],0000
@@ -29620,7 +29623,7 @@ L16e0170e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -29628,24 +29631,24 @@ L16e0170e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
-   mov DX,[3D7A]
+   mov DX,[offset _dx1]
    shl DX,1
    shl DX,1
    shl DX,1
    add AX,DX
    push AX
    push SI
-   call far A1e3e1aeb
+   call far _moveobj
    add SP,+06
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0002
@@ -29653,29 +29656,29 @@ L16e0170e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0F],0002
-   mov AX,[3D7A]
+   mov AX,[offset _dx1]
    push AX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    mov [ES:BX+05],AX
-   cmp word ptr [3D7E],+00
+   cmp word ptr [offset _fire1],+00
    jz L16e017d7
-   mov word ptr [3EA2],0001
+   mov word ptr [offset _fire1off],0001
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],FFF4
@@ -29683,7 +29686,7 @@ L16e017c8:
    mov AX,0001
    push AX
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
 jmp near L16e01a69
@@ -29692,7 +29695,7 @@ L16e017d7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],FFFC
@@ -29702,7 +29705,7 @@ L16e017ef:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+05],0000
@@ -29710,7 +29713,7 @@ L16e017ef:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0F],+06
@@ -29719,12 +29722,12 @@ L16e017ef:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0F],0000
 L16e0182f:
-   cmp word ptr [3D7C],+00
+   cmp word ptr [offset _dy1],+00
    jnz L16e01839
 jmp near L16e01a11
 L16e01839:
@@ -29732,18 +29735,18 @@ L16e01839:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
    mov [BP-2E],AX
-   cmp word ptr [3D7C],+00
+   cmp word ptr [offset _dy1],+00
    jge L16e01877
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+0F]
@@ -29763,22 +29766,22 @@ L16e0187b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e21fd
+   call far _cando
    add SP,+08
    or AX,AX
    jnz L16e0190d
-   cmp word ptr [3D7C],+00
+   cmp word ptr [offset _dy1],+00
    jle L16e018c7
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -29791,7 +29794,7 @@ L16e018c7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -29806,12 +29809,12 @@ L16e018e1:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e21fd
+   call far _cando
    add SP,+08
    or AX,AX
    jnz L16e0190d
@@ -29821,15 +29824,15 @@ L16e0190d:
    jnz L16e01916
 jmp near L16e01a11
 L16e01916:
-   cmp word ptr [3D7C],+00
+   cmp word ptr [offset _dy1],+00
    jge L16e01962
-   mov AX,[3D7C]
+   mov AX,[offset _dy1]
    push AX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -29838,7 +29841,7 @@ L16e01916:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0F],+06
@@ -29847,7 +29850,7 @@ L16e01916:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0F],0000
@@ -29857,7 +29860,7 @@ L16e01962:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0F],0002
@@ -29868,12 +29871,12 @@ L16e01977:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e1aeb
+   call far _moveobj
    add SP,+06
    mov AX,0004
    push AX
@@ -29881,7 +29884,7 @@ L16e01977:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -29889,12 +29892,12 @@ L16e01977:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e21fd
+   call far _cando
    add SP,+08
    or AX,AX
    jz L16e01a11
@@ -29902,7 +29905,7 @@ L16e01977:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0000
@@ -29910,7 +29913,7 @@ L16e01977:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+05],0000
@@ -29918,7 +29921,7 @@ L16e01977:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+1B],0000
@@ -29927,7 +29930,7 @@ L16e01a11:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0F],+00
@@ -29936,7 +29939,7 @@ L16e01a11:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0F],0005
@@ -29946,7 +29949,7 @@ L16e01a3e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0F],+06
@@ -29956,7 +29959,7 @@ L16e01a54:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0F],0006
@@ -29965,7 +29968,7 @@ L16e01a69:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -29974,7 +29977,7 @@ L16e01a69:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -29983,13 +29986,13 @@ L16e01a69:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    mov [ES:BX+1B],AX
 L16e01aa7:
-   cmp word ptr [3D82],+00
+   cmp word ptr [offset _fire2],+00
    jnz L16e01ab1
 jmp near L16e01cfc
 L16e01ab1:
@@ -29997,21 +30000,21 @@ L16e01ab1:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+0D]
    shl BX,1
-   test word ptr [BX+C22E],0001
+   test word ptr [BX+offset _stateinfo],0001
    jnz L16e01ad1
 jmp near L16e01cfc
 L16e01ad1:
-   mov word ptr [3EA4],0001
+   mov word ptr [offset _fire2off],0001
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+1B],+00
@@ -30024,11 +30027,11 @@ jmp near L16e01b25
 L16e01afc:
    mov BX,[BP-2A]
    shl BX,1
-   mov AX,[BX+BDAE]
+   mov AX,[BX+offset _scrnobjs]
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp byte ptr [ES:BX],32
@@ -30042,11 +30045,11 @@ L16e01b1f:
    inc word ptr [BP-2A]
 L16e01b25:
    mov AX,[BP-2A]
-   cmp AX,[C2CE]
+   cmp AX,[offset _numscrnobjs]
    jl L16e01afc
    mov AX,0008
    push AX
-   call far A1e3e1aaa
+   call far _invcount
    pop CX
    cmp AX,[BP-30]
    jg L16e01b40
@@ -30056,7 +30059,7 @@ L16e01b40:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -30067,7 +30070,7 @@ L16e01b40:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -30076,7 +30079,7 @@ L16e01b40:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+1B]
@@ -30088,25 +30091,25 @@ L16e01b40:
    push DX
    mov AX,0032
    push AX
-   call far A1e3e18b9
+   call far _addobj
    add SP,+06
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+1B]
    mov DX,0006
    mul DX
    push AX
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    dec AX
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -30115,14 +30118,14 @@ L16e01b40:
    push AX
    mov AX,0002
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
 jmp near L16e01cfc
 L16e01bd6:
    mov AX,0002
    push AX
-   call far A1e3e1a5b
+   call far _takeinv
    pop CX
    or AX,AX
    jnz L16e01be7
@@ -30132,7 +30135,7 @@ L16e01be7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -30143,7 +30146,7 @@ L16e01be7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -30152,7 +30155,7 @@ L16e01be7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+1B]
@@ -30164,7 +30167,7 @@ L16e01be7:
    push DX
    mov AX,0002
    push AX
-   call far A1e3e18b9
+   call far _addobj
    add SP,+06
    mov [BP-2A],AX
    or AX,AX
@@ -30177,7 +30180,7 @@ L16e01c46:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -30185,12 +30188,12 @@ L16e01c46:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push [BP-2A]
-   call far A1e3e21fd
+   call far _cando
    add SP,+08
    cmp AX,0001
    jnz L16e01cda
@@ -30198,7 +30201,7 @@ L16e01c46:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+1B]
@@ -30206,22 +30209,22 @@ L16e01c46:
    shl AX,1
    shl AX,1
    push AX
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    dec AX
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    mov [ES:BX+05],AX
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    dec AX
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+11],0003
@@ -30229,24 +30232,24 @@ L16e01c46:
    push AX
    mov AX,0002
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
 jmp near L16e01cfc
 L16e01cda:
    push [BP-2A]
-   call far A1e3e188a
+   call far _killobj
    pop CX
    mov AX,0002
    push AX
-   call far A1e3e1a38
+   call far _addinv
    pop CX
 L16e01ced:
    mov AX,0008
    push AX
    mov AX,0002
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
 L16e01cfc:
@@ -30254,7 +30257,7 @@ L16e01cfc:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+11]
@@ -30262,7 +30265,7 @@ L16e01cfc:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+13],+00
@@ -30272,18 +30275,18 @@ L16e01cfc:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    dec word ptr [ES:BX+13]
 L16e01d3d:
    xor AX,AX
    push AX
-   call far A1e3e23b0
+   call far _touchbkgnd
    pop CX
    push [BP-02]
    push CS
-   call near offset A16e00001
+   call near offset _calc_scroll
    pop CX
    mov AX,[BP-2C]
 jmp near L16e01d5b
@@ -30298,7 +30301,7 @@ L16e01d5b:
    pop BP
 ret far
 
-A16e01d61:
+_msg_tiny: ;; 16e01d61
    push BP
    mov BP,SP
    sub SP,+02
@@ -30306,7 +30309,7 @@ A16e01d61:
    push DI
    mov SI,[BP+06]
    mov DI,0003
-   mov AL,[3B53]
+   mov AL,[offset _x_ourmode]
    mov AH,00
    and AX,00FE
    cmp AX,0002
@@ -30327,7 +30330,7 @@ L16e01d91:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -30336,7 +30339,7 @@ L16e01d91:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+11]
@@ -30346,7 +30349,7 @@ L16e01d91:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -30365,7 +30368,7 @@ L16e01de8:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+11]
@@ -30375,7 +30378,7 @@ L16e01de8:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
@@ -30393,7 +30396,7 @@ L16e01e23:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -30404,20 +30407,20 @@ L16e01e23:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push [BP-02]
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L16e02063
 L16e01e62:
-   cmp word ptr [3D7A],+00
+   cmp word ptr [offset _dx1],+00
    jnz L16e01e73
-   cmp word ptr [3D7C],+00
+   cmp word ptr [offset _dy1],+00
    jnz L16e01e73
 jmp near L16e0200e
 L16e01e73:
@@ -30425,7 +30428,7 @@ L16e01e73:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+11]
@@ -30436,23 +30439,23 @@ L16e01e73:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    mov [ES:BX+11],AX
-   mov AX,[3D7A]
+   mov AX,[offset _dx1]
    push AX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    mov [ES:BX+05],AX
-   cmp word ptr [3D7A],+00
+   cmp word ptr [offset _dx1],+00
    jnz L16e01ec1
 jmp near L16e01f79
 L16e01ec1:
@@ -30460,20 +30463,20 @@ L16e01ec1:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+13],+00
    jnz L16e01eda
 jmp near L16e01f79
 L16e01eda:
-   cmp word ptr [3D7A],+00
+   cmp word ptr [offset _dx1],+00
    jle L16e01f0c
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+13],+10
@@ -30482,19 +30485,19 @@ L16e01eda:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    dec word ptr [ES:BX+13]
 jmp near L16e01f3c
 L16e01f0c:
-   cmp word ptr [3D7A],+00
+   cmp word ptr [offset _dx1],+00
    jge L16e01f44
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+13],+10
@@ -30503,43 +30506,43 @@ L16e01f0c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+13]
 L16e01f3c:
-   mov word ptr [3D7A],0000
+   mov word ptr [offset _dx1],0000
 jmp near L16e01f79
 L16e01f44:
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+13],+10
    jnz L16e01f79
    mov AX,DI
    inc AX
-   mul word ptr [3D7A]
-   mov [3D7A],AX
+   mul word ptr [offset _dx1]
+   mov [offset _dx1],AX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+13],0000
 L16e01f79:
-   mov AX,[3D7C]
+   mov AX,[offset _dy1]
    push AX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -30550,11 +30553,11 @@ L16e01f79:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
-   mov DX,[3D7C]
+   mov DX,[offset _dy1]
    shl DX,1
    add AX,DX
    push AX
@@ -30562,39 +30565,39 @@ L16e01f79:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
-   mov DX,[3D7A]
+   mov DX,[offset _dx1]
    shl DX,1
    add AX,DX
    push AX
    push SI
-   call far A1e3e21fd
+   call far _cando
    add SP,+08
    or AX,AX
    jz L16e0200e
-   mov AX,[3D7A]
+   mov AX,[offset _dx1]
    shl AX,1
    push AX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    add [ES:BX+01],AX
-   mov AX,[3D7C]
+   mov AX,[offset _dy1]
    shl AX,1
    push AX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -30603,9 +30606,9 @@ L16e0200e:
    xor AX,AX
    push AX
    push CS
-   call near offset A16e00001
+   call near offset _calc_scroll
    pop CX
-   cmp word ptr [BB72],+00
+   cmp word ptr [offset _scrollxd],+00
    jle L16e02039
    mov AX,DI
    add AX,0010
@@ -30614,14 +30617,14 @@ L16e0200e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    mov [ES:BX+13],AX
 jmp near L16e0205a
 L16e02039:
-   cmp word ptr [BB72],+00
+   cmp word ptr [offset _scrollxd],+00
    jge L16e0205a
    mov AX,0010
    sub AX,DI
@@ -30630,7 +30633,7 @@ L16e02039:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -30638,7 +30641,7 @@ L16e02039:
 L16e0205a:
    xor AX,AX
    push AX
-   call far A1e3e23b0
+   call far _touchbkgnd
    pop CX
 L16e02063:
    mov AX,0001
@@ -30648,14 +30651,14 @@ L16e02063:
    pop BP
 ret far
 
-A16e0206c:
+_msg_jillfish: ;; 16e0206c
    push BP
    mov BP,SP
    sub SP,+10
    push SI
    push DI
    mov SI,[BP+06]
-   mov AX,[BCAC]
+   mov AX,[offset _kindtable+2*36]
    mov CL,08
    shl AX,CL
    mov [BP-0A],AX
@@ -30666,7 +30669,7 @@ A16e0206c:
    mov AX,offset Y2a1713a9
    push AX
    mov CX,0008
-   call far A076a05d8
+   call far SCOPY@
    mov AX,[BP+08]
    or AX,AX
    jz L16e020a5
@@ -30680,7 +30683,7 @@ L16e020a5:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -30688,7 +30691,7 @@ L16e020a5:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
@@ -30696,7 +30699,7 @@ L16e020a5:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+13]
@@ -30710,7 +30713,7 @@ L16e020a5:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0F],+00
@@ -30725,9 +30728,9 @@ L16e02109:
    pop DX
    add DX,AX
    push DX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L16e02669
 L16e02125:
@@ -30735,7 +30738,7 @@ L16e02125:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -30746,7 +30749,7 @@ L16e02125:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -30755,7 +30758,7 @@ L16e02125:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -30763,19 +30766,19 @@ L16e02125:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e25cc
+   call far _fishdo
    add SP,+06
    mov [BP-10],AX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -30784,7 +30787,7 @@ L16e02125:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -30793,13 +30796,13 @@ L16e02125:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    mov [ES:BX+0F],AX
 L16e021c1:
-   mov AX,[3D7A]
+   mov AX,[offset _dx1]
    shl AX,1
    shl AX,1
    shl AX,1
@@ -30808,7 +30811,7 @@ L16e021c1:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -30817,14 +30820,14 @@ L16e021c1:
    jnz L16e021e8
 jmp near L16e022ea
 L16e021e8:
-   mov AX,[3D7C]
+   mov AX,[offset _dy1]
    shl AX,1
    push AX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+02
@@ -30841,12 +30844,12 @@ L16e0220b:
    push DX
    mul BX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    add [ES:BX+07],AX
-   call far A29b90016
+   call far _rand
    mov BX,0004
    cwd
    idiv BX
@@ -30856,7 +30859,7 @@ L16e0220b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -30866,7 +30869,7 @@ L16e0220b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -30874,14 +30877,14 @@ L16e0220b:
    push AX
    mov AX,003A
    push AX
-   call far A1e3e18b9
+   call far _addobj
    add SP,+06
 L16e0226c:
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],-08
@@ -30890,7 +30893,7 @@ L16e0226c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+07]
@@ -30907,7 +30910,7 @@ L16e022a4:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],-08
@@ -30916,7 +30919,7 @@ L16e022a4:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+07]
@@ -30929,7 +30932,7 @@ L16e022d2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -30940,7 +30943,7 @@ L16e022ea:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    add word ptr [ES:BX+07],+02
@@ -30948,7 +30951,7 @@ L16e022ea:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],-10
@@ -30957,7 +30960,7 @@ L16e022ea:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+07]
@@ -30974,7 +30977,7 @@ L16e02336:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],-10
@@ -30983,7 +30986,7 @@ L16e02336:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+07]
@@ -30996,50 +30999,50 @@ L16e02364:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    mov [ES:BX+07],AX
 L16e02379:
-   cmp word ptr [3D7E],+00
+   cmp word ptr [offset _fire1],+00
    jz L16e023b0
    cmp word ptr [BP-10],+00
    jz L16e023b0
-   mov word ptr [3EA2],0001
+   mov word ptr [offset _fire1off],0001
    mov AX,0025
    push AX
    mov AX,0001
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],FFFE
 L16e023b0:
-   cmp word ptr [3D82],+00
+   cmp word ptr [offset _fire2],+00
    jnz L16e023ba
 jmp near L16e024cb
 L16e023ba:
-   mov word ptr [3EA4],0001
+   mov word ptr [offset _fire2off],0001
    mov AX,0026
    push AX
    mov AX,0001
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -31047,7 +31050,7 @@ L16e023ba:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -31056,7 +31059,7 @@ L16e023ba:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0F],+00
@@ -31074,13 +31077,13 @@ L16e02413:
    push DX
    mov AX,003F
    push AX
-   call far A1e3e18b9
+   call far _addobj
    add SP,+06
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0F],+00
@@ -31095,7 +31098,7 @@ L16e02447:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0F],+00
@@ -31115,7 +31118,7 @@ L16e02465:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -31130,7 +31133,7 @@ L16e0248c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -31147,12 +31150,12 @@ L16e024aa:
    pop AX
    add AX,DX
    push AX
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    dec AX
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -31162,7 +31165,7 @@ L16e024cb:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+08
@@ -31171,7 +31174,7 @@ L16e024cb:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],0008
@@ -31181,7 +31184,7 @@ L16e024f8:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],-08
@@ -31190,7 +31193,7 @@ L16e024f8:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],FFF8
@@ -31199,7 +31202,7 @@ L16e02523:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -31208,7 +31211,7 @@ L16e02523:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -31218,7 +31221,7 @@ L16e02523:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov DI,[ES:BX+03]
@@ -31226,7 +31229,7 @@ L16e02523:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    add DI,[ES:BX+07]
@@ -31235,12 +31238,12 @@ L16e02523:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e1d7e
+   call far _justmove
    add SP,+06
    or AX,AX
    jz L16e02598
@@ -31250,7 +31253,7 @@ L16e02598:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
@@ -31265,7 +31268,7 @@ L16e025bb:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
@@ -31274,7 +31277,7 @@ L16e025bb:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,DI
@@ -31288,7 +31291,7 @@ L16e025f1:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
@@ -31298,12 +31301,12 @@ L16e025f1:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e1d7e
+   call far _justmove
    add SP,+06
    or AX,AX
    jnz L16e0263f
@@ -31311,7 +31314,7 @@ L16e025f1:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],0000
@@ -31320,18 +31323,18 @@ L16e0263f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
    push [BP-0E]
    push SI
-   call far A1e3e25cc
+   call far _fishdo
    add SP,+06
    xor AX,AX
    push AX
    push CS
-   call near offset A16e00001
+   call near offset _calc_scroll
    pop CX
    mov AX,0001
 L16e02669:
@@ -31341,7 +31344,7 @@ L16e02669:
    pop BP
 ret far
 
-A16e0266f:
+_msg_jillspider: ;; 16e0266f
    push BP
    mov BP,SP
    mov AX,[BP+08]
@@ -31354,7 +31357,7 @@ L16e0267e:
    pop BP
 ret far
 
-A16e02680:
+_msg_jillfrog: ;; 16e02680
    push BP
    mov BP,SP
    sub SP,+04
@@ -31370,7 +31373,7 @@ jmp near L16e0275b
 L16e0269a:
 jmp near L16e029a1
 L16e0269d:
-   mov AX,[BCB2]
+   mov AX,[offset _kindtable+2*39]
    mov CL,08
    shl AX,CL
    push AX
@@ -31378,7 +31381,7 @@ L16e0269d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+1B],+00
@@ -31395,7 +31398,7 @@ L16e026c2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+01
@@ -31404,7 +31407,7 @@ L16e026c2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
@@ -31419,7 +31422,7 @@ L16e026fb:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
@@ -31437,7 +31440,7 @@ L16e0271f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -31445,14 +31448,14 @@ L16e0271f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push [BP-04]
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L16e029a1
 L16e0275b:
@@ -31460,7 +31463,7 @@ L16e0275b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -31469,7 +31472,7 @@ L16e0275b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -31478,7 +31481,7 @@ L16e0275b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -31488,7 +31491,7 @@ L16e02799:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    test word ptr [ES:BX+01],0007
@@ -31497,13 +31500,13 @@ L16e02799:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
    jnz L16e027e4
 L16e027c6:
-   mov AX,[3D7A]
+   mov AX,[offset _dx1]
    shl AX,1
    shl AX,1
    push AX
@@ -31511,14 +31514,14 @@ L16e027c6:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    mov [ES:BX+05],AX
 jmp near L16e02802
 L16e027e4:
-   mov AX,[3D7A]
+   mov AX,[offset _dx1]
    shl AX,1
    shl AX,1
    shl AX,1
@@ -31527,7 +31530,7 @@ L16e027e4:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -31539,7 +31542,7 @@ L16e02802:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -31549,25 +31552,25 @@ L16e02802:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e21fd
+   call far _cando
    add SP,+08
    cmp AX,0003
    jz L16e02896
-   cmp word ptr [3D7E],+00
+   cmp word ptr [offset _fire1],+00
    jnz L16e0284a
-   cmp word ptr [3D82],+00
+   cmp word ptr [offset _fire2],+00
    jz L16e02870
 L16e0284a:
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],FFF4
@@ -31575,7 +31578,7 @@ L16e0284a:
    push AX
    mov AX,0001
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
 jmp near L16e028c7
@@ -31584,7 +31587,7 @@ L16e02870:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],FFF8
@@ -31592,7 +31595,7 @@ L16e02870:
    push AX
    mov AX,0001
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
 jmp near L16e028c7
@@ -31601,7 +31604,7 @@ L16e02896:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+07]
@@ -31612,7 +31615,7 @@ L16e02896:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],000C
@@ -31621,7 +31624,7 @@ L16e028c7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -31630,7 +31633,7 @@ L16e028c7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -31640,7 +31643,7 @@ L16e028c7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov DI,[ES:BX+03]
@@ -31648,14 +31651,14 @@ L16e028c7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    add DI,[ES:BX+07]
    push DI
    push [BP-02]
    push SI
-   call far A1e3e1c9b
+   call far _trymove
    add SP,+06
    test AX,0003
    jnz L16e02996
@@ -31663,7 +31666,7 @@ L16e028c7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
@@ -31672,7 +31675,7 @@ L16e028c7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,DI
@@ -31684,13 +31687,13 @@ L16e028c7:
    push DI
    push [BP-02]
    push SI
-   call far A1e3e1c9b
+   call far _trymove
    add SP,+06
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+13],0000
@@ -31699,7 +31702,7 @@ L16e02981:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],0000
@@ -31707,7 +31710,7 @@ L16e02996:
    xor AX,AX
    push AX
    push CS
-   call near offset A16e00001
+   call near offset _calc_scroll
    pop CX
    mov AX,0001
 L16e029a1:
@@ -31717,7 +31720,7 @@ L16e029a1:
    pop BP
 ret far
 
-A16e029a7:
+_msg_jillbird: ;; 16e029a7
    push BP
    mov BP,SP
    sub SP,+12
@@ -31731,7 +31734,7 @@ A16e029a7:
    mov AX,offset Y2a1713b1
    push AX
    mov CX,000C
-   call far A076a05d8
+   call far SCOPY@
    mov AX,[BP+08]
    or AX,AX
    jz L16e029d6
@@ -31741,7 +31744,7 @@ jmp near L16e02a5d
 L16e029d3:
 jmp near L16e02e71
 L16e029d6:
-   mov AX,[BC7C]
+   mov AX,[offset _kindtable+2*1e]
    mov CL,08
    shl AX,CL
    mov [BP-12],AX
@@ -31749,7 +31752,7 @@ L16e029d6:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+13]
@@ -31762,7 +31765,7 @@ L16e029d6:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0F],+00
@@ -31779,7 +31782,7 @@ L16e02a1b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -31787,14 +31790,14 @@ L16e02a1b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push [BP-12]
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L16e02e71
 L16e02a5d:
@@ -31802,7 +31805,7 @@ L16e02a5d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -31811,7 +31814,7 @@ L16e02a5d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
@@ -31820,7 +31823,7 @@ L16e02a5d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -31830,7 +31833,7 @@ L16e02a9b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+13]
@@ -31841,7 +31844,7 @@ L16e02a9b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+13],0000
@@ -31850,7 +31853,7 @@ L16e02acc:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    test word ptr [ES:BX+01],0007
@@ -31859,13 +31862,13 @@ L16e02acc:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
    jnz L16e02b17
 L16e02af9:
-   mov AX,[3D7A]
+   mov AX,[offset _dx1]
    shl AX,1
    shl AX,1
    push AX
@@ -31873,14 +31876,14 @@ L16e02af9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    mov [ES:BX+05],AX
 jmp near L16e02b35
 L16e02b17:
-   mov AX,[3D7A]
+   mov AX,[offset _dx1]
    shl AX,1
    shl AX,1
    shl AX,1
@@ -31889,7 +31892,7 @@ L16e02b17:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -31899,49 +31902,49 @@ L16e02b35:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    inc word ptr [ES:BX+07]
-   cmp word ptr [3D7E],+00
+   cmp word ptr [offset _fire1],+00
    jnz L16e02b56
-   cmp word ptr [3D82],+00
+   cmp word ptr [offset _fire2],+00
    jz L16e02b80
 L16e02b56:
-   mov word ptr [3EA2],0001
+   mov word ptr [offset _fire1off],0001
    mov AX,000F
    push AX
    mov AX,0001
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],FFFA
 L16e02b80:
-   cmp word ptr [3D82],+00
+   cmp word ptr [offset _fire2],+00
    jnz L16e02b8a
 jmp near L16e02c90
 L16e02b8a:
-   mov word ptr [3EA4],0001
+   mov word ptr [offset _fire2off],0001
    mov AX,0022
    push AX
    mov AX,0001
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -31949,7 +31952,7 @@ L16e02b8a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0F],+00
@@ -31964,7 +31967,7 @@ L16e02bcf:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0F],+00
@@ -31984,7 +31987,7 @@ L16e02bed:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -31992,13 +31995,13 @@ L16e02bed:
    push AX
    mov AX,003E
    push AX
-   call far A1e3e18b9
+   call far _addobj
    add SP,+06
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0F],+00
@@ -32013,7 +32016,7 @@ L16e02c36:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0F],+00
@@ -32028,26 +32031,26 @@ L16e02c54:
    shl DX,1
    shl DX,1
    shl DX,1
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    dec AX
    mov BX,001F
    push DX
    mul BX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    mov [ES:BX+05],AX
-   mov AX,[3D7C]
+   mov AX,[offset _dy1]
    shl AX,1
    push AX
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    dec AX
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -32057,7 +32060,7 @@ L16e02c90:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+08
@@ -32066,7 +32069,7 @@ L16e02c90:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],0008
@@ -32076,7 +32079,7 @@ L16e02cbd:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],-08
@@ -32085,7 +32088,7 @@ L16e02cbd:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],FFF8
@@ -32094,7 +32097,7 @@ L16e02ce8:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov DI,[ES:BX+01]
@@ -32102,7 +32105,7 @@ L16e02ce8:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    add DI,[ES:BX+05]
@@ -32110,13 +32113,13 @@ L16e02ce8:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
    push DI
    push SI
-   call far A1e3e1d7e
+   call far _justmove
    add SP,+06
    or AX,AX
    jnz L16e02d42
@@ -32124,7 +32127,7 @@ L16e02ce8:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov DI,[ES:BX+01]
@@ -32133,7 +32136,7 @@ L16e02d42:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
@@ -32144,7 +32147,7 @@ L16e02d5b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -32153,7 +32156,7 @@ L16e02d5b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -32162,7 +32165,7 @@ L16e02d5b:
    push AX
    push DI
    push SI
-   call far A1e3e1d7e
+   call far _justmove
    add SP,+06
    or AX,AX
    jz L16e02d98
@@ -32172,7 +32175,7 @@ L16e02d98:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
@@ -32187,7 +32190,7 @@ L16e02dbc:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+07],+00
@@ -32196,7 +32199,7 @@ L16e02dbc:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[BP-10]
@@ -32212,7 +32215,7 @@ L16e02df3:
    push AX
    push DI
    push SI
-   call far A1e3e1d7e
+   call far _justmove
    add SP,+06
    or AX,AX
    jnz L16e02e1f
@@ -32221,7 +32224,7 @@ L16e02e0a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],0000
@@ -32232,7 +32235,7 @@ L16e02e1f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -32240,12 +32243,12 @@ L16e02e1f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e22ff
+   call far _objdo
    add SP,+08
    cmp AX,4000
    jz L16e02e66
@@ -32253,14 +32256,14 @@ L16e02e1f:
    push AX
    mov AX,0100
    push AX
-   call far A1e3e064c
+   call far _p_ouch
    pop CX
    pop CX
 L16e02e66:
    xor AX,AX
    push AX
    push CS
-   call near offset A16e00001
+   call near offset _calc_scroll
    pop CX
    mov AX,0001
 L16e02e71:
@@ -32270,7 +32273,7 @@ L16e02e71:
    pop BP
 ret far
 
-A16e02e77:
+_playerxfm: ;; 16e02e77
    push BP
    mov BP,SP
    sub SP,+0A
@@ -32278,12 +32281,12 @@ A16e02e77:
    push DI
    xor SI,SI
    mov [BP-0A],SI
-   mov AL,[976E]
+   mov AL,[offset _objs]
    cbw
    mov [BP-08],AX
-   mov AX,[9777]
+   mov AX,[offset _objs+09]
    mov [BP-06],AX
-   mov AX,[9779]
+   mov AX,[offset _objs+0b]
    mov [BP-04],AX
    mov AX,[BP+06]
    cmp AX,0004
@@ -32302,46 +32305,46 @@ jmp near L16e02ebe
 L16e02eb9:
    mov word ptr [BP-0A],0036
 L16e02ebe:
-   mov AL,[976E]
+   mov AL,[offset _objs]
    cbw
    cmp AX,[BP-0A]
    jnz L16e02eca
 jmp near L16e02fcc
 L16e02eca:
    mov AL,[BP-0A]
-   mov [976E],AL
+   mov [offset _objs],AL
    mov BX,[BP-0A]
    shl BX,1
-   mov AX,[BX+B778]
-   mov [9777],AX
+   mov AX,[BX+offset _kindxl]
+   mov [offset _objs+09],AX
    mov BX,[BP-0A]
    shl BX,1
-   mov AX,[BX+B802]
-   mov [9779],AX
-   mov AX,[976F]
+   mov AX,[BX+offset _kindyl]
+   mov [offset _objs+0b],AX
+   mov AX,[offset _objs+01]
    and AX,FFF8
    mov [BP-02],AX
-   mov DI,[9771]
+   mov DI,[offset _objs+03]
    add DI,[BP-04]
-   sub DI,[9779]
+   sub DI,[offset _objs+0b]
    mov AX,0001
    push AX
    push DI
    push [BP-02]
    xor AX,AX
    push AX
-   call far A1e3e21fd
+   call far _cando
    add SP,+08
    or AX,AX
    jnz L16e02f2e
-   mov DI,[9771]
+   mov DI,[offset _objs+03]
    mov AX,0001
    push AX
    push DI
    push [BP-02]
    xor AX,AX
    push AX
-   call far A1e3e21fd
+   call far _cando
    add SP,+08
    or AX,AX
    jz L16e02f31
@@ -32353,26 +32356,26 @@ L16e02f31:
 jmp near L16e02fba
 L16e02f38:
    push [BP+06]
-   call far A1e3e1a38
+   call far _addinv
    pop CX
-   mov [9771],DI
+   mov [offset _objs+03],DI
    mov AX,[BP-02]
-   mov [976F],AX
-   mov word ptr [977B],0000
-   mov word ptr [977D],0000
-   mov word ptr [9781],0000
-   mov word ptr [9773],0000
-   mov word ptr [9775],0000
+   mov [offset _objs+01],AX
+   mov word ptr [offset _objs+0d],0000
+   mov word ptr [offset _objs+0f],0000
+   mov word ptr [offset _objs+13],0000
+   mov word ptr [offset _objs+05],0000
+   mov word ptr [offset _objs+07],0000
    xor SI,SI
 jmp near L16e02f84
 L16e02f6d:
    mov BX,SI
    shl BX,1
-   cmp word ptr [BX+10B2],+00
+   cmp word ptr [BX+offset _inv_xfm],+00
    jz L16e02f83
 L16e02f78:
    push SI
-   call far A1e3e1a5b
+   call far _takeinv
    pop CX
    or AX,AX
    jnz L16e02f78
@@ -32383,27 +32386,27 @@ L16e02f84:
    jl L16e02f6d
    mov AX,000A
    push AX
-   push [9771]
-   push [976F]
-   call far A11860a35
+   push [offset _objs+03]
+   push [offset _objs+01]
+   call far _explode1
    add SP,+06
    mov AX,0007
    push AX
    mov BX,[BP+06]
    shl BX,1
    shl BX,1
-   push [BX+10CA]
-   push [BX+10C8]
-   call far A19dd059d
+   push [BX+offset _inv_getmsg+02]
+   push [BX+offset _inv_getmsg]
+   call far _putbotmsg
    add SP,+06
 jmp near L16e02fcc
 L16e02fba:
    mov AL,[BP-08]
-   mov [976E],AL
+   mov [offset _objs],AL
    mov AX,[BP-06]
-   mov [9777],AX
+   mov [offset _objs+09],AX
    mov AX,[BP-04]
-   mov [9779],AX
+   mov [offset _objs+0b],AX
 L16e02fcc:
    pop DI
    pop SI
@@ -32412,30 +32415,30 @@ L16e02fcc:
 ret far
 
 Segment 19dd ;; JUNGLE.C:JUNGLE
-A19dd0002:
+_fin: ;; 19dd0002
    mov AX,0016
    push AX
    mov AX,0001
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
-   call far A086008a4
+   call far _fadein
 ret far
 
-A19dd0017:
+_fout: ;; 19dd0017
    mov AX,0015
    push AX
    mov AX,0001
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
-   call far A08600927
+   call far _fadeout
 ret far
 
-A19dd002c:
-   mov AL,[976E]
+_drawkeys: ;; 19dd002c
+   mov AL,[offset _objs]
    cbw
    mov CX,0006
    mov BX,offset Y19dd0046
@@ -32455,9 +32458,9 @@ L19dd005e:
    push AX
    mov AX,0007
    push AX
-   push [B772]
-   push [B770]
-   call far A0a820abc
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _fontcolor
    add SP,+08
    push DS
    mov AX,offset Y2a171430
@@ -32468,18 +32471,18 @@ L19dd005e:
    push AX
    mov AX,0025
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
    mov AX,0008
    push AX
-   call far A1e3e1aaa
+   call far _invcount
    pop CX
    or AX,AX
    jz L19dd00c9
    push DS
-   mov AX,offset Y2a17192e
+   mov AX,offset _xbladename
    push AX
    mov AX,0002
    push AX
@@ -32487,15 +32490,15 @@ L19dd005e:
    push AX
    mov AX,0021
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
 jmp near L19dd0308
 L19dd00c9:
    mov AX,0002
    push AX
-   call far A1e3e1aaa
+   call far _invcount
    pop CX
    or AX,AX
    jz L19dd00fb
@@ -32508,9 +32511,9 @@ L19dd00c9:
    push AX
    mov AX,0021
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
 jmp near L19dd0308
 L19dd00fb:
@@ -32523,9 +32526,9 @@ L19dd00fb:
    push AX
    mov AX,0021
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
 jmp near L19dd0308
 L19dd011f:
@@ -32533,9 +32536,9 @@ L19dd011f:
    push AX
    mov AX,0007
    push AX
-   push [B772]
-   push [B770]
-   call far A0a820abc
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _fontcolor
    add SP,+08
    push DS
    mov AX,offset Y2a171448
@@ -32546,9 +32549,9 @@ L19dd011f:
    push AX
    mov AX,0025
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
    push DS
    mov AX,offset Y2a171450
@@ -32559,23 +32562,23 @@ L19dd011f:
    push AX
    mov AX,0021
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
 jmp near L19dd0308
 L19dd017c:
    mov AX,0008
    push AX
-   mov AX,[3B56]
+   mov AX,[offset _pagedraw]
    shl AX,1
    shl AX,1
    mov DX,0007
    sub DX,AX
    push DX
-   push [B772]
-   push [B770]
-   call far A0a820abc
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _fontcolor
    add SP,+08
    push DS
    mov AX,offset Y2a171458
@@ -32586,9 +32589,9 @@ L19dd017c:
    push AX
    mov AX,0025
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
    push DS
    mov AX,offset Y2a171460
@@ -32599,23 +32602,23 @@ L19dd017c:
    push AX
    mov AX,0021
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
 jmp near L19dd0308
 L19dd01e2:
    mov AX,0008
    push AX
-   mov AX,[3B56]
+   mov AX,[offset _pagedraw]
    shl AX,1
    shl AX,1
    mov DX,0007
    sub DX,AX
    push DX
-   push [B772]
-   push [B770]
-   call far A0a820abc
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _fontcolor
    add SP,+08
    push DS
    mov AX,offset Y2a171468
@@ -32626,9 +32629,9 @@ L19dd01e2:
    push AX
    mov AX,0025
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
    push DS
    mov AX,offset Y2a171470
@@ -32639,23 +32642,23 @@ L19dd01e2:
    push AX
    mov AX,0021
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
 jmp near L19dd0308
 L19dd0248:
    mov AX,0008
    push AX
-   mov AX,[3B56]
+   mov AX,[offset _pagedraw]
    mov DX,0006
    mul DX
    mov DX,0007
    sub DX,AX
    push DX
-   push [B772]
-   push [B770]
-   call far A0a820abc
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _fontcolor
    add SP,+08
    push DS
    mov AX,offset Y2a171478
@@ -32666,9 +32669,9 @@ L19dd0248:
    push AX
    mov AX,0025
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
    push DS
    mov AX,offset Y2a171480
@@ -32679,9 +32682,9 @@ L19dd0248:
    push AX
    mov AX,0021
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
 jmp near L19dd0308
 L19dd02ae:
@@ -32689,9 +32692,9 @@ L19dd02ae:
    push AX
    mov AX,0007
    push AX
-   push [B772]
-   push [B770]
-   call far A0a820abc
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _fontcolor
    add SP,+08
    push DS
    mov AX,offset Y2a171488
@@ -32702,9 +32705,9 @@ L19dd02ae:
    push AX
    mov AX,0025
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
    push DS
    mov AX,offset Y2a171490
@@ -32715,25 +32718,25 @@ L19dd02ae:
    push AX
    mov AX,0021
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
 L19dd0308:
 ret far
 
-A19dd0309:
+_drawcmds: ;; 19dd0309
    mov AX,0008
    push AX
    mov AX,0004
    push AX
-   push [B772]
-   push [B770]
-   call far A0a820abc
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _fontcolor
    add SP,+08
-   push [B772]
-   push [B770]
-   call far A0a820aa4
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _clearvp
    pop CX
    pop CX
    push DS
@@ -32745,29 +32748,29 @@ A19dd0309:
    push AX
    xor AX,AX
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
    push DS
-   mov AX,offset Y2a172680
+   mov AX,offset _v_movename
    push AX
    mov AX,0002
    push AX
    push AX
    mov AX,0005
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
    mov AX,0008
    push AX
    mov AX,0005
    push AX
-   push [B772]
-   push [B770]
-   call far A0a820abc
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _fontcolor
    add SP,+08
    mov AX,0009
    push AX
@@ -32775,9 +32778,9 @@ A19dd0309:
    push AX
    mov AX,0600
    push AX
-   push [B772]
-   push [B770]
-   call far A086000eb
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _drawshape
    add SP,+0A
    mov AX,0012
    push AX
@@ -32785,9 +32788,9 @@ A19dd0309:
    push AX
    mov AX,0601
    push AX
-   push [B772]
-   push [B770]
-   call far A086000eb
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _drawshape
    add SP,+0A
    mov AX,001B
    push AX
@@ -32795,17 +32798,17 @@ A19dd0309:
    push AX
    mov AX,0609
    push AX
-   push [B772]
-   push [B770]
-   call far A086000eb
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _drawshape
    add SP,+0A
    mov AX,0008
    push AX
    mov AX,0007
    push AX
-   push [B772]
-   push [B770]
-   call far A0a820abc
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _fontcolor
    add SP,+08
    push DS
    mov AX,offset Y2a1714a5
@@ -32816,17 +32819,17 @@ A19dd0309:
    push AX
    mov AX,001E
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
    mov AX,0008
    push AX
    mov AX,0003
    push AX
-   push [B772]
-   push [B770]
-   call far A0a820abc
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _fontcolor
    add SP,+08
    push DS
    mov AX,offset Y2a1714aa
@@ -32837,9 +32840,9 @@ A19dd0309:
    push AX
    mov AX,0001
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
    push DS
    mov AX,offset Y2a1714ac
@@ -32850,9 +32853,9 @@ A19dd0309:
    push AX
    mov AX,0001
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
    push DS
    mov AX,offset Y2a1714ae
@@ -32863,9 +32866,9 @@ A19dd0309:
    push AX
    mov AX,0001
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
    push DS
    mov AX,offset Y2a1714b0
@@ -32876,9 +32879,9 @@ A19dd0309:
    push AX
    mov AX,0001
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
    push DS
    mov AX,offset Y2a1714b2
@@ -32889,17 +32892,17 @@ A19dd0309:
    push AX
    mov AX,0001
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
    mov AX,0008
    push AX
    mov AX,0002
    push AX
-   push [B772]
-   push [B770]
-   call far A0a820abc
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _fontcolor
    add SP,+08
    push DS
    mov AX,offset Y2a1714b4
@@ -32910,9 +32913,9 @@ A19dd0309:
    push AX
    mov AX,000E
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
    push DS
    mov AX,offset Y2a1714ba
@@ -32923,9 +32926,9 @@ A19dd0309:
    push AX
    mov AX,000E
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
    push DS
    mov AX,offset Y2a1714bf
@@ -32936,9 +32939,9 @@ A19dd0309:
    push AX
    mov AX,000E
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
    push DS
    mov AX,offset Y2a1714c4
@@ -32949,9 +32952,9 @@ A19dd0309:
    push AX
    mov AX,000E
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
    push DS
    mov AX,offset Y2a1714cc
@@ -32962,34 +32965,34 @@ A19dd0309:
    push AX
    mov AX,000E
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
    push CS
-   call near offset A19dd002c
-   call far A19dd05c6
-   or word ptr [C23A],C000
+   call near offset _drawkeys
+   call far _drawstats
+   or word ptr [offset _statmodflg],C000
 ret far
 
-A19dd059d:
+_putbotmsg: ;; 19dd059d
    push BP
    mov BP,SP
    push [BP+08]
    push [BP+06]
    push DS
-   mov AX,offset Y2a17b724
+   mov AX,offset _botmsg
    push AX
-   call far A28a70001
+   call far _strcpy
    mov SP,BP
    mov AX,[BP+0A]
-   mov [B774],AX
-   mov word ptr [B776],0050
-   or word ptr [C23A],C000
+   mov [offset _botcol],AX
+   mov word ptr [offset _bottime],0050
+   or word ptr [offset _statmodflg],C000
    pop BP
 ret far
 
-A19dd05c6:
+_drawstats: ;; 19dd05c6
    push BP
    mov BP,SP
    sub SP,+20
@@ -32998,41 +33001,41 @@ A19dd05c6:
    push AX
    mov AX,FFF9
    push AX
-   push [B772]
-   push [B770]
-   call far A0a820abc
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _fontcolor
    add SP,+08
    mov AX,002B
    push AX
    mov AX,0035
    push AX
-   mov AX,[0C70]
+   mov AX,[offset _soundf]
    add AX,060A
    push AX
-   push [B772]
-   push [B770]
-   call far A086000eb
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _drawshape
    add SP,+0A
    mov AX,004B
    push AX
    mov AX,0035
    push AX
-   mov AX,[13C6]
+   mov AX,[offset _turtle]
    add AX,060A
    push AX
-   push [B772]
-   push [B770]
-   call far A086000eb
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _drawshape
    add SP,+0A
-   cmp word ptr [offset Y2a178492],+00
+   cmp word ptr [offset _pl+2a],+00
    jz L19dd0644
    mov AX,0004
    push AX
    mov AX,FFFB
    push AX
-   push [BA46]
-   push [BA44]
-   call far A0a820abc
+   push [offset _statvp+02]
+   push [offset _statvp]
+   call far _fontcolor
    add SP,+08
 jmp near L19dd065c
 L19dd0644:
@@ -33040,14 +33043,14 @@ L19dd0644:
    push AX
    mov AX,FFFB
    push AX
-   push [BA46]
-   push [BA44]
-   call far A0a820abc
+   push [offset _statvp+02]
+   push [offset _statvp]
+   call far _fontcolor
    add SP,+08
 L19dd065c:
-   push [BA46]
-   push [BA44]
-   call far A0a820aa4
+   push [offset _statvp+02]
+   push [offset _statvp]
+   call far _clearvp
    pop CX
    pop CX
    push DS
@@ -33057,17 +33060,17 @@ L19dd065c:
    push AX
    push AX
    push AX
-   push [BA46]
-   push [BA44]
-   call far A0a8206bf
+   push [offset _statvp+02]
+   push [offset _statvp]
+   call far _wprint
    add SP,+0E
    mov AX,0008
    push AX
    mov AX,FFFC
    push AX
-   push [BA46]
-   push [BA44]
-   call far A0a820abc
+   push [offset _statvp+02]
+   push [offset _statvp]
+   call far _fontcolor
    add SP,+08
    xor SI,SI
 jmp near L19dd06c6
@@ -33081,19 +33084,19 @@ L19dd06a2:
    push AX
    mov AX,offset Y2a170e2a
    push AX
-   push [BA46]
-   push [BA44]
-   call far A086000eb
+   push [offset _statvp+02]
+   push [offset _statvp]
+   call far _drawshape
    add SP,+0A
    inc SI
 L19dd06c6:
-   mov AX,[offset Y2a17846a]
+   mov AX,[offset _pl+02]
    dec AX
    cmp AX,SI
    jg L19dd06a2
    mov AX,0002
    push AX
-   mov AX,[offset Y2a17846a]
+   mov AX,[offset _pl+02]
    dec AX
    mov DX,0003
    mul DX
@@ -33101,9 +33104,9 @@ L19dd06c6:
    push AX
    mov AX,0E2B
    push AX
-   push [BA46]
-   push [BA44]
-   call far A086000eb
+   push [offset _statvp+02]
+   push [offset _statvp]
+   call far _drawshape
    add SP,+0A
    push DS
    mov AX,offset Y2a1714da
@@ -33114,18 +33117,18 @@ L19dd06c6:
    push AX
    mov AX,0021
    push AX
-   push [BA46]
-   push [BA44]
-   call far A0a8206bf
+   push [offset _statvp+02]
+   push [offset _statvp]
+   call far _wprint
    add SP,+0E
    mov AX,000A
    push AX
    push SS
    lea AX,[BP-20]
    push AX
-   push [offset Y2a17848e+2]
-   push [offset Y2a17848e]
-   call far A288c00db
+   push [offset _pl+26+02]
+   push [offset _pl+26]
+   call far _ltoa
    add SP,+0A
    push SS
    lea AX,[BP-20]
@@ -33137,7 +33140,7 @@ L19dd06c6:
    push SS
    lea AX,[BP-20]
    push AX
-   call far A28a20004
+   call far _strlen
    pop CX
    pop CX
    mov DX,0006
@@ -33146,17 +33149,17 @@ L19dd06c6:
    mov DX,0040
    sub DX,AX
    push DX
-   push [BA46]
-   push [BA44]
-   call far A0a8206bf
+   push [offset _statvp+02]
+   push [offset _statvp]
+   call far _wprint
    add SP,+0E
    mov AX,0008
    push AX
    mov AX,FFFE
    push AX
-   push [BA46]
-   push [BA44]
-   call far A0a820abc
+   push [offset _statvp+02]
+   push [offset _statvp]
+   call far _fontcolor
    add SP,+08
    push DS
    mov AX,offset Y2a1714e0
@@ -33167,11 +33170,11 @@ L19dd06c6:
    push AX
    mov AX,0001
    push AX
-   push [BA46]
-   push [BA44]
-   call far A0a8206bf
+   push [offset _statvp+02]
+   push [offset _statvp]
+   call far _wprint
    add SP,+0E
-   cmp word ptr [offset Y2a178468],+7F
+   cmp word ptr [offset _pl],+7F
    jnz L19dd07b6
    push DS
    mov AX,offset Y2a1714e6
@@ -33179,7 +33182,7 @@ L19dd06c6:
    push SS
    lea AX,[BP-20]
    push AX
-   call far A28a70001
+   call far _strcpy
    add SP,+08
 jmp near L19dd07cd
 L19dd07b6:
@@ -33188,11 +33191,11 @@ L19dd07b6:
    push SS
    lea AX,[BP-20]
    push AX
-   mov AX,[offset Y2a178468]
+   mov AX,[offset _pl]
    cwd
    push DX
    push AX
-   call far A288c00db
+   call far _ltoa
    add SP,+0A
 L19dd07cd:
    push SS
@@ -33204,23 +33207,23 @@ L19dd07cd:
    push AX
    mov AX,0001
    push AX
-   push [BA46]
-   push [BA44]
-   call far A0a8206bf
+   push [offset _statvp+02]
+   push [offset _statvp]
+   call far _wprint
    add SP,+0E
-   cmp word ptr [13C0],+00
+   cmp word ptr [offset _debug],+00
    jz L19dd0847
-   cmp word ptr [13C2],+00
+   cmp word ptr [offset _swrite],+00
    jnz L19dd0847
    mov AX,000A
    push AX
    push SS
    lea AX,[BP-20]
    push AX
-   call far A290e000c
+   call far _coreleft
    push DX
    push AX
-   call far A288c00db
+   call far _ltoa
    add SP,+0A
    push DS
    mov AX,offset Y2a1714ea
@@ -33228,7 +33231,7 @@ L19dd07cd:
    push SS
    lea AX,[BP-20]
    push AX
-   call far A289e0002
+   call far _strcat
    add SP,+08
    push SS
    lea AX,[BP-20]
@@ -33239,9 +33242,9 @@ L19dd07cd:
    push AX
    mov AX,001C
    push AX
-   push [BA46]
-   push [BA44]
-   call far A0a8206bf
+   push [offset _statvp+02]
+   push [offset _statvp]
+   call far _wprint
    add SP,+0E
 L19dd0847:
    xor SI,SI
@@ -33265,45 +33268,45 @@ L19dd084b:
    push AX
    mov BX,SI
    shl BX,1
-   mov BX,[BX+offset Y2a17846e]
+   mov BX,[BX+offset _pl+06]
    shl BX,1
-   mov AX,[BX+109C]
+   mov AX,[BX+offset _inv_shape]
    add AX,0E00
    push AX
-   push [BA46]
-   push [BA44]
-   call far A086000eb
+   push [offset _statvp+02]
+   push [offset _statvp]
+   call far _drawshape
    add SP,+0A
    inc SI
 L19dd088d:
-   cmp SI,[offset Y2a17846c]
+   cmp SI,[offset _pl+04]
    jl L19dd084b
    push CS
-   call near offset A19dd002c
+   call near offset _drawkeys
    push DS
-   mov AX,offset Y2a17b760
+   mov AX,offset _botvp
    push AX
-   call far A0a820aa4
+   call far _clearvp
    pop CX
    pop CX
    xor AX,AX
    push AX
-   push [B774]
+   push [offset _botcol]
    push DS
-   mov AX,offset Y2a17b760
+   mov AX,offset _botvp
    push AX
-   call far A0a820abc
+   call far _fontcolor
    add SP,+08
    push DS
-   mov AX,offset Y2a17b724
+   mov AX,offset _botmsg
    push AX
    mov AX,0002
    push AX
    push AX
    push DS
-   mov AX,offset Y2a17b724
+   mov AX,offset _botmsg
    push AX
-   call far A28a20004
+   call far _strlen
    pop CX
    pop CX
    mov DX,0003
@@ -33312,16 +33315,16 @@ L19dd088d:
    sub DX,AX
    push DX
    push DS
-   mov AX,offset Y2a17b760
+   mov AX,offset _botvp
    push AX
-   call far A0a8206bf
+   call far _wprint
    add SP,+0E
    pop SI
    mov SP,BP
    pop BP
 ret far
 
-A19dd08ea:
+_zapobjs: ;; 19dd08ea
    push SI
    xor SI,SI
 jmp near L19dd0927
@@ -33330,7 +33333,7 @@ L19dd08ef:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+17]
@@ -33340,57 +33343,57 @@ L19dd08ef:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+19]
    push [ES:BX+17]
-   call far A29110001
+   call far _free
    pop CX
    pop CX
 L19dd0926:
    inc SI
 L19dd0927:
-   cmp SI,[offset Y2a17bc1e]
+   cmp SI,[offset _numobjs]
    jl L19dd08ef
-   call far A1e3e0079
+   call far _initobjs
    pop SI
 ret far
 
-A19dd0934:
+_loadcfg: ;; 19dd0934
    push BP
    mov BP,SP
    sub SP,+40
    push SI
    push DI
    push DS
-   mov AX,offset Y2a1705fc
+   mov AX,offset _path
    push AX
    push SS
    lea AX,[BP-40]
    push AX
-   call far A28a70001
+   call far _strcpy
    add SP,+08
    push DS
-   mov AX,offset Y2a1718c4
+   mov AX,offset _cfgfname
    push AX
    push SS
    lea AX,[BP-40]
    push AX
-   call far A289e0002
+   call far _strcat
    add SP,+08
    mov AX,8001
    push AX
    push SS
    lea AX,[BP-40]
    push AX
-   call far A28530005
+   call far __open
    add SP,+06
    mov DI,AX
    or DI,DI
    jl L19dd0988
    push DI
-   call far A294b000a
+   call far _filelength
    pop CX
    or DX,DX
    jg L19dd09d6
@@ -33405,15 +33408,15 @@ L19dd098c:
    mov DX,000A
    mul DX
    mov BX,AX
-   add BX,offset Y2a17b6ac
+   add BX,offset _hiname
    push DS
    pop ES
    mov byte ptr [ES:BX],00
    mov BX,SI
    shl BX,1
    shl BX,1
-   mov word ptr [BX+offset Y2a17b88c+2],0000
-   mov word ptr [BX+offset Y2a17b88c],0000
+   mov word ptr [BX+offset _hiscore+02],0000
+   mov word ptr [BX+offset _hiscore],0000
    inc SI
 L19dd09b2:
    cmp SI,+0A
@@ -33425,7 +33428,7 @@ L19dd09bb:
    mov DX,000C
    mul DX
    mov BX,AX
-   add BX,offset Y2a17bb76
+   add BX,offset _savename
    push DS
    pop ES
    mov byte ptr [ES:BX],00
@@ -33438,42 +33441,42 @@ L19dd09d6:
    mov AX,0078
    push AX
    push DS
-   mov AX,offset Y2a17b6ac
+   mov AX,offset _hiname
    push AX
    push DI
-   call far A28600006
+   call far _read
    add SP,+08
    mov AX,0028
    push AX
    push DS
-   mov AX,offset Y2a17b88c
+   mov AX,offset _hiscore
    push AX
    push DI
-   call far A28600006
+   call far _read
    add SP,+08
    mov AX,0048
    push AX
    push DS
-   mov AX,offset Y2a17bb76
+   mov AX,offset _savename
    push AX
    push DI
-   call far A28600006
+   call far _read
    add SP,+08
    mov AX,0016
    push AX
    push DS
-   mov AX,offset Y2a173ed2
+   mov AX,offset _cf
    push AX
    push DI
-   call far A28600006
+   call far _read
    add SP,+08
    or AX,AX
    jge L19dd0a28
 L19dd0a22:
-   mov word ptr [offset Y2a173ed2],0001
+   mov word ptr [offset _cf],0001
 L19dd0a28:
    push DI
-   call far A285a000f
+   call far _close
    pop CX
    pop DI
    pop SI
@@ -33481,33 +33484,33 @@ L19dd0a28:
    pop BP
 ret far
 
-A19dd0a35:
+_savecfg: ;; 19dd0a35
    push BP
    mov BP,SP
    sub SP,+40
    push SI
    push DS
-   mov AX,offset Y2a1705fc
+   mov AX,offset _path
    push AX
    push SS
    lea AX,[BP-40]
    push AX
-   call far A28a70001
+   call far _strcpy
    add SP,+08
    push DS
-   mov AX,offset Y2a1718c4
+   mov AX,offset _cfgfname
    push AX
    push SS
    lea AX,[BP-40]
    push AX
-   call far A289e0002
+   call far _strcat
    add SP,+08
    xor AX,AX
    push AX
    push SS
    lea AX,[BP-40]
    push AX
-   call far A29430036
+   call far __creat
    add SP,+06
    mov SI,AX
    or SI,SI
@@ -33515,45 +33518,45 @@ A19dd0a35:
    mov AX,0078
    push AX
    push DS
-   mov AX,offset Y2a17b6ac
+   mov AX,offset _hiname
    push AX
    push SI
-   call far A286e000b
+   call far _write
    add SP,+08
    mov AX,0028
    push AX
    push DS
-   mov AX,offset Y2a17b88c
+   mov AX,offset _hiscore
    push AX
    push SI
-   call far A286e000b
+   call far _write
    add SP,+08
    mov AX,0048
    push AX
    push DS
-   mov AX,offset Y2a17bb76
+   mov AX,offset _savename
    push AX
    push SI
-   call far A286e000b
+   call far _write
    add SP,+08
    mov AX,0016
    push AX
    push DS
-   mov AX,offset Y2a173ed2
+   mov AX,offset _cf
    push AX
    push SI
-   call far A286e000b
+   call far _write
    add SP,+08
 L19dd0abe:
    push SI
-   call far A285a000f
+   call far _close
    pop CX
    pop SI
    mov SP,BP
    pop BP
 ret far
 
-A19dd0aca:
+_loadboard: ;; 19dd0aca
    push BP
    mov BP,SP
    sub SP,+06
@@ -33564,89 +33567,89 @@ jmp near L19dd0ae2
 L19dd0ad7:
    mov BX,SI
    shl BX,1
-   mov word ptr [BX+2EB4],0000
+   mov word ptr [BX+offset _shm_want],0000
    inc SI
 L19dd0ae2:
    cmp SI,+40
    jl L19dd0ad7
-   mov word ptr [2ED0],0001
-   mov word ptr [2F10],0001
+   mov word ptr [offset _shm_want+2*0e],0001
+   mov word ptr [offset _shm_want+2*2e],0001
    push [BP+08]
    push [BP+06]
    push DS
-   mov AX,offset Y2a17bbfe
+   mov AX,offset _curlevel
    push AX
-   call far A28a70001
+   call far _strcpy
    add SP,+08
    push CS
-   call near offset A19dd08ea
+   call near offset _zapobjs
    mov AX,8001
    push AX
    push [BP+08]
    push [BP+06]
-   call far A28530005
+   call far __open
    add SP,+06
    mov DI,AX
    mov AX,4000
    push AX
    push DS
-   mov AX,offset Y2a174468
+   mov AX,offset _bd
    push AX
    push DI
-   call far A28600006
+   call far _read
    add SP,+08
    or AX,AX
    jnz L19dd0b3e
    mov AX,0001
    push AX
-   call far A19dd3342
+   call far _rexit
    pop CX
 L19dd0b3e:
    mov AX,0002
    push AX
    push DS
-   mov AX,offset Y2a17bc1e
+   mov AX,offset _numobjs
    push AX
    push DI
-   call far A28600006
+   call far _read
    add SP,+08
    or AX,AX
    jnz L19dd0b5e
    mov AX,0002
    push AX
-   call far A19dd3342
+   call far _rexit
    pop CX
 L19dd0b5e:
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    mov DX,001F
    mul DX
    push AX
    push DS
-   mov AX,offset Y2a17976e
+   mov AX,offset _objs
    push AX
    push DI
-   call far A28600006
+   call far _read
    add SP,+08
    or AX,AX
    jnz L19dd0b83
    mov AX,0003
    push AX
-   call far A19dd3342
+   call far _rexit
    pop CX
 L19dd0b83:
    mov AX,0046
    push AX
    push DS
-   mov AX,offset Y2a178468
+   mov AX,offset _pl
    push AX
    push DI
-   call far A28600006
+   call far _read
    add SP,+08
    or AX,AX
    jnz L19dd0ba3
    mov AX,0004
    push AX
-   call far A19dd3342
+   call far _rexit
    pop CX
 L19dd0ba3:
    xor SI,SI
@@ -33656,7 +33659,7 @@ L19dd0ba7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+17]
@@ -33668,12 +33671,12 @@ L19dd0ba7:
    lea AX,[BP-06]
    push AX
    push DI
-   call far A28600006
+   call far _read
    add SP,+08
    mov AX,[BP-06]
    inc AX
    push AX
-   call far A27f10003
+   call far _malloc
    pop CX
    push DX
    push AX
@@ -33681,7 +33684,7 @@ L19dd0ba7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -33695,21 +33698,21 @@ L19dd0ba7:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+19]
    push [ES:BX+17]
    push DI
-   call far A28600006
+   call far _read
    add SP,+08
 L19dd0c1d:
    inc SI
 L19dd0c1e:
-   cmp SI,[offset Y2a17bc1e]
+   cmp SI,[offset _numobjs]
    jl L19dd0ba7
    push DI
-   call far A285e0000
+   call far __close
    pop CX
    mov word ptr [BP-04],0000
 jmp near L19dd0c7f
@@ -33720,7 +33723,7 @@ L19dd0c39:
    mov BX,[BP-04]
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,[BP-02]
@@ -33731,7 +33734,7 @@ L19dd0c39:
    shl BX,1
    shl BX,1
    shl BX,1
-   add BX,offset Y2a1784ae
+   add BX,offset _info
    push DS
    pop ES
    mov BX,[ES:BX]
@@ -33739,7 +33742,7 @@ L19dd0c39:
    sar BX,CL
    and BX,003F
    shl BX,1
-   mov word ptr [BX+2EB4],0001
+   mov word ptr [BX+offset _shm_want],0001
    inc word ptr [BP-02]
 L19dd0c76:
    cmp word ptr [BP-02],+40
@@ -33755,28 +33758,28 @@ L19dd0c8a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AL,[ES:BX]
    cbw
    mov BX,AX
    shl BX,1
-   mov BX,[BX+BC40]
+   mov BX,[BX+offset _kindtable]
    shl BX,1
-   mov word ptr [BX+2EB4],0001
+   mov word ptr [BX+offset _shm_want],0001
    inc SI
 L19dd0cae:
-   cmp SI,[offset Y2a17bc1e]
+   cmp SI,[offset _numobjs]
    jl L19dd0c8a
-   call far A07d3074d
+   call far _shm_do
    pop DI
    pop SI
    mov SP,BP
    pop BP
 ret far
 
-A19dd0cbf:
+_saveboard: ;; 19dd0cbf
    push BP
    mov BP,SP
    sub SP,+02
@@ -33786,56 +33789,56 @@ A19dd0cbf:
    push AX
    push [BP+08]
    push [BP+06]
-   call far A29430036
+   call far __creat
    add SP,+06
    mov SI,AX
    or SI,SI
    jge L19dd0ce8
    mov AX,00C9
    push AX
-   call far A19dd3342
+   call far _rexit
    pop CX
 L19dd0ce8:
    mov AX,4000
    push AX
    push DS
-   mov AX,offset Y2a174468
+   mov AX,offset _bd
    push AX
    push SI
-   call far A286e000b
+   call far _write
    add SP,+08
    or AX,AX
    jge L19dd0d08
    mov AX,00CA
    push AX
-   call far A19dd3342
+   call far _rexit
    pop CX
 L19dd0d08:
    mov AX,0002
    push AX
    push DS
-   mov AX,offset Y2a17bc1e
+   mov AX,offset _numobjs
    push AX
    push SI
-   call far A286e000b
+   call far _write
    add SP,+08
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    mov DX,001F
    mul DX
    push AX
    push DS
-   mov AX,offset Y2a17976e
+   mov AX,offset _objs
    push AX
    push SI
-   call far A286e000b
+   call far _write
    add SP,+08
    mov AX,0046
    push AX
    push DS
-   mov AX,offset Y2a178468
+   mov AX,offset _pl
    push AX
    push SI
-   call far A286e000b
+   call far _write
    add SP,+08
    xor DI,DI
 jmp near L19dd0db9
@@ -33844,7 +33847,7 @@ L19dd0d47:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+17]
@@ -33854,12 +33857,12 @@ L19dd0d47:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+19]
    push [ES:BX+17]
-   call far A28a20004
+   call far _strlen
    pop CX
    pop CX
    mov [BP-02],AX
@@ -33869,7 +33872,7 @@ L19dd0d47:
    lea AX,[BP-02]
    push AX
    push SI
-   call far A286e000b
+   call far _write
    add SP,+08
    mov AX,[BP-02]
    inc AX
@@ -33878,21 +33881,21 @@ L19dd0d47:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+19]
    push [ES:BX+17]
    push SI
-   call far A286e000b
+   call far _write
    add SP,+08
 L19dd0db8:
    inc DI
 L19dd0db9:
-   cmp DI,[offset Y2a17bc1e]
+   cmp DI,[offset _numobjs]
    jl L19dd0d47
    push SI
-   call far A285e0000
+   call far __close
    pop CX
    pop DI
    pop SI
@@ -33900,14 +33903,14 @@ L19dd0db9:
    pop BP
 ret far
 
-A19dd0dcc:
+_numlines: ;; 19dd0dcc
    push SI
    push DI
    xor DI,DI
    mov SI,DI
 jmp near L19dd0de8
 L19dd0dd4:
-   les BX,[4092]
+   les BX,[offset _textmsg]
    cmp byte ptr [ES:BX+SI],0D
    jnz L19dd0de3
    mov AX,0001
@@ -33918,14 +33921,14 @@ L19dd0de5:
    add DI,AX
    inc SI
 L19dd0de8:
-   cmp SI,[4456]
+   cmp SI,[offset _textmsglen]
    jl L19dd0dd4
    mov AX,DI
    pop DI
    pop SI
 ret far
 
-A19dd0df3:
+_getline: ;; 19dd0df3
    push BP
    mov BP,SP
    sub SP,+04
@@ -33936,7 +33939,7 @@ A19dd0df3:
    mov DI,SI
 jmp near L19dd0e1a
 L19dd0e06:
-   les BX,[4092]
+   les BX,[offset _textmsg]
    cmp byte ptr [ES:BX+SI],0D
    jnz L19dd0e15
    mov AX,0001
@@ -33949,19 +33952,19 @@ L19dd0e17:
 L19dd0e1a:
    cmp DI,[BP+06]
    jge L19dd0e28
-   cmp SI,[4456]
+   cmp SI,[offset _textmsglen]
    jl L19dd0e06
 jmp near L19dd0e28
 L19dd0e27:
    inc SI
 L19dd0e28:
-   les BX,[4092]
+   les BX,[offset _textmsg]
    cmp byte ptr [ES:BX+SI],20
    jge L19dd0e38
    cmp byte ptr [ES:BX+SI],0D
    jnz L19dd0e27
 L19dd0e38:
-   les BX,[4092]
+   les BX,[offset _textmsg]
    cmp byte ptr [ES:BX+SI],30
    jl L19dd0e53
    cmp byte ptr [ES:BX+SI],37
@@ -33980,7 +33983,7 @@ L19dd0e57:
    mov AL,[BP-01]
    cbw
    push AX
-   call far A29ff000e
+   call far _toupper
    pop CX
    les BX,[BP+08]
    mov [ES:BX+DI],AL
@@ -33994,12 +33997,12 @@ L19dd0e71:
 L19dd0e7b:
    inc SI
 L19dd0e7c:
-   les BX,[4092]
+   les BX,[offset _textmsg]
    mov AL,[ES:BX+SI]
    mov [BP-01],AL
    cmp AL,0D
    jz L19dd0e95
-   cmp SI,[4456]
+   cmp SI,[offset _textmsglen]
    jge L19dd0e95
    cmp DI,+4D
    jl L19dd0e57
@@ -34013,7 +34016,7 @@ L19dd0e95:
    pop BP
 ret far
 
-A19dd0ea5:
+_printline: ;; 19dd0ea5
    push BP
    mov BP,SP
    sub SP,+50
@@ -34025,12 +34028,12 @@ A19dd0ea5:
    push AX
    push [BP+0C]
    push CS
-   call near offset A19dd0df3
+   call near offset _getline
    add SP,+08
    push AX
    push [BP+08]
    push [BP+06]
-   call far A0a820abc
+   call far _fontcolor
    add SP,+08
    push DS
    mov AX,offset Y2a1714f0
@@ -34042,7 +34045,7 @@ A19dd0ea5:
    push AX
    push [BP+08]
    push [BP+06]
-   call far A0a8206bf
+   call far _wprint
    add SP,+0E
    push SS
    lea AX,[BP-50]
@@ -34053,7 +34056,7 @@ A19dd0ea5:
    push SS
    lea AX,[BP-50]
    push AX
-   call far A28a20004
+   call far _strlen
    pop CX
    pop CX
    mov DX,0006
@@ -34065,64 +34068,64 @@ A19dd0ea5:
    push DX
    push [BP+08]
    push BX
-   call far A0a8206bf
+   call far _wprint
    add SP,+0E
    mov SP,BP
    pop BP
 ret far
 
-A19dd0f24:
+_ourdelay: ;; 19dd0f24
    push SI
-   les BX,[0C74]
+   les BX,[offset _myclock]
    mov SI,[ES:BX]
 L19dd0f2c:
-   les BX,[0C74]
+   les BX,[offset _myclock]
    mov AX,[ES:BX]
    sub AX,SI
-   cmp AX,[1912]
+   cmp AX,[offset _xmsgdelay]
    jl L19dd0f2c
    pop SI
 ret far
 
-A19dd0f3d:
+_dotextmsg: ;; 19dd0f3d
    push BP
    mov BP,SP
    sub SP,00AE
    push SI
    push DI
-   mov word ptr [3E94],0001
-   mov word ptr [3E96],0001
+   mov word ptr [offset _dx1hold],0001
+   mov word ptr [offset _dy1hold],0001
    push [BP+06]
-   call far A0c7e0611
+   call far _text_get
    pop CX
-   mov AX,[4092]
-   or AX,[4094]
+   mov AX,[offset _textmsg]
+   or AX,[offset _textmsg+02]
    jnz L19dd0f67
 jmp near L19dd1218
 L19dd0f67:
    mov AX,0001
    push AX
-   call far A0860063e
+   call far _setpagemode
    pop CX
    xor AX,AX
    push AX
    push AX
    push AX
-   mov AX,[offset Y2a17b8b8+28+06]
+   mov AX,[offset _ourwin+28+06]
    mov BX,0010
    cwd
    idiv BX
    add AX,FFFC
    push AX
-   mov AX,[offset Y2a17b8b8+28+04]
+   mov AX,[offset _ourwin+28+04]
    cwd
    idiv BX
    add AX,FFFD
    push AX
-   mov AX,[offset Y2a17b8b8+28+02]
+   mov AX,[offset _ourwin+28+02]
    add AX,BX
    push AX
-   mov AX,[offset Y2a17b8b8+28+00]
+   mov AX,[offset _ourwin+28+00]
    mov BX,0008
    cwd
    idiv BX
@@ -34130,14 +34133,14 @@ L19dd0f67:
    inc AX
    push AX
    push SS
-   lea AX,[BP+FF52]
+   lea AX,[BP-00ae]
    push AX
-   call far A0a82000b
+   call far _defwin
    add SP,+12
    push SS
-   lea AX,[BP+FF52]
+   lea AX,[BP-00ae]
    push AX
-   call far A0a8201e8
+   call far _drawwin
    pop CX
    pop CX
    mov AX,0001
@@ -34145,14 +34148,14 @@ L19dd0f67:
    mov AX,0007
    push AX
    push SS
-   lea AX,[BP+FF7A]
+   lea AX,[BP-0086]
    push AX
-   call far A0a820abc
+   call far _fontcolor
    add SP,+08
    push SS
-   lea AX,[BP+FF7A]
+   lea AX,[BP-0086]
    push AX
-   call far A0a820aa4
+   call far _clearvp
    pop CX
    pop CX
    mov AX,FFFF
@@ -34165,30 +34168,30 @@ L19dd0f67:
    xor AX,AX
    push AX
    push CS
-   call near offset A19dd0df3
+   call near offset _getline
    add SP,+08
    push AX
    push SS
-   lea AX,[BP+FF6A]
+   lea AX,[BP-0096]
    push AX
-   call far A0a820abc
+   call far _fontcolor
    add SP,+08
    push SS
    lea AX,[BP-50]
    push AX
    push SS
-   lea AX,[BP+FF52]
+   lea AX,[BP-00ae]
    push AX
-   call far A0a820998
+   call far _titlewin
    add SP,+08
    xor AX,AX
    push AX
    mov AX,0007
    push AX
    push SS
-   lea AX,[BP+FF7A]
+   lea AX,[BP-0086]
    push AX
-   call far A0a820abc
+   call far _fontcolor
    add SP,+08
    mov AX,[BP-80]
    mov BX,0006
@@ -34196,7 +34199,7 @@ L19dd0f67:
    idiv BX
    mov [BP-52],AX
    push CS
-   call near offset A19dd0dcc
+   call near offset _numlines
    mov [BP-56],AX
    cmp AX,[BP-52]
    jle L19dd1045
@@ -34219,46 +34222,46 @@ L19dd1060:
    push SI
    push [BP-54]
    push SS
-   lea AX,[BP+FF7A]
+   lea AX,[BP-0086]
    push AX
    push CS
-   call near offset A19dd0ea5
+   call near offset _printline
    add SP,+08
    add word ptr [BP-54],+06
    inc SI
 L19dd1076:
    cmp SI,[BP-56]
    jl L19dd1060
-   call far A08600689
+   call far _pageflip
    push CS
-   call near offset A19dd0f24
+   call near offset _ourdelay
 L19dd1084:
    mov AX,0001
    push AX
-   call far A0b390517
+   call far _checkctrl0
    pop CX
-   cmp word ptr [3D7A],+00
+   cmp word ptr [offset _dx1],+00
    jnz L19dd1084
-   cmp word ptr [3D7C],+00
+   cmp word ptr [offset _dy1],+00
    jnz L19dd1084
-   cmp word ptr [3D8A],+00
+   cmp word ptr [offset _key],+00
    jnz L19dd1084
-   cmp word ptr [3D7E],+00
+   cmp word ptr [offset _fire1],+00
    jnz L19dd1084
 L19dd10aa:
    mov AX,0001
    push AX
-   call far A0b390517
+   call far _checkctrl0
    pop CX
-   cmp word ptr [3D8A],+20
+   cmp word ptr [offset _key],+20
    jnz L19dd10be
 jmp near L19dd11fe
 L19dd10be:
-   cmp word ptr [3D8A],+0D
+   cmp word ptr [offset _key],+0D
    jnz L19dd10c8
 jmp near L19dd11fe
 L19dd10c8:
-   cmp word ptr [3D7E],+00
+   cmp word ptr [offset _fire1],+00
    jz L19dd10aa
 jmp near L19dd11fe
 L19dd10d2:
@@ -34270,41 +34273,41 @@ L19dd10dc:
    push SI
    push [BP-54]
    push SS
-   lea AX,[BP+FF7A]
+   lea AX,[BP-0086]
    push AX
    push CS
-   call near offset A19dd0ea5
+   call near offset _printline
    add SP,+08
    add word ptr [BP-54],+06
    inc SI
 L19dd10f2:
    cmp SI,[BP-52]
    jle L19dd10dc
-   call far A08600689
+   call far _pageflip
    xor AX,AX
    push AX
-   call far A0860063e
+   call far _setpagemode
    pop CX
-   mov word ptr [3EA2],0001
+   mov word ptr [offset _fire1off],0001
 L19dd110b:
    mov AX,0001
    push AX
-   call far A0b390517
+   call far _checkctrl0
    pop CX
-   cmp word ptr [3D7A],+00
+   cmp word ptr [offset _dx1],+00
    jnz L19dd110b
-   cmp word ptr [3D7C],+00
+   cmp word ptr [offset _dy1],+00
    jnz L19dd110b
-   cmp word ptr [3D8A],+00
+   cmp word ptr [offset _key],+00
    jnz L19dd110b
    push CS
-   call near offset A19dd0f24
+   call near offset _ourdelay
 L19dd112e:
    xor AX,AX
    push AX
-   call far A0b390517
+   call far _checkctrl0
    pop CX
-   cmp word ptr [3D8A],00D1
+   cmp word ptr [offset _key],00D1
    jnz L19dd1144
    mov AX,0001
 jmp near L19dd1146
@@ -34312,7 +34315,7 @@ L19dd1144:
    xor AX,AX
 L19dd1146:
    push AX
-   cmp word ptr [3D8A],00C9
+   cmp word ptr [offset _key],00C9
    jnz L19dd1154
    mov AX,0001
 jmp near L19dd1156
@@ -34321,9 +34324,9 @@ L19dd1154:
 L19dd1156:
    pop DX
    sub DX,AX
-   add [3D7A],DX
-   mov AX,[3D7A]
-   add AX,[3D7C]
+   add [offset _dx1],DX
+   mov AX,[offset _dx1]
+   add AX,[offset _dy1]
    jge L19dd1196
    or DI,DI
    jle L19dd1196
@@ -34333,9 +34336,9 @@ L19dd1156:
    xor AX,AX
    push AX
    push SS
-   lea AX,[BP+FF7A]
+   lea AX,[BP-0086]
    push AX
-   call far A09270e73
+   call far _scrollvp
    add SP,+08
    mov AX,DI
    inc AX
@@ -34343,15 +34346,15 @@ L19dd1156:
    xor AX,AX
    push AX
    push SS
-   lea AX,[BP+FF7A]
+   lea AX,[BP-0086]
    push AX
    push CS
-   call near offset A19dd0ea5
+   call near offset _printline
    add SP,+08
 jmp near L19dd11dc
 L19dd1196:
-   mov AX,[3D7A]
-   add AX,[3D7C]
+   mov AX,[offset _dx1]
+   add AX,[offset _dy1]
    jle L19dd11dc
    mov AX,DI
    add AX,[BP-52]
@@ -34363,9 +34366,9 @@ L19dd1196:
    xor AX,AX
    push AX
    push SS
-   lea AX,[BP+FF7A]
+   lea AX,[BP-0086]
    push AX
-   call far A09270e73
+   call far _scrollvp
    add SP,+08
    mov AX,DI
    add AX,[BP-52]
@@ -34376,32 +34379,32 @@ L19dd1196:
    mul DX
    push AX
    push SS
-   lea AX,[BP+FF7A]
+   lea AX,[BP-0086]
    push AX
    push CS
-   call near offset A19dd0ea5
+   call near offset _printline
    add SP,+08
 L19dd11dc:
-   cmp word ptr [3D8A],+0D
+   cmp word ptr [offset _key],+0D
    jz L19dd11f4
-   cmp word ptr [3D8A],+1B
+   cmp word ptr [offset _key],+1B
    jz L19dd11f4
-   cmp word ptr [3D7E],+00
+   cmp word ptr [offset _fire1],+00
    jnz L19dd11f4
 jmp near L19dd112e
 L19dd11f4:
    mov AX,0001
    push AX
-   call far A0860063e
+   call far _setpagemode
    pop CX
 L19dd11fe:
-   call far A19dd14e4
-   push [4094]
-   push [4092]
-   call far A29110001
+   call far _moddrawboard
+   push [offset _textmsg+02]
+   push [offset _textmsg]
+   call far _free
    pop CX
    pop CX
-   mov word ptr [3D8A],0000
+   mov word ptr [offset _key],0000
 L19dd1218:
    pop DI
    pop SI
@@ -34409,7 +34412,7 @@ L19dd1218:
    pop BP
 ret far
 
-A19dd121e:
+_initboard: ;; 19dd121e
    push SI
    push DI
    xor SI,SI
@@ -34422,7 +34425,7 @@ L19dd1228:
    push AX
    push DI
    push SI
-   call far A1e3e0004
+   call far _setboard
    add SP,+06
    inc DI
 L19dd1236:
@@ -34432,22 +34435,22 @@ L19dd1236:
 L19dd123c:
    cmp SI,0080
    jl L19dd1224
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov word ptr [ES:BX+08],0000
    mov word ptr [ES:BX+0A],0000
    pop DI
    pop SI
 ret far
 
-A19dd1255:
+_putlevelmsg: ;; 19dd1255
    push BP
    mov BP,SP
    sub SP,+52
    push SI
    push DI
-   les BX,[0C74]
+   les BX,[offset _myclock]
    mov AX,[ES:BX]
-   mov [C2D0],AX
+   mov [offset _levelmsgclock],AX
    cmp word ptr [BP+06],+20
    jl L19dd1270
 jmp near L19dd13a6
@@ -34455,28 +34458,28 @@ L19dd1270:
    mov BX,[BP+06]
    shl BX,1
    shl BX,1
-   les BX,[BX+26AD]
-   mov [4094],ES
-   mov [4092],BX
-   push [4094]
+   les BX,[BX+offset _leveltxt]
+   mov [offset _textmsg+02],ES
+   mov [offset _textmsg],BX
+   push [offset _textmsg+02]
    push BX
-   call far A28a20004
+   call far _strlen
    pop CX
    pop CX
-   mov [4456],AX
-   mov AX,[4092]
-   or AX,[4094]
+   mov [offset _textmsglen],AX
+   mov AX,[offset _textmsg]
+   or AX,[offset _textmsg+02]
    jnz L19dd129e
 jmp near L19dd13a6
 L19dd129e:
    mov AX,0001
    push AX
-   call far A0860063e
+   call far _setpagemode
    pop CX
    push DS
-   mov AX,offset Y2a17bd54
+   mov AX,offset _levelwin
    push AX
-   call far A0a8201e8
+   call far _drawwin
    pop CX
    pop CX
    mov AX,0001
@@ -34484,19 +34487,19 @@ L19dd129e:
    mov AX,0007
    push AX
    push DS
-   mov AX,offset Y2a17bd7c
+   mov AX,offset _levelwin+28
    push AX
-   call far A0a820abc
+   call far _fontcolor
    add SP,+08
    push DS
-   mov AX,offset Y2a17bd7c
+   mov AX,offset _levelwin+28
    push AX
-   call far A0a820aa4
+   call far _clearvp
    pop CX
    pop CX
-   cmp byte ptr [3B53],04
+   cmp byte ptr [offset _x_ourmode],04
    jnz L19dd131c
-   cmp word ptr [1976],+00
+   cmp word ptr [offset _facetable],+00
    jz L19dd131c
    xor SI,SI
 jmp near L19dd1317
@@ -34512,16 +34515,16 @@ L19dd12e7:
    mov CL,04
    shl AX,CL
    push AX
-   mov AX,[1976]
+   mov AX,[offset _facetable]
    mov CL,08
    shl AX,CL
    add AX,SI
    add AX,4000
    push AX
    push DS
-   mov AX,offset Y2a17bd8c
+   mov AX,offset _levelwin+38
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
    inc SI
 L19dd1317:
@@ -34529,14 +34532,14 @@ L19dd1317:
    jl L19dd12e7
 L19dd131c:
    push CS
-   call near offset A19dd0dcc
+   call near offset _numlines
    mov DI,AX
    mov AX,DI
    dec AX
    mov DX,0006
    mul DX
    push AX
-   mov AX,[BD82]
+   mov AX,[offset _levelwin+28+06]
    pop DX
    sub AX,DX
    mov BX,0002
@@ -34555,13 +34558,13 @@ L19dd133e:
    push AX
    push SI
    push CS
-   call near offset A19dd0df3
+   call near offset _getline
    add SP,+08
    push AX
    push DS
-   mov AX,offset Y2a17bd7c
+   mov AX,offset _levelwin+28
    push AX
-   call far A0a820abc
+   call far _fontcolor
    add SP,+08
    push SS
    lea AX,[BP-52]
@@ -34572,27 +34575,27 @@ L19dd133e:
    push SS
    lea AX,[BP-52]
    push AX
-   call far A28a20004
+   call far _strlen
    pop CX
    pop CX
    mov DX,0006
    mul DX
-   mov DX,[BD80]
+   mov DX,[offset _levelwin+28+04]
    sub DX,AX
    shr DX,1
    push DX
    push DS
-   mov AX,offset Y2a17bd7c
+   mov AX,offset _levelwin+28
    push AX
-   call far A0a8206bf
+   call far _wprint
    add SP,+0E
    add word ptr [BP-02],+06
    inc SI
 L19dd1398:
    cmp SI,DI
    jl L19dd133e
-   call far A08600689
-   call far A19dd14e4
+   call far _pageflip
+   call far _moddrawboard
 L19dd13a6:
    pop DI
    pop SI
@@ -34600,38 +34603,38 @@ L19dd13a6:
    pop BP
 ret far
 
-A19dd13ac:
+_donelevelmsg: ;; 19dd13ac
    push SI
    push DI
    xor SI,SI
 L19dd13b0:
    xor AX,AX
    push AX
-   call far A0b390517
+   call far _checkctrl0
    pop CX
-   cmp word ptr [3D8A],+00
+   cmp word ptr [offset _key],+00
    jnz L19dd13b0
 L19dd13c0:
    xor AX,AX
    push AX
-   call far A0b390517
+   call far _checkctrl0
    pop CX
-   les BX,[0C74]
+   les BX,[offset _myclock]
    mov AX,[ES:BX]
-   sub AX,[C2D0]
+   sub AX,[offset _levelmsgclock]
    mov BX,0012
    cwd
    idiv BX
    mov DI,AX
-   cmp word ptr [3D8A],+1B
+   cmp word ptr [offset _key],+1B
    jz L19dd1402
-   cmp word ptr [3D8A],+0D
+   cmp word ptr [offset _key],+0D
    jz L19dd1402
    cmp DI,+02
    jl L19dd13fd
-   cmp word ptr [3D8A],+00
+   cmp word ptr [offset _key],+00
    jnz L19dd1402
-   cmp word ptr [3D7E],+00
+   cmp word ptr [offset _fire1],+00
    jnz L19dd1402
 L19dd13fd:
    cmp DI,+04
@@ -34645,7 +34648,7 @@ L19dd1405:
    pop SI
 ret far
 
-A19dd140c:
+_drawcell: ;; 19dd140c
    push BP
    mov BP,SP
    sub SP,+02
@@ -34668,7 +34671,7 @@ L19dd142a:
    mov BX,SI
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,DI
@@ -34681,7 +34684,7 @@ L19dd142a:
    shl BX,1
    shl BX,1
    shl BX,1
-   add BX,offset Y2a1784ae
+   add BX,offset _info
    push DS
    pop ES
    test word ptr [ES:BX+02],0010
@@ -34698,13 +34701,13 @@ L19dd142a:
    shl BX,1
    shl BX,1
    shl BX,1
-   add BX,offset Y2a1784ae
+   add BX,offset _info
    push DS
    pop ES
    push [ES:BX]
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
 jmp near L19dd14a3
 L19dd1496:
@@ -34712,7 +34715,7 @@ L19dd1496:
    push AX
    push DI
    push SI
-   call far A16680006
+   call far _msg_block
    add SP,+06
 L19dd14a3:
    pop DI
@@ -34721,7 +34724,7 @@ L19dd14a3:
    pop BP
 ret far
 
-A19dd14a9:
+_drawboard: ;; 19dd14a9
    push SI
    push DI
    xor SI,SI
@@ -34732,7 +34735,7 @@ jmp near L19dd14bd
 L19dd14b3:
    push DI
    push SI
-   call far A1e3e0040
+   call far _modboard
    pop CX
    pop CX
    inc DI
@@ -34745,18 +34748,18 @@ L19dd14c3:
    jl L19dd14af
    xor AX,AX
    push AX
-   call far A1e3e12f9
+   call far _updobjs
    pop CX
-   mov word ptr [C23A],0000
+   mov word ptr [offset _statmodflg],0000
    xor AX,AX
    push AX
-   call far A1e3e0d52
+   call far _refresh
    pop CX
    pop DI
    pop SI
 ret far
 
-A19dd14e4:
+_moddrawboard: ;; 19dd14e4
    push SI
    push DI
    xor SI,SI
@@ -34767,7 +34770,7 @@ jmp near L19dd14f8
 L19dd14ee:
    push DI
    push SI
-   call far A1e3e0040
+   call far _modboard
    pop CX
    pop CX
    inc DI
@@ -34778,12 +34781,12 @@ L19dd14f8:
 L19dd14fe:
    cmp SI,0080
    jl L19dd14ea
-   or word ptr [C23A],C000
+   or word ptr [offset _statmodflg],C000
    pop DI
    pop SI
 ret far
 
-A19dd150d:
+_play: ;; 19dd150d
    push BP
    mov BP,SP
    sub SP,+0A
@@ -34797,178 +34800,178 @@ A19dd150d:
    mov AX,offset Y2a171515
    push AX
    push CS
-   call near offset A19dd059d
+   call near offset _putbotmsg
    add SP,+06
-   call far A1e3e1ad8
-   call far A1e3e2151
+   call far _initinv
+   call far _setorigin
    push CS
-   call near offset A19dd0309
+   call near offset _drawcmds
    push CS
-   call near offset A19dd05c6
-   mov byte ptr [offset Y2a17bc20],00
+   call near offset _drawstats
+   mov byte ptr [offset _newlevel],00
    mov AX,0001
    push AX
-   call far A0860063e
+   call far _setpagemode
    pop CX
-   call far A1e3e041f
-   mov word ptr [BDAC],0000
+   call far _dolevelsong
+   mov word ptr [offset _gameover],0000
 L19dd1556:
-   cmp byte ptr [offset Y2a17bc20],00
+   cmp byte ptr [offset _newlevel],00
    jnz L19dd1560
 jmp near L19dd175e
 L19dd1560:
-   cmp byte ptr [offset Y2a17bc20],2A
+   cmp byte ptr [offset _newlevel],2A
    jnz L19dd159b
    push DS
-   mov AX,offset Y2a17bc20
+   mov AX,offset _newlevel
    push AX
-   call far A28a20004
+   call far _strlen
    pop CX
    pop CX
    push AX
    push DS
-   mov AX,offset Y2a17bc20+1
+   mov AX,offset _newlevel+1
    push AX
    push DS
-   mov AX,offset Y2a17bc20
+   mov AX,offset _newlevel
    push AX
-   call far A28b00059
+   call far _memmove
    add SP,+0A
    push DS
-   mov AX,offset Y2a17bc20
+   mov AX,offset _newlevel
    push AX
    push DS
-   mov AX,offset Y2a17ba24
+   mov AX,offset _oursong
    push AX
-   call far A28a70001
+   call far _strcpy
    add SP,+08
 jmp near L19dd1616
 L19dd159b:
-   cmp byte ptr [offset Y2a17bc20],23
+   cmp byte ptr [offset _newlevel],23
    jnz L19dd15c3
    push DS
-   mov AX,offset Y2a17bc20
+   mov AX,offset _newlevel
    push AX
-   call far A28a20004
+   call far _strlen
    pop CX
    pop CX
    push AX
    push DS
-   mov AX,offset Y2a17bc20+1
+   mov AX,offset _newlevel+1
    push AX
    push DS
-   mov AX,offset Y2a17bc20
+   mov AX,offset _newlevel
    push AX
-   call far A28b00059
+   call far _memmove
    add SP,+0A
 jmp near L19dd15fb
 L19dd15c3:
-   cmp byte ptr [offset Y2a17bc20],26
+   cmp byte ptr [offset _newlevel],26
    jnz L19dd162a
    push DS
-   mov AX,offset Y2a17bc20
+   mov AX,offset _newlevel
    push AX
-   call far A28a20004
+   call far _strlen
    pop CX
    pop CX
    push AX
    push DS
-   mov AX,offset Y2a17bc20+1
+   mov AX,offset _newlevel+1
    push AX
    push DS
-   mov AX,offset Y2a17bc20
+   mov AX,offset _newlevel
    push AX
-   call far A28b00059
+   call far _memmove
    add SP,+0A
-   mov word ptr [3ECE],0002
+   mov word ptr [offset _macabort],0002
    push DS
-   mov AX,offset Y2a17bc20
+   mov AX,offset _newlevel
    push AX
-   call far A0b390606
+   call far _playmac
    pop CX
    pop CX
 L19dd15fb:
    push DS
-   mov AX,offset Y2a17bc20
+   mov AX,offset _newlevel
    push AX
    push DS
-   mov AX,offset Y2a17ba24
+   mov AX,offset _oursong
    push AX
-   call far A28a70001
+   call far _strcpy
    add SP,+08
-   call far A0c7e0785
+   call far _sb_playing
    or AX,AX
    jnz L19dd1622
 L19dd1616:
    push DS
-   mov AX,offset Y2a17bc20
+   mov AX,offset _newlevel
    push AX
-   call far A0c7e07b3
+   call far _sb_playtune
    pop CX
    pop CX
 L19dd1622:
-   mov byte ptr [offset Y2a17bc20],00
+   mov byte ptr [offset _newlevel],00
 jmp near L19dd175e
 L19dd162a:
-   cmp byte ptr [offset Y2a17bc20],21
+   cmp byte ptr [offset _newlevel],21
    jz L19dd1634
 jmp near L19dd1713
 L19dd1634:
    xor AX,AX
    push AX
    push CS
-   call near offset A19dd1255
+   call near offset _putlevelmsg
    pop CX
    mov AX,0003
    push AX
-   call far A1e3e1aaa
+   call far _invcount
    pop CX
    mov DI,AX
    mov [BP-06],DI
-   mov AX,[offset Y2a17848e]
+   mov AX,[offset _pl+26]
    mov [BP-02],AX
    push DS
-   mov AX,offset Y2a17bbbe
+   mov AX,offset _tempname
    push AX
    push CS
-   call near offset A19dd0aca
+   call near offset _loadboard
    pop CX
    pop CX
    mov AX,[BP-02]
    cwd
-   mov [offset Y2a17848e+2],DX
-   mov [offset Y2a17848e],AX
+   mov [offset _pl+26+02],DX
+   mov [offset _pl+26],AX
    push DS
-   mov AX,offset Y2a17bbbe
+   mov AX,offset _tempname
    push AX
-   call far A289c0006
+   call far _unlink
    pop CX
    pop CX
 jmp near L19dd167f
 L19dd1675:
    mov AX,0003
    push AX
-   call far A1e3e1a38
+   call far _addinv
    pop CX
 L19dd167f:
    mov AX,DI
    dec DI
    or AX,AX
    jg L19dd1675
-   mov byte ptr [offset Y2a17bc20],00
+   mov byte ptr [offset _newlevel],00
    xor AX,AX
    push AX
-   call far A1e3e051f
+   call far _p_reenter
    pop CX
-   push [offset Y2a178468]
-   call far A1e3e03da
+   push [offset _pl]
+   call far _findcheckpt
    pop CX
    mov DI,AX
    mov AX,DI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+0D]
@@ -34980,7 +34983,7 @@ L19dd16ba:
    jle L19dd16ca
 L19dd16c0:
    push DI
-   call far A1e3e188a
+   call far _killobj
    pop CX
 jmp near L19dd175a
 L19dd16ca:
@@ -34990,13 +34993,13 @@ L19dd16ca:
    mov AX,offset Y2a171528
    push AX
    push CS
-   call near offset A19dd059d
+   call near offset _putbotmsg
    add SP,+06
    mov AX,DI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+07]
@@ -35004,67 +35007,67 @@ L19dd16ca:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+05]
    xor AX,AX
    push AX
-   call far A1e3e1aeb
+   call far _moveobj
    add SP,+06
-   mov word ptr [offset Y2a178468],0000
+   mov word ptr [offset _pl],0000
 jmp near L19dd175a
 L19dd1713:
-   mov AX,[offset Y2a178468]
-   mov [C2CC],AX
+   mov AX,[offset _pl]
+   mov [offset _oldlevelnum],AX
    push AX
    push CS
-   call near offset A19dd1255
+   call near offset _putlevelmsg
    pop CX
    push DS
-   mov AX,offset Y2a17bbbe
+   mov AX,offset _tempname
    push AX
    push CS
-   call near offset A19dd0cbf
+   call near offset _saveboard
    pop CX
    pop CX
-   mov AX,[offset Y2a17848e]
+   mov AX,[offset _pl+26]
    mov [BP-02],AX
    push DS
-   mov AX,offset Y2a17bc20
+   mov AX,offset _newlevel
    push AX
    push CS
-   call near offset A19dd0aca
+   call near offset _loadboard
    pop CX
    pop CX
    mov AX,[BP-02]
    cwd
-   mov [offset Y2a17848e+2],DX
-   mov [offset Y2a17848e],AX
-   mov byte ptr [offset Y2a17bc20],00
-   mov AX,[C2CC]
-   mov [offset Y2a178468],AX
+   mov [offset _pl+26+02],DX
+   mov [offset _pl+26],AX
+   mov byte ptr [offset _newlevel],00
+   mov AX,[offset _oldlevelnum]
+   mov [offset _pl],AX
    xor AX,AX
    push AX
-   call far A1e3e051f
+   call far _p_reenter
    pop CX
 L19dd175a:
    push CS
-   call near offset A19dd13ac
+   call near offset _donelevelmsg
 L19dd175e:
-   les BX,[0C74]
+   les BX,[offset _myclock]
    mov AX,[ES:BX]
    mov [BP-0A],AX
-   call far A0c7e0784
-   inc word ptr [C23C]
+   call far _sb_update
+   inc word ptr [offset _gamecount]
    mov AX,0001
    push AX
-   call far A0b39029e
+   call far _checkctrl
    pop CX
-   push [3D8A]
-   call far A29ff000e
+   push [offset _key]
+   call far _toupper
    pop CX
-   mov [3D8A],AX
+   mov [offset _key],AX
    or AX,AX
    jnz L19dd178f
 jmp near L19dd187a
@@ -35082,15 +35085,15 @@ L19dd178f:
    jz L19dd17bb
 jmp near L19dd17d5
 L19dd17ad:
-   cmp word ptr [3EC6],+00
+   cmp word ptr [offset _macrecord],+00
    jz L19dd17d5
-   call far A0b3906d3
+   call far _macrecend
 jmp near L19dd17d5
 L19dd17bb:
    push DS
    mov AX,offset Y2a171548
    push AX
-   call far A0b390691
+   call far _recordmac
    pop CX
    pop CX
 jmp near L19dd17d5
@@ -35098,47 +35101,47 @@ L19dd17c9:
    push DS
    mov AX,offset Y2a171551
    push AX
-   call far A0b390606
+   call far _playmac
    pop CX
    pop CX
 L19dd17d5:
-   mov word ptr [3D8A],0000
+   mov word ptr [offset _key],0000
 L19dd17db:
-   mov AX,[3D8A]
+   mov AX,[offset _key]
    cmp AX,SI
    jnz L19dd17e7
    inc word ptr [BP-04]
 jmp near L19dd17f0
 L19dd17e7:
    mov word ptr [BP-04],0001
-   mov SI,[3D8A]
+   mov SI,[offset _key]
 L19dd17f0:
    cmp SI,+58
    jnz L19dd1835
    cmp word ptr [BP-04],+03
    jnz L19dd1835
    xor SI,SI
-   mov word ptr [offset Y2a17846a],0008
+   mov word ptr [offset _pl+02],0008
    mov AX,000A
    push AX
-   call far A1e3e1aaa
+   call far _invcount
    pop CX
    or AX,AX
    jnz L19dd181b
    mov AX,000A
    push AX
-   call far A1e3e1a38
+   call far _addinv
    pop CX
 L19dd181b:
    mov AX,0001
    push AX
-   call far A1e3e1aaa
+   call far _invcount
    pop CX
    or AX,AX
    jnz L19dd184d
    mov AX,0001
    push AX
-   call far A1e3e1a38
+   call far _addinv
    pop CX
 jmp near L19dd184d
 L19dd1835:
@@ -35147,29 +35150,29 @@ L19dd1835:
    cmp word ptr [BP-04],+03
    jnz L19dd1855
    xor SI,SI
-   mov AX,[13C0]
+   mov AX,[offset _debug]
    neg AX
    sbb AX,AX
    inc AX
-   mov [13C0],AX
+   mov [offset _debug],AX
 L19dd184d:
-   or word ptr [C23A],C000
+   or word ptr [offset _statmodflg],C000
 jmp near L19dd187a
 L19dd1855:
    cmp SI,+57
    jnz L19dd187a
    cmp word ptr [BP-04],+03
    jnz L19dd187a
-   call far A0b3905af
-   mov AX,[3D8A]
+   call far _getkey
+   mov AX,[offset _key]
    add AX,FFD0
    push AX
-   call far A0c59000f
+   call far _pixwrite
    pop CX
-   mov word ptr [13C2],0001
+   mov word ptr [offset _swrite],0001
    xor SI,SI
 L19dd187a:
-   mov AX,[3D8A]
+   mov AX,[offset _key]
    cmp AX,004E
    jz L19dd188e
    cmp AX,0050
@@ -35178,67 +35181,67 @@ L19dd187a:
    jz L19dd189b
 jmp near L19dd18df
 L19dd188e:
-   mov AX,[0C70]
+   mov AX,[offset _soundf]
    neg AX
    sbb AX,AX
    inc AX
-   mov [0C70],AX
+   mov [offset _soundf],AX
 jmp near L19dd18a6
 L19dd189b:
-   mov AX,[13C6]
+   mov AX,[offset _turtle]
    neg AX
    sbb AX,AX
    inc AX
-   mov [13C6],AX
+   mov [offset _turtle],AX
 L19dd18a6:
-   or word ptr [C23A],C000
+   or word ptr [offset _statmodflg],C000
 jmp near L19dd18df
 L19dd18ae:
    xor AX,AX
    push AX
-   call far A0b390517
+   call far _checkctrl0
    pop CX
-   call far A0c7e0784
-   cmp word ptr [3D8A],+00
+   call far _sb_update
+   cmp word ptr [offset _key],+00
    jnz L19dd18df
-   cmp word ptr [3D7E],+00
+   cmp word ptr [offset _fire1],+00
    jnz L19dd18df
-   cmp word ptr [3D82],+00
+   cmp word ptr [offset _fire2],+00
    jnz L19dd18df
-   cmp word ptr [3D7A],+00
+   cmp word ptr [offset _dx1],+00
    jnz L19dd18df
-   cmp word ptr [3D7C],+00
+   cmp word ptr [offset _dy1],+00
    jz L19dd18ae
 L19dd18df:
    cmp word ptr [BP+06],+00
    jz L19dd190e
-   cmp word ptr [18A8],+00
+   cmp word ptr [offset _xdemoflag],+00
    jnz L19dd190e
    mov AX,0043
    push AX
-   call far A1e3e015f
+   call far _countobj
    pop CX
    or AX,AX
    jnz L19dd190e
-   push [9771]
-   push [976F]
+   push [offset _objs+03]
+   push [offset _objs+01]
    mov AX,0043
    push AX
-   call far A1e3e18b9
+   call far _addobj
    add SP,+06
 L19dd190e:
-   call far A1e3e120f
+   call far _updbkgnd
    mov AX,0001
    push AX
-   call far A1e3e12f9
+   call far _updobjs
    pop CX
-   call far A1e3e2566
-   push [3B4A]
-   call far A1e3e0d52
+   call far _updbotmsg
+   push [offset _pagemode]
+   call far _refresh
    pop CX
-   call far A1e3e24d5
-   push [3D8A]
-   call far A29ff000e
+   call far _purgeobjs
+   push [offset _key]
+   call far _toupper
    pop CX
    mov CX,0005
    mov BX,offset Y19dd1951
@@ -35254,92 +35257,92 @@ jmp near [CS:BX+0A]
 Y19dd1951:	dw 001b,0051,0052,0053,00bb
 		dw L19dd19d2,L19dd19d2,L19dd198c,L19dd1965,L19dd19c7
 L19dd1965:
-   mov AX,[3B56]
+   mov AX,[offset _pagedraw]
    mov [BP-08],AX
-   mov AX,[3B54]
-   mov [3B56],AX
-   call far A08600629
-   call far A19dd2526
+   mov AX,[offset _pageshow]
+   mov [offset _pagedraw],AX
+   call far _setpages
+   call far _savegame
    push CS
-   call near offset A19dd0309
+   call near offset _drawcmds
    mov AX,[BP-08]
-   mov [3B56],AX
-   call far A08600629
+   mov [offset _pagedraw],AX
+   call far _setpages
 jmp near L19dd19bf
 L19dd198c:
-   mov AX,[3B56]
+   mov AX,[offset _pagedraw]
    mov [BP-08],AX
-   mov AX,[3B54]
-   mov [3B56],AX
-   call far A08600629
-   call far A19dd23f3
-   call far A1e3e041f
+   mov AX,[offset _pageshow]
+   mov [offset _pagedraw],AX
+   call far _setpages
+   call far _loadgame
+   call far _dolevelsong
    push CS
-   call near offset A19dd0309
+   call near offset _drawcmds
    mov AX,[BP-08]
-   mov [3B56],AX
-   call far A08600629
-   call far A1e3e2151
+   mov [offset _pagedraw],AX
+   call far _setpages
+   call far _setorigin
    push CS
-   call near offset A19dd14e4
+   call near offset _moddrawboard
 L19dd19bf:
-   mov word ptr [3D8A],0020
+   mov word ptr [offset _key],0020
 jmp near L19dd19f1
 L19dd19c7:
    mov AX,0001
    push AX
    push CS
-   call near offset A19dd0f3d
+   call near offset _dotextmsg
    pop CX
 jmp near L19dd19f1
 L19dd19d2:
    xor AX,AX
    push AX
-   call far A0860063e
+   call far _setpagemode
    pop CX
-   call far A19dd2c19
-   mov [BDAC],AX
+   call far _askquit
+   mov [offset _gameover],AX
    mov AX,0001
    push AX
-   call far A0860063e
+   call far _setpagemode
    pop CX
    push CS
-   call near offset A19dd14e4
+   call near offset _moddrawboard
 L19dd19f1:
    cmp word ptr [BP+06],+00
    jz L19dd1a04
-   cmp word ptr [3ECC],+00
+   cmp word ptr [offset _macplay],+00
    jnz L19dd1a04
-   mov word ptr [BDAC],0001
+   mov word ptr [offset _gameover],0001
 L19dd1a04:
-   les BX,[0C74]
+   les BX,[offset _myclock]
    mov AX,[ES:BX]
    sub AX,[BP-0A]
-   mov DX,[13C6]
+   mov DX,[offset _turtle]
    inc DX
    cmp AX,DX
    jl L19dd1a04
-   cmp word ptr [BDAC],+00
+   cmp word ptr [offset _gameover],+00
    jnz L19dd1a21
 jmp near L19dd1556
 L19dd1a21:
-   mov word ptr [3D8A],0000
-   cmp word ptr [BDAC],+02
+   mov word ptr [offset _key],0000
+   cmp word ptr [offset _gameover],+02
    jnz L19dd1a38
    mov AX,00C8
    push AX
-   call far A19dd27f8
+   call far _pageview
    pop CX
 L19dd1a38:
    xor AX,AX
    push AX
-   call far A0860063e
+   call far _setpagemode
    pop CX
    cmp word ptr [BP+06],+00
    jnz L19dd1a51
    mov AX,0001
    push AX
-   call far A19dd1d96
+   call far _printhi
    pop CX
 L19dd1a51:
    pop DI
@@ -35348,20 +35351,20 @@ L19dd1a51:
    pop BP
 ret far
 
-A19dd1a57:
+_pleasewait: ;; 19dd1a57
    push BP
    mov BP,SP
    sub SP,+58
    push SI
    push DI
-   call far A08600834
+   call far _clrpal
    mov AX,0001
    push AX
-   call far A0860063e
+   call far _setpagemode
    pop CX
-   cmp byte ptr [offset Y2a1718b0],6F
+   cmp byte ptr [offset _xshafile],6F
    jnz L19dd1a7f
-   cmp byte ptr [3B53],04
+   cmp byte ptr [offset _x_ourmode],04
    jnz L19dd1a7f
 jmp near L19dd1c66
 L19dd1a7f:
@@ -35381,12 +35384,12 @@ L19dd1a7f:
    push SS
    lea AX,[BP-58]
    push AX
-   call far A0a82000b
+   call far _defwin
    add SP,+12
    push SS
    lea AX,[BP-58]
    push AX
-   call far A0a8201e8
+   call far _drawwin
    pop CX
    pop CX
    mov AX,FFFF
@@ -35396,7 +35399,7 @@ L19dd1a7f:
    push SS
    lea AX,[BP-30]
    push AX
-   call far A0a820abc
+   call far _fontcolor
    add SP,+08
    push DS
    mov AX,offset Y2a17155a
@@ -35410,10 +35413,10 @@ L19dd1a7f:
    push SS
    lea AX,[BP-30]
    push AX
-   call far A0a8206bf
+   call far _wprint
    add SP,+0E
    push DS
-   mov AX,offset Y2a172671
+   mov AX,offset _v_publisher
    push AX
    mov AX,0001
    push AX
@@ -35424,7 +35427,7 @@ L19dd1a7f:
    push SS
    lea AX,[BP-30]
    push AX
-   call far A0a8206bf
+   call far _wprint
    add SP,+0E
    push DS
    mov AX,offset Y2a17156d
@@ -35438,10 +35441,10 @@ L19dd1a7f:
    push SS
    lea AX,[BP-30]
    push AX
-   call far A0a8206bf
+   call far _wprint
    add SP,+0E
    push DS
-   mov AX,offset Y2a172665
+   mov AX,offset _v_producer
    push AX
    mov AX,0002
    push AX
@@ -35452,7 +35455,7 @@ L19dd1a7f:
    push SS
    lea AX,[BP-30]
    push AX
-   call far A0a8206bf
+   call far _wprint
    add SP,+0E
    mov AX,FFFF
    push AX
@@ -35461,19 +35464,19 @@ L19dd1a7f:
    push SS
    lea AX,[BP-30]
    push AX
-   call far A0a820abc
+   call far _fontcolor
    add SP,+08
    push DS
-   mov AX,offset Y2a17268a
+   mov AX,offset _v_title
    push AX
    mov AX,0001
    push AX
    mov AX,0015
    push AX
    push DS
-   mov AX,offset Y2a17268a
+   mov AX,offset _v_title
    push AX
-   call far A28a20004
+   call far _strlen
    pop CX
    pop CX
    shl AX,1
@@ -35486,16 +35489,16 @@ L19dd1a7f:
    push SS
    lea AX,[BP-30]
    push AX
-   call far A0a8206bf
+   call far _wprint
    add SP,+0E
    xor AX,AX
    push AX
    mov AX,0001
    push AX
    push DS
-   mov AX,offset Y2a173b38
+   mov AX,offset _mainvp
    push AX
-   call far A0a820abc
+   call far _fontcolor
    add SP,+08
    push DS
    mov AX,offset Y2a171579
@@ -35507,11 +35510,11 @@ L19dd1a7f:
    mov AX,0040
    push AX
    push DS
-   mov AX,offset Y2a173b38
+   mov AX,offset _mainvp
    push AX
-   call far A0a8206bf
+   call far _wprint
    add SP,+0E
-   cmp byte ptr [offset Y2a1718b0],6F
+   cmp byte ptr [offset _xshafile],6F
    jz L19dd1bc2
 jmp near L19dd1c50
 L19dd1bc2:
@@ -35528,9 +35531,9 @@ L19dd1bc7:
    add AX,0C06
    push AX
    push DS
-   mov AX,offset Y2a173b38
+   mov AX,offset _mainvp
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
    xor AX,AX
    push AX
@@ -35544,9 +35547,9 @@ L19dd1bc7:
    add AX,0C06
    push AX
    push DS
-   mov AX,offset Y2a173b38
+   mov AX,offset _mainvp
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
    mov AX,00A8
    push AX
@@ -35558,9 +35561,9 @@ L19dd1bc7:
    add AX,0C00
    push AX
    push DS
-   mov AX,offset Y2a173b38
+   mov AX,offset _mainvp
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
    mov AX,00A8
    push AX
@@ -35574,9 +35577,9 @@ L19dd1bc7:
    add AX,0C00
    push AX
    push DS
-   mov AX,offset Y2a173b38
+   mov AX,offset _mainvp
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
    inc SI
 L19dd1c48:
@@ -35584,22 +35587,22 @@ L19dd1c48:
    jg L19dd1c50
 jmp near L19dd1bc7
 L19dd1c50:
-   call far A08600689
+   call far _pageflip
    xor AX,AX
    push AX
-   call far A0860063e
+   call far _setpagemode
    pop CX
-   call far A086008a4
+   call far _fadein
 jmp near L19dd1d90
 L19dd1c66:
-   mov word ptr [2EF8],0001
-   call far A07d3074d
+   mov word ptr [offset _shm_want+2*22],0001
+   call far _shm_do
    mov AL,00
    push AX
    push DS
-   mov AX,offset Y2a173b38
+   mov AX,offset _mainvp
    push AX
-   call far A09270e9e
+   call far _clrvp
    add SP,+06
    xor SI,SI
 jmp near L19dd1cb8
@@ -35622,9 +35625,9 @@ L19dd1c89:
    add AX,6201
    push AX
    push DS
-   mov AX,offset Y2a173b38
+   mov AX,offset _mainvp
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
    inc DI
 L19dd1cb2:
@@ -35634,36 +35637,36 @@ L19dd1cb2:
 L19dd1cb8:
    cmp SI,+13
    jl L19dd1c85
-   call far A08600834
-   call far A08600689
-   call far A086008a4
-   les BX,[0C74]
+   call far _clrpal
+   call far _pageflip
+   call far _fadein
+   les BX,[offset _myclock]
    mov SI,[ES:BX]
 L19dd1cd3:
-   les BX,[0C74]
+   les BX,[offset _myclock]
    mov AX,[ES:BX]
    sub AX,SI
    cmp AX,0050
    jl L19dd1cd3
-   call far A08600927
+   call far _fadeout
    mov AL,00
    push AX
    push DS
-   mov AX,offset Y2a173b38
+   mov AX,offset _mainvp
    push AX
-   call far A09270e9e
+   call far _clrvp
    add SP,+06
-   call far A08600689
+   call far _pageflip
    mov AL,00
    push AX
    push DS
-   mov AX,offset Y2a173b38
+   mov AX,offset _mainvp
    push AX
-   call far A09270e9e
+   call far _clrvp
    add SP,+06
-   mov word ptr [2F12],0001
-   mov word ptr [2EF8],0000
-   call far A07d3074d
+   mov word ptr [offset _shm_want+2*2f],0001
+   mov word ptr [offset _shm_want+2*22],0000
+   call far _shm_do
    xor SI,SI
 jmp near L19dd1d53
 L19dd1d20:
@@ -35685,9 +35688,9 @@ L19dd1d24:
    add AX,6F01
    push AX
    push DS
-   mov AX,offset Y2a173b38
+   mov AX,offset _mainvp
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
    inc DI
 L19dd1d4d:
@@ -35699,21 +35702,21 @@ L19dd1d53:
    jl L19dd1d20
    xor AX,AX
    push AX
-   call far A0860063e
+   call far _setpagemode
    pop CX
-   call far A08600834
-   call far A08600689
-   call far A086008a4
-   les BX,[0C74]
+   call far _clrpal
+   call far _pageflip
+   call far _fadein
+   les BX,[offset _myclock]
    mov SI,[ES:BX]
 L19dd1d77:
-   les BX,[0C74]
+   les BX,[offset _myclock]
    mov AX,[ES:BX]
    sub AX,SI
    cmp AX,003C
    jl L19dd1d77
-   mov word ptr [2F12],0000
-   call far A07d3074d
+   mov word ptr [offset _shm_want+2*2f],0000
+   call far _shm_do
 L19dd1d90:
    pop DI
    pop SI
@@ -35721,7 +35724,7 @@ L19dd1d90:
    pop BP
 ret far
 
-A19dd1d96:
+_printhi: ;; 19dd1d96
    push BP
    mov BP,SP
    sub SP,+14
@@ -35750,12 +35753,12 @@ L19dd1dbe:
    dec BX
    shl BX,1
    shl BX,1
-   mov DX,[BX+offset Y2a17b88c+2]
-   mov AX,[BX+offset Y2a17b88c]
-   cmp DX,[offset Y2a17848e+2]
+   mov DX,[BX+offset _hiscore+02]
+   mov AX,[BX+offset _hiscore]
+   cmp DX,[offset _pl+26+02]
    jl L19dd1dbd
    jnz L19dd1ddf
-   cmp AX,[offset Y2a17848e]
+   cmp AX,[offset _pl+26]
    jb L19dd1dbd
 L19dd1ddf:
    cmp DI,+0A
@@ -35769,45 +35772,45 @@ L19dd1df0:
    mov BX,SI
    shl BX,1
    shl BX,1
-   mov DX,[BX+offset Y2a17b88c+2]
-   mov AX,[BX+offset Y2a17b88c]
+   mov DX,[BX+offset _hiscore+02]
+   mov AX,[BX+offset _hiscore]
    mov BX,SI
    inc BX
    shl BX,1
    shl BX,1
-   mov [BX+offset Y2a17b88c+2],DX
-   mov [BX+offset Y2a17b88c],AX
+   mov [BX+offset _hiscore+02],DX
+   mov [BX+offset _hiscore],AX
    push DS
    mov AX,SI
    mov DX,000A
    mul DX
-   add AX,offset Y2a17b6ac
+   add AX,offset _hiname
    push AX
    push DS
    mov AX,SI
    inc AX
    mov DX,000A
    mul DX
-   add AX,offset Y2a17b6ac
+   add AX,offset _hiname
    push AX
-   call far A28a70001
+   call far _strcpy
    add SP,+08
    dec SI
 L19dd1e2f:
    cmp SI,DI
    jge L19dd1df0
-   mov DX,[offset Y2a17848e+2]
-   mov AX,[offset Y2a17848e]
+   mov DX,[offset _pl+26+02]
+   mov AX,[offset _pl+26]
    mov BX,DI
    shl BX,1
    shl BX,1
-   mov [BX+offset Y2a17b88c+2],DX
-   mov [BX+offset Y2a17b88c],AX
+   mov [BX+offset _hiscore+02],DX
+   mov [BX+offset _hiscore],AX
    mov AX,DI
    mov DX,000A
    mul DX
    mov BX,AX
-   add BX,offset Y2a17b6ac
+   add BX,offset _hiname
    push DS
    pop ES
    mov byte ptr [ES:BX],00
@@ -35815,13 +35818,13 @@ L19dd1e5b:
    push [BP-02]
    mov AX,0005
    push AX
-   push [B772]
-   push [B770]
-   call far A0a820abc
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _fontcolor
    add SP,+08
-   push [B772]
-   push [B770]
-   call far A0a820aa4
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _clearvp
    pop CX
    pop CX
    push DS
@@ -35833,16 +35836,16 @@ L19dd1e5b:
    push AX
    xor AX,AX
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
    push [BP-02]
    mov AX,0004
    push AX
-   push [B772]
-   push [B770]
-   call far A0a820abc
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _fontcolor
    add SP,+08
    push DS
    mov AX,offset Y2a1715a2
@@ -35852,16 +35855,16 @@ L19dd1e5b:
    push AX
    mov AX,0004
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
    push [BP-02]
    mov AX,0002
    push AX
-   push [B772]
-   push [B770]
-   call far A0a820abc
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _fontcolor
    add SP,+08
    xor SI,SI
 jmp near L19dd1f21
@@ -35870,7 +35873,7 @@ L19dd1ef1:
    mov AX,SI
    mov DX,000A
    mul DX
-   add AX,offset Y2a17b6ac
+   add AX,offset _hiname
    push AX
    mov AX,0002
    push AX
@@ -35881,9 +35884,9 @@ L19dd1ef1:
    push AX
    mov AX,0002
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
    inc SI
 L19dd1f21:
@@ -35892,9 +35895,9 @@ L19dd1f21:
    push [BP-02]
    mov AX,0006
    push AX
-   push [B772]
-   push [B770]
-   call far A0a820abc
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _fontcolor
    add SP,+08
    xor SI,SI
 jmp near L19dd1fc0
@@ -35907,9 +35910,9 @@ L19dd1f42:
    mov BX,SI
    shl BX,1
    shl BX,1
-   push [BX+offset Y2a17b88c+2]
-   push [BX+offset Y2a17b88c]
-   call far A288c00db
+   push [BX+offset _hiscore+02]
+   push [BX+offset _hiscore]
+   call far _ltoa
    add SP,+0A
    mov word ptr [BP-14],0000
 jmp near L19dd1fb3
@@ -35922,7 +35925,7 @@ L19dd1f68:
    push SS
    lea AX,[BP-12]
    push AX
-   call far A28a20004
+   call far _strlen
    pop CX
    pop CX
    shl AX,1
@@ -35940,9 +35943,9 @@ L19dd1f68:
    cbw
    add AX,03D0
    push AX
-   push [B772]
-   push [B770]
-   call far A086000eb
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _drawshape
    add SP,+0A
    inc word ptr [BP-14]
 L19dd1fb3:
@@ -35963,9 +35966,9 @@ L19dd1fd1:
    push [BP-02]
    mov AX,0007
    push AX
-   push [B772]
-   push [B770]
-   call far A0a820abc
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _fontcolor
    add SP,+08
    mov AX,000A
    push AX
@@ -35975,13 +35978,13 @@ L19dd1fd1:
    mov BX,DI
    shl BX,1
    shl BX,1
-   push [BX+offset Y2a17b88c]
-   call far A288c008e
+   push [BX+offset _hiscore]
+   call far _itoa
    add SP,+08
    push SS
    lea AX,[BP-12]
    push AX
-   call far A28a20004
+   call far _strlen
    pop CX
    pop CX
    shl AX,1
@@ -35998,7 +36001,7 @@ L19dd1fd1:
    push SS
    lea AX,[BP-12]
    push AX
-   call far A28a20004
+   call far _strlen
    pop CX
    pop CX
    shl AX,1
@@ -36020,7 +36023,7 @@ L19dd204b:
    mov AX,DI
    mov DX,000A
    mul DX
-   add AX,offset Y2a17b6ac
+   add AX,offset _hiname
    push AX
    mov AX,0002
    push AX
@@ -36031,30 +36034,30 @@ L19dd204b:
    push AX
    mov AX,0002
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8207d2
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _winput
    add SP,+10
    mov AX,DI
    mov DX,000A
    mul DX
    mov BX,AX
-   add BX,offset Y2a17b6ac
+   add BX,offset _hiname
    push DS
    pop ES
    cmp byte ptr [ES:BX],00
    jnz L19dd2096
    push CS
-   call near offset A19dd0934
+   call near offset _loadcfg
 jmp near L19dd209a
 L19dd2096:
    push CS
-   call near offset A19dd0a35
+   call near offset _savecfg
 L19dd209a:
    xor AX,AX
    push AX
    push CS
-   call near offset A19dd1d96
+   call near offset _printhi
    pop CX
 L19dd20a2:
    pop DI
@@ -36063,25 +36066,25 @@ L19dd20a2:
    pop BP
 ret far
 
-A19dd20a8:
+_loadsavewin: ;; 19dd20a8
    push BP
    mov BP,SP
    sub SP,+10
    push SI
-   mov word ptr [3E94],0001
-   mov word ptr [3E96],0001
-   mov word ptr [3EA2],0001
+   mov word ptr [offset _dx1hold],0001
+   mov word ptr [offset _dy1hold],0001
+   mov word ptr [offset _fire1off],0001
    mov AX,0001
    push AX
    mov AX,0005
    push AX
-   push [B772]
-   push [B770]
-   call far A0a820abc
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _fontcolor
    add SP,+08
-   push [B772]
-   push [B770]
-   call far A0a820aa4
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _clearvp
    pop CX
    pop CX
    push DS
@@ -36093,9 +36096,9 @@ A19dd20a8:
    push AX
    xor AX,AX
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
    push DS
    mov AX,offset Y2a1715b9
@@ -36106,17 +36109,17 @@ A19dd20a8:
    push AX
    xor AX,AX
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
    mov AX,0001
    push AX
    mov AX,0004
    push AX
-   push [B772]
-   push [B770]
-   call far A0a820abc
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _fontcolor
    add SP,+08
    push [BP+08]
    push [BP+06]
@@ -36125,17 +36128,17 @@ A19dd20a8:
    push AX
    mov AX,0006
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
    mov AX,0001
    push AX
    mov AX,0003
    push AX
-   push [B772]
-   push [B770]
-   call far A0a820abc
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _fontcolor
    add SP,+08
    mov word ptr [BP-10],0000
 jmp near L19dd21be
@@ -36148,7 +36151,7 @@ L19dd217e:
    mov AX,[BP-10]
    inc AX
    push AX
-   call far A288c008e
+   call far _itoa
    add SP,+08
    push DX
    push AX
@@ -36162,9 +36165,9 @@ L19dd217e:
    push AX
    mov AX,0008
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
    inc word ptr [BP-10]
 L19dd21be:
@@ -36177,9 +36180,9 @@ L19dd21cb:
    mov AX,[BP-10]
    mov DX,000C
    mul DX
-   add AX,offset Y2a17bb76
+   add AX,offset _savename
    push AX
-   call far A28a20004
+   call far _strlen
    pop CX
    pop CX
    or AX,AX
@@ -36188,7 +36191,7 @@ L19dd21cb:
    mov AX,[BP-10]
    mov DX,000C
    mul DX
-   add AX,offset Y2a17bb76
+   add AX,offset _savename
    push AX
    mov AX,0002
    push AX
@@ -36200,9 +36203,9 @@ L19dd21cb:
    push AX
    mov AX,0014
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
 jmp near L19dd2242
 L19dd2217:
@@ -36218,9 +36221,9 @@ L19dd2217:
    push AX
    mov AX,0014
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
 L19dd2242:
    inc word ptr [BP-10]
@@ -36233,9 +36236,9 @@ L19dd224e:
    push AX
    mov AX,0002
    push AX
-   push [B772]
-   push [B770]
-   call far A0a820abc
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _fontcolor
    add SP,+08
    push DS
    mov AX,offset Y2a1715c6
@@ -36246,9 +36249,9 @@ L19dd224e:
    push AX
    mov AX,000E
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
    push DS
    mov AX,offset Y2a1715cc
@@ -36259,17 +36262,17 @@ L19dd224e:
    push AX
    mov AX,0006
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
    mov AX,0001
    push AX
    mov AX,0004
    push AX
-   push [B772]
-   push [B770]
-   call far A0a820abc
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _fontcolor
    add SP,+08
    push DS
    mov AX,offset Y2a1715d5
@@ -36280,23 +36283,23 @@ L19dd224e:
    push AX
    mov AX,000C
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
    mov AX,0001
    push AX
    mov AX,0007
    push AX
-   push [B772]
-   push [B770]
-   call far A0a820abc
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _fontcolor
    add SP,+08
 L19dd22f9:
    mov byte ptr [BP-01],00
    xor AX,AX
    push AX
-   call far A0b390517
+   call far _checkctrl0
    pop CX
    mov AX,[BP-10]
    and AX,0007
@@ -36309,7 +36312,7 @@ L19dd22f9:
    push AX
    mov AX,0002
    push AX
-   mov AX,[13FA]
+   mov AX,[offset Y2a1713fa]
    shl AX,1
    shl AX,1
    shl AX,1
@@ -36317,14 +36320,14 @@ L19dd22f9:
    push AX
    mov AX,0001
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
-   les BX,[0C74]
+   les BX,[offset _myclock]
    mov SI,[ES:BX]
 L19dd2347:
-   les BX,[0C74]
+   les BX,[offset _myclock]
    mov AX,[ES:BX]
    cmp AX,SI
    jz L19dd2347
@@ -36333,7 +36336,7 @@ L19dd2347:
    push AX
    mov AX,0002
    push AX
-   mov AX,[13FA]
+   mov AX,[offset Y2a1713fa]
    shl AX,1
    shl AX,1
    shl AX,1
@@ -36341,18 +36344,18 @@ L19dd2347:
    push AX
    mov AX,0001
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8206bf
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _wprint
    add SP,+0E
-   mov AX,[13FA]
-   add AX,[3D7A]
-   add AX,[3D7C]
+   mov AX,[offset Y2a1713fa]
+   add AX,[offset _dx1]
+   add AX,[offset _dy1]
    cmp AX,0005
    jge L19dd2399
-   mov AX,[13FA]
-   add AX,[3D7A]
-   add AX,[3D7C]
+   mov AX,[offset Y2a1713fa]
+   add AX,[offset _dx1]
+   add AX,[offset _dy1]
 jmp near L19dd239c
 L19dd2399:
    mov AX,0005
@@ -36362,40 +36365,40 @@ L19dd239c:
    xor AX,AX
 jmp near L19dd23c4
 L19dd23a4:
-   mov AX,[13FA]
-   add AX,[3D7A]
-   add AX,[3D7C]
+   mov AX,[offset Y2a1713fa]
+   add AX,[offset _dx1]
+   add AX,[offset _dy1]
    cmp AX,0005
    jge L19dd23c1
-   mov AX,[13FA]
-   add AX,[3D7A]
-   add AX,[3D7C]
+   mov AX,[offset Y2a1713fa]
+   add AX,[offset _dx1]
+   add AX,[offset _dy1]
 jmp near L19dd23c4
 L19dd23c1:
    mov AX,0005
 L19dd23c4:
-   mov [13FA],AX
-   cmp word ptr [3D7E],+00
+   mov [offset Y2a1713fa],AX
+   cmp word ptr [offset _fire1],+00
    jnz L19dd23df
-   cmp word ptr [3D8A],+0D
+   cmp word ptr [offset _key],+0D
    jz L19dd23df
-   cmp word ptr [3D8A],+1B
+   cmp word ptr [offset _key],+1B
    jz L19dd23df
 jmp near L19dd22f9
 L19dd23df:
-   cmp word ptr [3D8A],+1B
+   cmp word ptr [offset _key],+1B
    jnz L19dd23eb
    mov AX,FFFF
 jmp near L19dd23ee
 L19dd23eb:
-   mov AX,[13FA]
+   mov AX,[offset Y2a1713fa]
 L19dd23ee:
    pop SI
    mov SP,BP
    pop BP
 ret far
 
-A19dd23f3:
+_loadgame: ;; 19dd23f3
    push BP
    mov BP,SP
    sub SP,+50
@@ -36408,7 +36411,7 @@ A19dd23f3:
    mov AX,offset Y2a1715de
    push AX
    push CS
-   call near offset A19dd20a8
+   call near offset _loadsavewin
    add SP,+08
    mov SI,AX
    or SI,SI
@@ -36419,9 +36422,9 @@ L19dd2415:
    mov AX,SI
    mov DX,000C
    mul DX
-   add AX,offset Y2a17bb76
+   add AX,offset _savename
    push AX
-   call far A28a20004
+   call far _strlen
    pop CX
    pop CX
    or AX,AX
@@ -36434,23 +36437,23 @@ L19dd242f:
    lea AX,[BP-50]
    push AX
    push SI
-   call far A288c008e
+   call far _itoa
    add SP,+08
    push DS
-   mov AX,offset Y2a1705fc
+   mov AX,offset _path
    push AX
    push SS
    lea AX,[BP-40]
    push AX
-   call far A28a70001
+   call far _strcpy
    add SP,+08
    push DS
-   mov AX,offset Y2a171936
+   mov AX,offset _savepfx
    push AX
    push SS
    lea AX,[BP-40]
    push AX
-   call far A289e0002
+   call far _strcat
    add SP,+08
    push DS
    mov AX,offset Y2a1715f0
@@ -36458,7 +36461,7 @@ L19dd242f:
    push SS
    lea AX,[BP-40]
    push AX
-   call far A289e0002
+   call far _strcat
    add SP,+08
    push SS
    lea AX,[BP-50]
@@ -36466,23 +36469,23 @@ L19dd242f:
    push SS
    lea AX,[BP-40]
    push AX
-   call far A289e0002
+   call far _strcat
    add SP,+08
    push DS
-   mov AX,offset Y2a1705fc
+   mov AX,offset _path
    push AX
    push SS
    lea AX,[BP-20]
    push AX
-   call far A28a70001
+   call far _strcpy
    add SP,+08
    push DS
-   mov AX,offset Y2a171936
+   mov AX,offset _savepfx
    push AX
    push SS
    lea AX,[BP-20]
    push AX
-   call far A289e0002
+   call far _strcat
    add SP,+08
    push DS
    mov AX,offset Y2a1715f2
@@ -36490,7 +36493,7 @@ L19dd242f:
    push SS
    lea AX,[BP-20]
    push AX
-   call far A289e0002
+   call far _strcat
    add SP,+08
    push SS
    lea AX,[BP-50]
@@ -36498,41 +36501,41 @@ L19dd242f:
    push SS
    lea AX,[BP-20]
    push AX
-   call far A289e0002
+   call far _strcat
    add SP,+08
    mov AX,8001
    push AX
    push SS
    lea AX,[BP-20]
    push AX
-   call far A28530005
+   call far __open
    add SP,+06
    mov DI,AX
    cmp DI,-01
    jz L19dd250e
    push DI
-   call far A285e0000
+   call far __close
    pop CX
    push DS
-   mov AX,offset Y2a17bbbe
+   mov AX,offset _tempname
    push AX
-   call far A289c0006
+   call far _unlink
    pop CX
    pop CX
    push DS
-   mov AX,offset Y2a17bbbe
+   mov AX,offset _tempname
    push AX
    push SS
    lea AX,[BP-20]
    push AX
-   call far A07c90004
+   call far _copyfile
    add SP,+08
 L19dd250e:
    push SS
    lea AX,[BP-40]
    push AX
    push CS
-   call near offset A19dd0aca
+   call near offset _loadboard
    pop CX
    pop CX
    mov AX,0001
@@ -36546,7 +36549,7 @@ L19dd2520:
    pop BP
 ret far
 
-A19dd2526:
+_savegame: ;; 19dd2526
    push BP
    mov BP,SP
    sub SP,+5C
@@ -36559,7 +36562,7 @@ A19dd2526:
    mov AX,offset Y2a1715f5
    push AX
    push CS
-   call near offset A19dd20a8
+   call near offset _loadsavewin
    add SP,+08
    mov SI,AX
    or SI,SI
@@ -36570,12 +36573,12 @@ L19dd2548:
    mov AX,SI
    mov DX,000C
    mul DX
-   add AX,offset Y2a17bb76
+   add AX,offset _savename
    push AX
    push SS
    lea AX,[BP-0C]
    push AX
-   call far A28a70001
+   call far _strcpy
    add SP,+08
    mov AX,0007
    push AX
@@ -36592,18 +36595,18 @@ L19dd2548:
    push AX
    mov AX,0014
    push AX
-   push [B772]
-   push [B770]
-   call far A0a8207d2
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _winput
    add SP,+10
-   cmp word ptr [3D8A],+1B
+   cmp word ptr [offset _key],+1B
    jnz L19dd2598
 jmp near L19dd26a6
 L19dd2598:
    push SS
    lea AX,[BP-0C]
    push AX
-   call far A28a20004
+   call far _strlen
    pop CX
    pop CX
    or AX,AX
@@ -36617,9 +36620,9 @@ L19dd25ab:
    mov AX,SI
    mov DX,000C
    mul DX
-   add AX,offset Y2a17bb76
+   add AX,offset _savename
    push AX
-   call far A28a70001
+   call far _strcpy
    add SP,+08
    mov AX,000A
    push AX
@@ -36627,23 +36630,23 @@ L19dd25ab:
    lea AX,[BP-5C]
    push AX
    push SI
-   call far A288c008e
+   call far _itoa
    add SP,+08
    push DS
-   mov AX,offset Y2a1705fc
+   mov AX,offset _path
    push AX
    push SS
    lea AX,[BP-4C]
    push AX
-   call far A28a70001
+   call far _strcpy
    add SP,+08
    push DS
-   mov AX,offset Y2a171936
+   mov AX,offset _savepfx
    push AX
    push SS
    lea AX,[BP-4C]
    push AX
-   call far A289e0002
+   call far _strcat
    add SP,+08
    push DS
    mov AX,offset Y2a171600
@@ -36651,7 +36654,7 @@ L19dd25ab:
    push SS
    lea AX,[BP-4C]
    push AX
-   call far A289e0002
+   call far _strcat
    add SP,+08
    push SS
    lea AX,[BP-5C]
@@ -36659,23 +36662,23 @@ L19dd25ab:
    push SS
    lea AX,[BP-4C]
    push AX
-   call far A289e0002
+   call far _strcat
    add SP,+08
    push DS
-   mov AX,offset Y2a1705fc
+   mov AX,offset _path
    push AX
    push SS
    lea AX,[BP-2C]
    push AX
-   call far A28a70001
+   call far _strcpy
    add SP,+08
    push DS
-   mov AX,offset Y2a171936
+   mov AX,offset _savepfx
    push AX
    push SS
    lea AX,[BP-2C]
    push AX
-   call far A289e0002
+   call far _strcat
    add SP,+08
    push DS
    mov AX,offset Y2a171602
@@ -36683,7 +36686,7 @@ L19dd25ab:
    push SS
    lea AX,[BP-2C]
    push AX
-   call far A289e0002
+   call far _strcat
    add SP,+08
    push SS
    lea AX,[BP-5C]
@@ -36691,39 +36694,39 @@ L19dd25ab:
    push SS
    lea AX,[BP-2C]
    push AX
-   call far A289e0002
+   call far _strcat
    add SP,+08
    push SS
    lea AX,[BP-4C]
    push AX
    push CS
-   call near offset A19dd0cbf
+   call near offset _saveboard
    pop CX
    pop CX
    mov AX,8001
    push AX
    push DS
-   mov AX,offset Y2a17bbbe
+   mov AX,offset _tempname
    push AX
-   call far A28530005
+   call far __open
    add SP,+06
    mov DI,AX
    cmp DI,-01
    jz L19dd26a2
    push DI
-   call far A285e0000
+   call far __close
    pop CX
    push SS
    lea AX,[BP-2C]
    push AX
    push DS
-   mov AX,offset Y2a17bbbe
+   mov AX,offset _tempname
    push AX
-   call far A07c90004
+   call far _copyfile
    add SP,+08
 L19dd26a2:
    push CS
-   call near offset A19dd0a35
+   call near offset _savecfg
 L19dd26a6:
    pop DI
    pop SI
@@ -36731,93 +36734,93 @@ L19dd26a6:
    pop BP
 ret far
 
-A19dd26ac:
+_drawgamewin: ;; 19dd26ac
    push DS
-   mov AX,offset Y2a173b38
+   mov AX,offset _mainvp
    push AX
-   call far A0a820aa4
+   call far _clearvp
    pop CX
    pop CX
    push DS
-   mov AX,offset Y2a17b8b8
+   mov AX,offset _ourwin
    push AX
-   call far A0a8201e8
+   call far _drawwin
    pop CX
    pop CX
    mov AX,0008
    push AX
    mov AX,0007
    push AX
-   push [B772]
-   push [B770]
-   call far A0a820abc
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _fontcolor
    add SP,+08
-   push [B772]
-   push [B770]
-   call far A0a820aa4
+   push [offset _cmdvp+02]
+   push [offset _cmdvp]
+   call far _clearvp
    pop CX
    pop CX
    mov AX,0008
    push AX
    mov AX,0007
    push AX
-   push [BA46]
-   push [BA44]
-   call far A0a820abc
+   push [offset _statvp+02]
+   push [offset _statvp]
+   call far _fontcolor
    add SP,+08
-   push [BA46]
-   push [BA44]
-   call far A0a820aa4
+   push [offset _statvp+02]
+   push [offset _statvp]
+   call far _clearvp
    pop CX
    pop CX
    mov AX,0008
    push AX
    mov AX,0007
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A0a820abc
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _fontcolor
    add SP,+08
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A0a820aa4
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _clearvp
    pop CX
    pop CX
    mov AX,FFFF
    push AX
-   push [197A]
+   push [offset _xbordercol]
    push DS
-   mov AX,offset Y2a17b8b8+18
+   mov AX,offset _ourwin+18
    push AX
-   call far A0a820abc
+   call far _fontcolor
    add SP,+08
    push DS
-   mov AX,offset Y2a17268a
+   mov AX,offset _v_title
    push AX
    push DS
-   mov AX,offset Y2a17b8b8
+   mov AX,offset _ourwin
    push AX
-   call far A0a820998
+   call far _titlewin
    add SP,+08
    push DS
    mov AX,offset Y2a171605
    push AX
    push DS
-   mov AX,offset Y2a17b8b8
+   mov AX,offset _ourwin
    push AX
-   call far A0a820a31
+   call far _titlebot
    add SP,+08
    push DS
    mov AX,offset Y2a17160f
    push AX
    push DS
-   mov AX,offset Y2a17b8b8
+   mov AX,offset _ourwin
    push AX
-   call far A0a8209e6
+   call far _titletop
    add SP,+08
 ret far
 
-A19dd2785:
+_noisemaker: ;; 19dd2785
    push BP
    mov BP,SP
    sub SP,+34
@@ -36829,31 +36832,31 @@ A19dd2785:
    mov AX,offset Y2a1713fc
    push AX
    mov CX,0034
-   call far A076a05d8
-   mov word ptr [3EA2],0000
+   call far SCOPY@
+   mov word ptr [offset _fire1off],0000
 L19dd27a4:
-   call far A0c7e0784
+   call far _sb_update
    xor AX,AX
    push AX
-   call far A0b390517
+   call far _checkctrl0
    pop CX
-   push [3D8A]
-   call far A29ff000e
+   push [offset _key]
+   call far _toupper
    pop CX
-   mov [3D8A],AX
+   mov [offset _key],AX
    xor SI,SI
 jmp near L19dd27de
 L19dd27c3:
    mov AL,[SS:BP+SI-34]
    cbw
-   cmp AX,[3D8A]
+   cmp AX,[offset _key]
    jnz L19dd27dd
    mov AX,SI
    inc AX
    push AX
    mov AX,0001
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
 L19dd27dd:
@@ -36861,9 +36864,9 @@ L19dd27dd:
 L19dd27de:
    cmp byte ptr [SS:BP+SI-34],00
    jnz L19dd27c3
-   cmp word ptr [3D8A],+0D
+   cmp word ptr [offset _key],+0D
    jz L19dd27f3
-   cmp word ptr [3D8A],+1B
+   cmp word ptr [offset _key],+1B
    jnz L19dd27a4
 L19dd27f3:
    pop SI
@@ -36871,22 +36874,22 @@ L19dd27f3:
    pop BP
 ret far
 
-A19dd27f8:
+_pageview: ;; 19dd27f8
    push BP
    mov BP,SP
    sub SP,+12
    push SI
    push DI
-   mov word ptr [BA5A],0014
-   mov word ptr [BA5C],000D
+   mov word ptr [offset _scrnxs],0014
+   mov word ptr [offset _scrnys],000D
 L19dd280c:
    mov SI,FFFF
    mov AX,0001
    push AX
-   call far A0860063e
+   call far _setpagemode
    pop CX
    push CS
-   call near offset A19dd0017
+   call near offset _fout
    xor DI,DI
 jmp near L19dd2851
 L19dd2821:
@@ -36894,7 +36897,7 @@ L19dd2821:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp byte ptr [ES:BX],0C
@@ -36903,7 +36906,7 @@ L19dd2821:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -36913,7 +36916,7 @@ L19dd2821:
 L19dd2850:
    inc DI
 L19dd2851:
-   cmp DI,[offset Y2a17bc1e]
+   cmp DI,[offset _numobjs]
    jl L19dd2821
    or SI,SI
    jg L19dd285e
@@ -36921,82 +36924,82 @@ jmp near L19dd296b
 L19dd285e:
    mov AX,0010
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
+   push [offset _gamevp+02]
+   push [offset _gamevp]
    push SS
    lea AX,[BP-12]
    push AX
-   call far A28a9000a
+   call far _memcpy
    add SP,+0A
    mov AX,0010
    push AX
    push DS
-   mov AX,offset Y2a173b38
+   mov AX,offset _mainvp
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A28a9000a
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _memcpy
    add SP,+0A
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov [ES:BX+08],AX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov [ES:BX+0A],AX
    push CS
-   call near offset A19dd14a9
-   call far A08600689
+   call near offset _drawboard
+   call far _pageflip
    xor AX,AX
    push AX
-   call far A0860063e
+   call far _setpagemode
    pop CX
    push CS
-   call near offset A19dd0002
+   call near offset _fin
    mov AX,0010
    push AX
    push SS
    lea AX,[BP-12]
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A28a9000a
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _memcpy
    add SP,+0A
    cmp word ptr [BP+06],+63
    jnz L19dd2901
    push CS
-   call near offset A19dd2785
+   call near offset _noisemaker
 jmp near L19dd293c
 L19dd2901:
-   les BX,[0C74]
+   les BX,[offset _myclock]
    mov AX,[ES:BX]
    mov [BP-02],AX
-   mov word ptr [3EA2],0001
+   mov word ptr [offset _fire1off],0001
 L19dd2911:
    xor AX,AX
    push AX
-   call far A0b390517
+   call far _checkctrl0
    pop CX
-   call far A0c7e0784
-   cmp word ptr [3D8A],+00
+   call far _sb_update
+   cmp word ptr [offset _key],+00
    jnz L19dd292d
-   cmp word ptr [3D7E],+00
+   cmp word ptr [offset _fire1],+00
    jz L19dd2911
 L19dd292d:
-   les BX,[0C74]
+   les BX,[offset _myclock]
    mov AX,[ES:BX]
    sub AX,[BP-02]
    cmp AX,0012
@@ -37006,7 +37009,7 @@ L19dd293c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+05],+00
@@ -37015,39 +37018,39 @@ L19dd293c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+05]
    mov [BP+06],AX
 jmp near L19dd280c
 L19dd296b:
-   mov word ptr [BA5A],000F
-   mov word ptr [BA5C],000B
+   mov word ptr [offset _scrnxs],000F
+   mov word ptr [offset _scrnys],000B
    mov AX,0001
    push AX
-   call far A0860063e
+   call far _setpagemode
    pop CX
    push CS
-   call near offset A19dd0017
+   call near offset _fout
    push CS
-   call near offset A19dd26ac
+   call near offset _drawgamewin
    push CS
-   call near offset A19dd14a9
-   call far A08600689
+   call near offset _drawboard
+   call far _pageflip
    xor AX,AX
    push AX
-   call far A0860063e
+   call far _setpagemode
    pop CX
    push CS
-   call near offset A19dd0002
+   call near offset _fin
    pop DI
    pop SI
    mov SP,BP
    pop BP
 ret far
 
-A19dd29a5:
+_domenu: ;; 19dd29a5
    push BP
    mov BP,SP
    sub SP,00B2
@@ -37057,21 +37060,21 @@ A19dd29a5:
    mov [BP-54],DI
    mov word ptr [BP-52],0001
    les BX,[BP+06]
-   mov [4094],ES
-   mov [4092],BX
-   push [4094]
+   mov [offset _textmsg+02],ES
+   mov [offset _textmsg],BX
+   push [offset _textmsg+02]
    push BX
-   call far A28a20004
+   call far _strlen
    pop CX
    pop CX
-   mov [4456],AX
+   mov [offset _textmsglen],AX
    mov AX,0002
    push AX
    xor AX,AX
    push AX
    push AX
    push CS
-   call near offset A19dd0dcc
+   call near offset _numlines
    mov BX,0002
    cwd
    idiv BX
@@ -37082,25 +37085,25 @@ A19dd29a5:
    push AX
    push [BP+16]
    push SS
-   lea AX,[BP+FF4E]
+   lea AX,[BP-00b2]
    push AX
-   call far A0a82000b
+   call far _defwin
    add SP,+12
    push SS
-   lea AX,[BP+FF4E]
+   lea AX,[BP-00b2]
    push AX
-   call far A0a8201e8
+   call far _drawwin
    pop CX
    pop CX
    mov AX,0001
    push AX
-   call far A0860063e
+   call far _setpagemode
    pop CX
-   les BX,[0C74]
+   les BX,[offset _myclock]
    mov AX,[ES:BX]
    mov [BP-5A],AX
    push CS
-   call near offset A19dd0dcc
+   call near offset _numlines
    mov SI,AX
    dec SI
 jmp near L19dd2a82
@@ -37114,13 +37117,13 @@ L19dd2a28:
    push AX
    push SI
    push CS
-   call near offset A19dd0df3
+   call near offset _getline
    add SP,+08
    push AX
    push SS
-   lea AX,[BP+FF76]
+   lea AX,[BP-008a]
    push AX
-   call far A0a820abc
+   call far _fontcolor
    add SP,+08
    push SS
    lea AX,[BP-50]
@@ -37144,22 +37147,22 @@ L19dd2a6c:
    add AX,0004
    push AX
    push SS
-   lea AX,[BP+FF76]
+   lea AX,[BP-008a]
    push AX
-   call far A0a8206bf
+   call far _wprint
    add SP,+0E
    dec SI
 L19dd2a82:
    or SI,SI
    jge L19dd2a28
-   call far A08600689
+   call far _pageflip
    xor AX,AX
    push AX
-   call far A0860063e
+   call far _setpagemode
    pop CX
    xor SI,SI
 L19dd2a96:
-   call far A0c7e0784
+   call far _sb_update
    inc DI
    mov AX,DI
    cmp AX,000C
@@ -37186,9 +37189,9 @@ L19dd2ab2:
    mov AX,4709
    push AX
    push SS
-   lea AX,[BP+FF76]
+   lea AX,[BP-008a]
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
    mov AX,[BP+0E]
    add AX,SI
@@ -37206,24 +37209,24 @@ L19dd2ab2:
    add AX,0201
    push AX
    push SS
-   lea AX,[BP+FF76]
+   lea AX,[BP-008a]
    push AX
-   call far A086000eb
+   call far _drawshape
    add SP,+0A
 L19dd2b0d:
    mov [BP-52],SI
    xor AX,AX
    push AX
-   call far A0b390517
+   call far _checkctrl0
    pop CX
-   push [3D8A]
-   call far A29ff000e
+   push [offset _key]
+   call far _toupper
    pop CX
-   mov [3D8A],AX
-   mov AX,[3D7A]
-   add AX,[3D7C]
+   mov [offset _key],AX
+   mov AX,[offset _dx1]
+   add AX,[offset _dy1]
    jz L19dd2b80
-   les BX,[0C74]
+   les BX,[offset _myclock]
    mov AX,[ES:BX]
    sub AX,[BP-54]
    cwd
@@ -37233,8 +37236,8 @@ L19dd2b0d:
    jle L19dd2b80
    mov AX,[ES:BX]
    mov [BP-54],AX
-   mov AX,[3D7A]
-   add AX,[3D7C]
+   mov AX,[offset _dx1]
+   add AX,[offset _dy1]
    add SI,AX
    or SI,SI
    jge L19dd2b5a
@@ -37259,36 +37262,36 @@ L19dd2b72:
    mov AX,SI
 L19dd2b74:
    mov SI,AX
-   les BX,[0C74]
+   les BX,[offset _myclock]
    mov AX,[ES:BX]
    mov [BP-5A],AX
 L19dd2b80:
-   les BX,[0C74]
+   les BX,[offset _myclock]
    mov AX,[ES:BX]
    sub AX,[BP-5A]
    cmp AX,012C
    jle L19dd2b9e
    cmp word ptr [BP+12],+00
    jz L19dd2b9e
-   mov word ptr [3D8A],0044
+   mov word ptr [offset _key],0044
 jmp near L19dd2c10
 L19dd2b9e:
    mov word ptr [BP-58],0000
-   cmp word ptr [3D8A],+1B
+   cmp word ptr [offset _key],+1B
    jnz L19dd2bb0
-   mov word ptr [3D8A],0051
+   mov word ptr [offset _key],0051
 L19dd2bb0:
-   cmp word ptr [3D8A],+0D
+   cmp word ptr [offset _key],+0D
    jz L19dd2bc5
-   cmp word ptr [3D8A],+20
+   cmp word ptr [offset _key],+20
    jz L19dd2bc5
-   cmp word ptr [3D7E],+00
+   cmp word ptr [offset _fire1],+00
    jz L19dd2bd6
 L19dd2bc5:
    les BX,[BP+0A]
    mov AL,[ES:BX+SI]
    cbw
-   mov [3D8A],AX
+   mov [offset _key],AX
    mov word ptr [BP-58],0001
 jmp near L19dd2c07
 L19dd2bd6:
@@ -37299,7 +37302,7 @@ L19dd2bdd:
    add BX,[BP-56]
    mov AL,[ES:BX]
    cbw
-   cmp AX,[3D8A]
+   cmp AX,[offset _key]
    jnz L19dd2bf2
    mov word ptr [BP-58],0001
 L19dd2bf2:
@@ -37307,7 +37310,7 @@ L19dd2bf2:
 L19dd2bf5:
    push [BP+0C]
    push [BP+0A]
-   call far A28a20004
+   call far _strlen
    pop CX
    pop CX
    cmp AX,[BP-56]
@@ -37317,19 +37320,19 @@ L19dd2c07:
    jnz L19dd2c10
 jmp near L19dd2a96
 L19dd2c10:
-   mov AX,[3D8A]
+   mov AX,[offset _key]
    pop DI
    pop SI
    mov SP,BP
    pop BP
 ret far
 
-A19dd2c19:
+_askquit: ;; 19dd2c19
    mov AX,0016
    push AX
    mov AX,0001
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
    mov AX,0006
@@ -37351,9 +37354,9 @@ A19dd2c19:
    mov AX,offset Y2a171618
    push AX
    push CS
-   call near offset A19dd29a5
+   call near offset _domenu
    add SP,+14
-   cmp word ptr [3D8A],+59
+   cmp word ptr [offset _key],+59
    jnz L19dd2c5c
    mov AX,0001
 jmp near L19dd2c5e
@@ -37362,134 +37365,134 @@ L19dd2c5c:
 L19dd2c5e:
 ret far
 
-A19dd2c5f:
+_dodemo: ;; 19dd2c5f
    mov AX,0001
    push AX
-   call far A0860063e
+   call far _setpagemode
    pop CX
-   mov word ptr [C23C],0000
+   mov word ptr [offset _gamecount],0000
    push CS
-   call near offset A19dd0017
+   call near offset _fout
    push CS
-   call near offset A19dd26ac
+   call near offset _drawgamewin
    push CS
-   call near offset A19dd0309
-   mov word ptr [BA58],0000
-   mov word ptr [3ECE],0000
+   call near offset _drawcmds
+   mov word ptr [offset _demonum],0000
+   mov word ptr [offset _macabort],0000
 L19dd2c87:
-   cmp word ptr [BA58],+00
+   cmp word ptr [offset _demonum],+00
    jz L19dd2c9c
    push CS
-   call near offset A19dd0017
+   call near offset _fout
    mov AX,0001
    push AX
-   call far A0860063e
+   call far _setpagemode
    pop CX
 L19dd2c9c:
-   mov BX,[BA58]
-   cmp byte ptr [BX+1A24],00
+   mov BX,[offset _demonum]
+   cmp byte ptr [BX+offset _demolvl],00
    jnz L19dd2cad
-   mov word ptr [BA58],0000
+   mov word ptr [offset _demonum],0000
 L19dd2cad:
-   mov BX,[BA58]
+   mov BX,[offset _demonum]
    shl BX,1
    shl BX,1
-   push [BX+19FE]
-   push [BX+19FC]
+   push [BX+offset _demoboard+02]
+   push [BX+offset _demoboard]
    push CS
-   call near offset A19dd0aca
+   call near offset _loadboard
    pop CX
    pop CX
-   mov BX,[BA58]
-   mov AL,[BX+1A24]
+   mov BX,[offset _demonum]
+   mov AL,[BX+offset _demolvl]
    cbw
-   mov [offset Y2a178468],AX
+   mov [offset _pl],AX
    xor AX,AX
    push AX
-   call far A1e3e051f
+   call far _p_reenter
    pop CX
    push CS
-   call near offset A19dd14a9
-   call far A08600689
+   call near offset _drawboard
+   call far _pageflip
    xor AX,AX
    push AX
-   call far A0860063e
+   call far _setpagemode
    pop CX
    push CS
-   call near offset A19dd0002
-   mov BX,[BA58]
+   call near offset _fin
+   mov BX,[offset _demonum]
    shl BX,1
    shl BX,1
-   push [BX+1A30]
-   push [BX+1A2E]
-   call far A0b390606
+   push [BX+offset _demoname+02]
+   push [BX+offset _demoname]
+   call far _playmac
    pop CX
    pop CX
-   cmp word ptr [3ECC],+00
+   cmp word ptr [offset _macplay],+00
    jz L19dd2d20
    mov AX,0001
    push AX
    push CS
-   call near offset A19dd150d
+   call near offset _play
    pop CX
-   call far A0b3905bf
-   inc word ptr [BA58]
+   call far _stopmac
+   inc word ptr [offset _demonum]
 jmp near L19dd2d26
 L19dd2d20:
-   mov word ptr [3ED0],0001
+   mov word ptr [offset _macaborted],0001
 L19dd2d26:
-   cmp word ptr [3ED0],+00
+   cmp word ptr [offset _macaborted],+00
    jnz L19dd2d30
 jmp near L19dd2c87
 L19dd2d30:
 ret far
 
-A19dd2d31:
+_jmenu: ;; 19dd2d31
    push SI
    push DI
    xor DI,DI
    push DS
-   mov AX,offset Y2a1718df
+   mov AX,offset _introboard
    push AX
    push CS
-   call near offset A19dd0aca
+   call near offset _loadboard
    pop CX
    pop CX
 L19dd2d40:
    mov AX,0001
    push AX
-   call far A0860063e
+   call far _setpagemode
    pop CX
-   call far A1e3e2151
+   call far _setorigin
    push CS
-   call near offset A19dd14a9
+   call near offset _drawboard
    xor AX,AX
    push AX
    push CS
-   call near offset A19dd1d96
+   call near offset _printhi
    pop CX
    push DS
-   mov AX,offset Y2a17b760
+   mov AX,offset _botvp
    push AX
-   call far A0a820aa4
+   call far _clearvp
    pop CX
    pop CX
    mov AX,0008
    push AX
    mov AX,0007
    push AX
-   push [BA46]
-   push [BA44]
-   call far A0a820abc
+   push [offset _statvp+02]
+   push [offset _statvp]
+   call far _fontcolor
    add SP,+08
-   push [BA46]
-   push [BA44]
-   call far A0a820aa4
+   push [offset _statvp+02]
+   push [offset _statvp]
+   call far _clearvp
    pop CX
    pop CX
-   cmp word ptr [1976],+00
+   cmp word ptr [offset _facetable],+00
    jz L19dd2dda
-   cmp byte ptr [3B53],04
+   cmp byte ptr [offset _x_ourmode],04
    jnz L19dd2dda
    xor SI,SI
 jmp near L19dd2dd3
@@ -37505,15 +37508,15 @@ L19dd2da0:
    mov CL,04
    shl AX,CL
    push AX
-   mov AX,[1976]
+   mov AX,[offset _facetable]
    mov CL,08
    shl AX,CL
    add AX,SI
    add AX,4000
    push AX
-   push [BA46]
-   push [BA44]
-   call far A086000eb
+   push [offset _statvp+02]
+   push [offset _statvp]
+   call far _drawshape
    add SP,+0A
    inc SI
 L19dd2dd3:
@@ -37521,35 +37524,35 @@ L19dd2dd3:
    jl L19dd2da0
 jmp near L19dd2e20
 L19dd2dda:
-   push [2727]
-   push [2725]
+   push [offset _leveltxt+4*1e+02]
+   push [offset _leveltxt+4*1e]
    mov AX,0002
    push AX
    mov AX,001C
    push AX
    xor AX,AX
    push AX
-   push [BA46]
-   push [BA44]
-   call far A0a8206bf
+   push [offset _statvp+02]
+   push [offset _statvp]
+   call far _wprint
    add SP,+0E
-   push [272B]
-   push [2729]
+   push [offset _leveltxt+4*1f+02]
+   push [offset _leveltxt+4*1f]
    mov AX,0002
    push AX
    mov AX,0024
    push AX
    xor AX,AX
    push AX
-   push [BA46]
-   push [BA44]
-   call far A0a8206bf
+   push [offset _statvp+02]
+   push [offset _statvp]
+   call far _wprint
    add SP,+0E
 L19dd2e20:
-   call far A08600689
+   call far _pageflip
    xor AX,AX
    push AX
-   call far A0860063e
+   call far _setpagemode
    pop CX
    mov AX,0008
    push AX
@@ -37559,214 +37562,214 @@ L19dd2e20:
    push AX
    mov AX,0001
    push AX
-   push [19FA]
+   push [offset _menuc]
    push AX
    push DS
-   mov AX,offset Y2a1719ed
+   mov AX,offset _menu2
    push AX
    push DS
-   mov AX,offset Y2a17197c
+   mov AX,offset _menu1
    push AX
    push CS
-   call near offset A19dd29a5
+   call near offset _domenu
    add SP,+14
    xor AX,AX
    push AX
-   call far A0860063e
+   call far _setpagemode
    pop CX
-   cmp word ptr [3D8A],+05
+   cmp word ptr [offset _key],+05
    jnz L19dd2e8c
    mov AX,0001
    push AX
-   call far A0860063e
+   call far _setpagemode
    pop CX
    push CS
-   call near offset A19dd26ac
+   call near offset _drawgamewin
    push CS
-   call near offset A19dd14a9
-   call far A08600689
+   call near offset _drawboard
+   call far _pageflip
    xor AX,AX
    push AX
-   call far A0860063e
+   call far _setpagemode
    pop CX
-   call far A1d3d09b0
+   call far _design
 jmp near L19dd300c
 L19dd2e8c:
-   cmp word ptr [3D8A],+1B
+   cmp word ptr [offset _key],+1B
    jz L19dd2e9a
-   cmp word ptr [3D8A],+51
+   cmp word ptr [offset _key],+51
    jnz L19dd2ea0
 L19dd2e9a:
    mov DI,0001
 jmp near L19dd300c
 L19dd2ea0:
-   cmp word ptr [3D8A],+50
+   cmp word ptr [offset _key],+50
    jnz L19dd2ee4
-   mov word ptr [C23C],0000
+   mov word ptr [offset _gamecount],0000
    mov AX,0001
    push AX
-   call far A0860063e
+   call far _setpagemode
    pop CX
    push CS
-   call near offset A19dd0017
+   call near offset _fout
    push CS
-   call near offset A19dd26ac
+   call near offset _drawgamewin
    push CS
-   call near offset A19dd0309
+   call near offset _drawcmds
    push DS
-   mov AX,offset Y2a1718d7
+   mov AX,offset _mapboard
    push AX
    push CS
-   call near offset A19dd0aca
+   call near offset _loadboard
    pop CX
    pop CX
-   mov AX,[1978]
-   mov [offset Y2a178468],AX
+   mov AX,[offset _xstartlevel]
+   mov [offset _pl],AX
    xor AX,AX
    push AX
-   call far A1e3e051f
+   call far _p_reenter
    pop CX
    push CS
-   call near offset A19dd14a9
+   call near offset _drawboard
 jmp near L19dd2f6d
 L19dd2ee4:
-   cmp word ptr [3D8A],+10
+   cmp word ptr [offset _key],+10
    jnz L19dd2f24
    mov AX,0001
    push AX
-   call far A0860063e
+   call far _setpagemode
    pop CX
    push CS
-   call near offset A19dd26ac
+   call near offset _drawgamewin
    push CS
-   call near offset A19dd14a9
+   call near offset _drawboard
    push CS
-   call near offset A19dd0309
-   call far A08600689
+   call near offset _drawcmds
+   call far _pageflip
    xor AX,AX
    push AX
-   call far A0860063e
+   call far _setpagemode
    pop CX
-   call far A1e3e041f
-   mov byte ptr [offset Y2a17bbfe],00
+   call far _dolevelsong
+   mov byte ptr [offset _curlevel],00
    xor AX,AX
    push AX
    push CS
-   call near offset A19dd150d
+   call near offset _play
    pop CX
 jmp near L19dd300c
 L19dd2f24:
-   cmp word ptr [3D8A],+45
+   cmp word ptr [offset _key],+45
    jnz L19dd2f37
    mov AX,0014
    push AX
    push CS
-   call near offset A19dd27f8
+   call near offset _pageview
    pop CX
 jmp near L19dd300c
 L19dd2f37:
-   cmp word ptr [3D8A],+52
+   cmp word ptr [offset _key],+52
    jnz L19dd2f89
    push CS
-   call near offset A19dd23f3
+   call near offset _loadgame
    or AX,AX
    jnz L19dd2f49
 jmp near L19dd300c
 L19dd2f49:
    mov AX,0001
    push AX
-   call far A0860063e
+   call far _setpagemode
    pop CX
    push CS
-   call near offset A19dd0017
+   call near offset _fout
    push CS
-   call near offset A19dd26ac
+   call near offset _drawgamewin
    push CS
-   call near offset A19dd0309
-   call far A1e3e2151
+   call near offset _drawcmds
+   call far _setorigin
    push CS
-   call near offset A19dd14a9
-   call far A1e3e041f
+   call near offset _drawboard
+   call far _dolevelsong
 L19dd2f6d:
-   call far A08600689
+   call far _pageflip
    xor AX,AX
    push AX
-   call far A0860063e
+   call far _setpagemode
    pop CX
    push CS
-   call near offset A19dd0002
+   call near offset _fin
    xor AX,AX
    push AX
    push CS
-   call near offset A19dd150d
+   call near offset _play
    pop CX
 jmp near L19dd2fe3
 L19dd2f89:
-   cmp word ptr [3D8A],+53
+   cmp word ptr [offset _key],+53
    jnz L19dd2f9b
    xor AX,AX
    push AX
    push CS
-   call near offset A19dd27f8
+   call near offset _pageview
    pop CX
 jmp near L19dd300c
 L19dd2f9b:
-   cmp word ptr [3D8A],+49
+   cmp word ptr [offset _key],+49
    jnz L19dd2fad
    mov AX,0001
    push AX
    push CS
-   call near offset A19dd0f3d
+   call near offset _dotextmsg
    pop CX
 jmp near L19dd300c
 L19dd2fad:
-   cmp word ptr [3D8A],+4F
+   cmp word ptr [offset _key],+4F
    jz L19dd2fbb
-   cmp word ptr [3D8A],+48
+   cmp word ptr [offset _key],+48
    jnz L19dd2fc6
 L19dd2fbb:
    mov AX,0008
    push AX
    push CS
-   call near offset A19dd27f8
+   call near offset _pageview
    pop CX
 jmp near L19dd300c
 L19dd2fc6:
-   cmp word ptr [3D8A],+43
+   cmp word ptr [offset _key],+43
    jnz L19dd2fd8
    mov AX,000C
    push AX
    push CS
-   call near offset A19dd27f8
+   call near offset _pageview
    pop CX
 jmp near L19dd300c
 L19dd2fd8:
-   cmp word ptr [3D8A],+44
+   cmp word ptr [offset _key],+44
    jnz L19dd2ffc
    push CS
-   call near offset A19dd2c5f
+   call near offset _dodemo
 L19dd2fe3:
    push DS
-   mov AX,offset Y2a1718e9
+   mov AX,offset _xintrosong
    push AX
-   call far A0c7e07b3
+   call far _sb_playtune
    pop CX
    pop CX
    push DS
-   mov AX,offset Y2a1718df
+   mov AX,offset _introboard
    push AX
    push CS
-   call near offset A19dd0aca
+   call near offset _loadboard
    pop CX
    pop CX
 jmp near L19dd300c
 L19dd2ffc:
-   cmp word ptr [3D8A],+4E
+   cmp word ptr [offset _key],+4E
    jnz L19dd300c
    mov AX,0063
    push AX
    push CS
-   call near offset A19dd27f8
+   call near offset _pageview
    pop CX
 L19dd300c:
    or DI,DI
@@ -37777,42 +37780,42 @@ L19dd3013:
    pop SI
 ret far
 
-A19dd3016:
+_main: ;; 19dd3016
    push BP
    mov BP,SP
    push [BP+0A]
    push [BP+08]
    push [BP+06]
-   call far A0bed0007
+   call far _cfg_getpath
    mov SP,BP
    push DS
-   mov AX,offset Y2a1705fc
+   mov AX,offset _path
    push AX
    push DS
-   mov AX,offset Y2a17bbbe
+   mov AX,offset _tempname
    push AX
-   call far A28a70001
+   call far _strcpy
    mov SP,BP
    push DS
    mov AX,offset Y2a171633
    push AX
    push DS
-   mov AX,offset Y2a17bbbe
+   mov AX,offset _tempname
    push AX
-   call far A289e0002
+   call far _strcat
    mov SP,BP
    push CS
-   call near offset A19dd0934
-   call far A294f000f
-   push [2663]
+   call near offset _loadcfg
+   call far _clrscr
+   push [offset _b_len]
    mov DX,B800
    xor AX,AX
    push DX
    push AX
    push DS
-   mov AX,offset Y2a171a56
+   mov AX,offset _JILLB
    push AX
-   call far A0be5000c
+   call far _uncrunch
    mov SP,BP
    mov AX,0010
    push AX
@@ -37822,96 +37825,96 @@ A19dd3016:
    push AX
    mov AX,000B
    push AX
-   call far A2a100006
+   call far _window
    mov SP,BP
    mov AX,0001
    push AX
    push AX
-   call far A2986000b
+   call far _gotoxy
    mov SP,BP
    mov AX,000F
    push AX
-   call far A2952000c
+   call far _textcolor
    pop CX
    mov AX,0001
    push AX
-   call far A29520021
+   call far _textbackground
    pop CX
-   call far A294f000f
+   call far _clrscr
    push [BP+0A]
    push [BP+08]
    push [BP+06]
-   call far A0bed007d
+   call far _cfg_init
    mov SP,BP
    push DS
-   mov AX,offset Y2a1718ba
+   mov AX,offset _xvocfile
    push AX
-   call far A0c7e018d
+   call far _snd_init
    mov SP,BP
-   call far A0b390a6f
-   call far A0bed0243
+   call far _gc_init
+   call far _doconfig
    or AX,AX
    jnz L19dd30d4
 jmp near L19dd32dd
 L19dd30d4:
-   call far A08600a01
-   call far A08600834
+   call far _gr_init
+   call far _clrpal
    push CS
-   call near offset A19dd0a35
+   call near offset _savecfg
    push DS
-   mov AX,offset Y2a1718b0
+   mov AX,offset _xshafile
    push AX
-   call far A07d30003
+   call far _shm_init
    mov SP,BP
-   mov word ptr [2EB6],0001
-   mov word ptr [2EB8],0001
-   mov word ptr [2EC2],0001
-   call far A07d3074d
+   mov word ptr [offset _shm_want+2*01],0001
+   mov word ptr [offset _shm_want+2*02],0001
+   mov word ptr [offset _shm_want+2*07],0001
+   call far _shm_do
    xor AX,AX
    push AX
    mov AX,0009
    push AX
    push DS
-   mov AX,offset Y2a173b38
+   mov AX,offset _mainvp
    push AX
-   call far A0a820abc
+   call far _fontcolor
    mov SP,BP
    mov AX,0300
    push AX
    push DS
-   mov AX,offset Y2a170194
+   mov AX,offset _vgapal
    push AX
    push DS
-   mov AX,offset Y2a17bf2e
+   mov AX,offset _oldvgapal
    push AX
-   call far A28a9000a
+   call far _memcpy
    mov SP,BP
    push CS
-   call near offset A19dd1a57
-   call far A0c7e03d5
+   call near offset _pleasewait
+   call far _snd_do
    push DS
-   mov AX,offset Y2a1718e9
+   mov AX,offset _xintrosong
    push AX
-   call far A0c7e07b3
+   call far _sb_playtune
    mov SP,BP
-   mov word ptr [2EBA],0001
-   mov word ptr [2EBC],0001
-   mov word ptr [2EBE],0001
-   mov word ptr [2EC0],0001
-   mov word ptr [2EC4],0001
-   mov word ptr [2ED0],0001
-   call far A07d3074d
+   mov word ptr [offset _shm_want+2*03],0001
+   mov word ptr [offset _shm_want+2*04],0001
+   mov word ptr [offset _shm_want+2*05],0001
+   mov word ptr [offset _shm_want+2*06],0001
+   mov word ptr [offset _shm_want+2*08],0001
+   mov word ptr [offset _shm_want+2*0e],0001
+   call far _shm_do
    push CS
-   call near offset A19dd0017
+   call near offset _fout
    mov AX,0300
    push AX
    push DS
-   mov AX,offset Y2a17bf2e
+   mov AX,offset _oldvgapal
    push AX
    push DS
-   mov AX,offset Y2a170194
+   mov AX,offset _vgapal
    push AX
-   call far A28a9000a
+   call far _memcpy
    mov SP,BP
    mov AX,0001
    push AX
@@ -37927,27 +37930,27 @@ L19dd30d4:
    push AX
    push AX
    push DS
-   mov AX,offset Y2a17b8b8
+   mov AX,offset _ourwin
    push AX
-   call far A0a82000b
+   call far _defwin
    mov SP,BP
-   mov [offset Y2a17b8b4+2],DS
-   mov word ptr [offset Y2a17b8b4],offset Y2a17b8b8+28
-   mov [offset Y2a17b770+2],DS
-   mov word ptr [offset Y2a17b770],offset Y2a17b8b8+38
-   mov [offset Y2a17ba44+2],DS
-   mov word ptr [offset Y2a17ba44],offset Y2a17b8b8+48
-   mov word ptr [offset Y2a17b760+08],0000
-   mov word ptr [offset Y2a17b760+0A],0000
-   mov word ptr [offset Y2a17b760+00],0000
-   mov word ptr [offset Y2a17b760+02],00BC
-   mov word ptr [offset Y2a17b760+04],0140
-   mov word ptr [offset Y2a17b760+06],000C
-   mov word ptr [BA5A],000F
-   mov word ptr [BA5C],000B
-   cmp word ptr [1976],+00
+   mov [offset _gamevp+02],DS
+   mov word ptr [offset _gamevp],offset _ourwin+28
+   mov [offset _cmdvp+02],DS
+   mov word ptr [offset _cmdvp],offset _ourwin+38
+   mov [offset _statvp+02],DS
+   mov word ptr [offset _statvp],offset _ourwin+48
+   mov word ptr [offset _botvp+2*04],0000
+   mov word ptr [offset _botvp+2*05],0000
+   mov word ptr [offset _botvp+2*00],0000
+   mov word ptr [offset _botvp+2*01],00BC
+   mov word ptr [offset _botvp+2*02],0140
+   mov word ptr [offset _botvp+2*03],000C
+   mov word ptr [offset _scrnxs],000F
+   mov word ptr [offset _scrnys],000B
+   cmp word ptr [offset _facetable],+00
    jz L19dd3233
-   cmp byte ptr [3B53],04
+   cmp byte ptr [offset _x_ourmode],04
    jnz L19dd3233
    xor AX,AX
    push AX
@@ -37962,14 +37965,14 @@ L19dd30d4:
    mov AX,000C
    push AX
    push DS
-   mov AX,offset Y2a17bd54
+   mov AX,offset _levelwin
    push AX
-   call far A0a82000b
+   call far _defwin
    mov SP,BP
-   mov AX,[BD7E]
-   mov [BD8E],AX
-   mov AX,[BD82]
-   mov [BD92],AX
+   mov AX,[offset _levelwin+28+02]
+   mov [offset _levelwin+38+02],AX
+   mov AX,[offset _levelwin+28+06]
+   mov [offset _levelwin+38+06],AX
 jmp near L19dd3254
 L19dd3233:
    xor AX,AX
@@ -37985,68 +37988,68 @@ L19dd3233:
    mov AX,000D
    push AX
    push DS
-   mov AX,offset Y2a17bd54
+   mov AX,offset _levelwin
    push AX
-   call far A0a82000b
+   call far _defwin
    mov SP,BP
 L19dd3254:
-   call far A1d250003
-   call far A0d8c000a
+   call far _initinfo
+   call far _initobjinfo
    push CS
-   call near offset A19dd121e
-   call far A1e3e0079
-   cmp word ptr [18A8],+00
+   call near offset _initboard
+   call far _initobjs
+   cmp word ptr [offset _xdemoflag],+00
    jz L19dd329f
    xor AX,AX
    push AX
-   call far A0860063e
+   call far _setpagemode
    pop CX
    push DS
-   mov AX,offset Y2a173b38
+   mov AX,offset _mainvp
    push AX
-   call far A0a820aa4
+   call far _clearvp
    mov SP,BP
    mov AX,0001
    push AX
-   call far A0860063e
+   call far _setpagemode
    pop CX
    push DS
-   mov AX,offset Y2a173b38
+   mov AX,offset _mainvp
    push AX
-   call far A0a820aa4
+   call far _clearvp
    mov SP,BP
    push CS
-   call near offset A19dd2c5f
+   call near offset _dodemo
 jmp near L19dd32c3
 L19dd329f:
    mov AX,0001
    push AX
-   call far A0860063e
+   call far _setpagemode
    pop CX
    push CS
-   call near offset A19dd26ac
-   call far A08600689
+   call near offset _drawgamewin
+   call far _pageflip
    xor AX,AX
    push AX
-   call far A0860063e
+   call far _setpagemode
    pop CX
    push CS
-   call near offset A19dd0002
+   call near offset _fin
    push CS
-   call near offset A19dd2d31
+   call near offset _jmenu
 L19dd32c3:
    push CS
-   call near offset A19dd0017
+   call near offset _fout
    push DS
-   mov AX,offset Y2a17b8b8
+   mov AX,offset _ourwin
    push AX
-   call far A0a8206a8
+   call far _undrawwin
    mov SP,BP
-   call far A07d30884
-   call far A08600c4e
+   call far _shm_exit
+   call far _gr_exit
 L19dd32dd:
-   call far A0b390ac6
-   call far A0c7e0699
+   call far _gc_exit
+   call far _snd_exit
    mov AX,0019
    push AX
    mov AX,0050
@@ -38054,47 +38057,47 @@ L19dd32dd:
    mov AX,0001
    push AX
    push AX
-   call far A2a100006
+   call far _window
    mov SP,BP
    mov AX,000F
    push AX
-   call far A2952000c
+   call far _textcolor
    pop CX
    xor AX,AX
    push AX
-   call far A29520021
+   call far _textbackground
    pop CX
-   call far A294f000f
-   cmp word ptr [2661],+00
+   call far _clrscr
+   cmp word ptr [offset _e_len],+00
    jz L19dd3340
-   push [2661]
+   push [offset _e_len]
    mov DX,B800
    xor AX,AX
    push DX
    push AX
    push DS
-   mov AX,offset Y2a171f3b
+   mov AX,offset _JILLE
    push AX
-   call far A0be5000c
+   call far _uncrunch
    mov SP,BP
    mov AX,0018
    push AX
    mov AX,0001
    push AX
-   call far A2986000b
+   call far _gotoxy
    mov SP,BP
 L19dd3340:
    pop BP
 ret far
 
-A19dd3342:
+_rexit: ;; 19dd3342
    push BP
    mov BP,SP
    sub SP,+10
-   call far A07d30884
-   call far A08600c4e
-   call far A0b390ac6
-   call far A0c7e0699
+   call far _shm_exit
+   call far _gr_exit
+   call far _gc_exit
+   call far _snd_exit
    mov AX,0019
    push AX
    mov AX,0050
@@ -38102,28 +38105,28 @@ A19dd3342:
    mov AX,0001
    push AX
    push AX
-   call far A2a100006
+   call far _window
    add SP,+08
    mov AX,000F
    push AX
-   call far A2952000c
+   call far _textcolor
    pop CX
    xor AX,AX
    push AX
-   call far A29520021
+   call far _textbackground
    pop CX
-   call far A294f000f
+   call far _clrscr
    mov AX,0005
    push AX
    mov AX,0001
    push AX
-   call far A2986000b
+   call far _gotoxy
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a171638
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    mov AX,000A
@@ -38132,17 +38135,17 @@ A19dd3342:
    lea AX,[BP-10]
    push AX
    push [BP+06]
-   call far A288c008e
+   call far _itoa
    add SP,+08
    push DX
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a171673
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    mov AX,000A
@@ -38150,38 +38153,38 @@ A19dd3342:
    push SS
    lea AX,[BP-10]
    push AX
-   call far A290e000c
+   call far _coreleft
    push DX
    push AX
-   call far A288c00db
+   call far _ltoa
    add SP,+0A
    push DX
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a171675
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a171678
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
-   mov AX,offset Y2a17193e
+   mov AX,offset _erroraddr
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a17167b
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    cmp word ptr [BP+06],+09
@@ -38189,33 +38192,33 @@ A19dd3342:
    push DS
    mov AX,offset Y2a171680
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a1716c8
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a1716f4
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
    push DS
    mov AX,offset Y2a17172c
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
-   cmp word ptr [0C88],+00
+   cmp word ptr [offset _vocflag],+00
    jz L19dd3475
    push DS
    mov AX,offset Y2a17175d
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
 jmp near L19dd3475
@@ -38223,20 +38226,20 @@ L19dd3469:
    push DS
    mov AX,offset Y2a1717a9
    push AX
-   call far A296d000f
+   call far _cputs
    pop CX
    pop CX
 L19dd3475:
    mov AX,0001
    push AX
-   call far A27eb0001
+   call far _exit
    pop CX
    mov SP,BP
    pop BP
 ret far
 
 Segment 1d25 ;; JINFO.C:JINFO
-A1d250003:
+_initinfo: ;; 1d250003
    push BP
    mov BP,SP
    sub SP,+06
@@ -38250,7 +38253,7 @@ L1d250015:
    shl BX,1
    shl BX,1
    shl BX,1
-   add BX,offset Y2a1784ae
+   add BX,offset _info
    push DS
    pop ES
    mov word ptr [ES:BX],4700
@@ -38258,7 +38261,7 @@ L1d250015:
    shl BX,1
    shl BX,1
    shl BX,1
-   add BX,offset Y2a1784ae
+   add BX,offset _info
    push DS
    pop ES
    mov [ES:BX+06],DS
@@ -38267,7 +38270,7 @@ L1d250015:
    shl BX,1
    shl BX,1
    shl BX,1
-   add BX,offset Y2a1784ae
+   add BX,offset _info
    push DS
    pop ES
    mov [ES:BX+02],DI
@@ -38278,9 +38281,9 @@ L1d250058:
    mov AX,8000
    push AX
    push DS
-   mov AX,offset Y2a1718ce
+   mov AX,offset _dmafile
    push AX
-   call far A28390038
+   call far _open
    add SP,+06
    mov SI,AX
 jmp near L1d250135
@@ -38292,10 +38295,10 @@ L1d250075:
    shl AX,1
    shl AX,1
    shl AX,1
-   add AX,offset Y2a1784ae
+   add AX,offset _info
    push AX
    push SI
-   call far A28600006
+   call far _read
    add SP,+08
    mov AX,0002
    push AX
@@ -38303,14 +38306,14 @@ L1d250075:
    lea AX,[BP-04]
    push AX
    push SI
-   call far A28600006
+   call far _read
    add SP,+08
    mov AX,[BP-04]
    mov BX,[BP-06]
    shl BX,1
    shl BX,1
    shl BX,1
-   add BX,offset Y2a1784ae
+   add BX,offset _info
    push AX
    push DS
    pop ES
@@ -38322,19 +38325,19 @@ L1d250075:
    lea AX,[BP-01]
    push AX
    push SI
-   call far A28600006
+   call far _read
    add SP,+08
    mov AL,[BP-01]
    cbw
    inc AX
    push AX
-   call far A27f10003
+   call far _malloc
    pop CX
    mov BX,[BP-06]
    shl BX,1
    shl BX,1
    shl BX,1
-   add BX,offset Y2a1784ae
+   add BX,offset _info
    push DX
    push AX
    push DS
@@ -38350,19 +38353,19 @@ L1d250075:
    shl BX,1
    shl BX,1
    shl BX,1
-   add BX,offset Y2a1784ae
+   add BX,offset _info
    push DS
    pop ES
    push [ES:BX+06]
    push [ES:BX+04]
    push SI
-   call far A28600006
+   call far _read
    add SP,+08
    mov BX,[BP-06]
    shl BX,1
    shl BX,1
    shl BX,1
-   add BX,offset Y2a1784ae
+   add BX,offset _info
    push DS
    pop ES
    les BX,[ES:BX+04]
@@ -38377,7 +38380,7 @@ L1d250135:
    lea AX,[BP-06]
    push AX
    push SI
-   call far A28600006
+   call far _read
    add SP,+08
    or AX,AX
    jle L1d25014e
@@ -38388,16 +38391,16 @@ jmp near L1d250163
 L1d250155:
    mov BX,[BP-06]
    shl BX,1
-   mov word ptr [BX+C22E],0000
+   mov word ptr [BX+offset _stateinfo],0000
    inc word ptr [BP-06]
 L1d250163:
    cmp word ptr [BP-06],+06
    jl L1d250155
-   or word ptr [C236],0002
-   or word ptr [C22E],0001
-   or word ptr [C232],0001
-   or word ptr [C234],0000
-   or word ptr [C238],0002
+   or word ptr [offset _stateinfo+08],0002
+   or word ptr [offset _stateinfo+00],0001
+   or word ptr [offset _stateinfo+04],0001
+   or word ptr [offset _stateinfo+06],0000
+   or word ptr [offset _stateinfo+0a],0002
    pop DI
    pop SI
    mov SP,BP
@@ -38405,13 +38408,13 @@ L1d250163:
 ret far
 
 Segment 1d3d ;; DESIGN.C:DESIGN
-A1d3d000d:
+_infname: ;; 1d3d000d
    push BP
    mov BP,SP
    push DS
-   mov AX,offset Y2a17b8b8+48
+   mov AX,offset _ourwin+48
    push AX
-   call far A0a820aa4
+   call far _clearvp
    mov SP,BP
    push [BP+08]
    push [BP+06]
@@ -38421,9 +38424,9 @@ A1d3d000d:
    push AX
    push AX
    push DS
-   mov AX,offset Y2a17b8b8+48
+   mov AX,offset _ourwin+48
    push AX
-   call far A0a8206bf
+   call far _wprint
    mov SP,BP
    mov AX,000C
    push AX
@@ -38436,14 +38439,14 @@ A1d3d000d:
    xor AX,AX
    push AX
    push DS
-   mov AX,offset Y2a17b8b8+48
+   mov AX,offset _ourwin+48
    push AX
-   call far A0a8207d2
+   call far _winput
    mov SP,BP
    pop BP
 ret far
 
-A1d3d0059:
+_printobjinfo: ;; 1d3d0059
    push BP
    mov BP,SP
    sub SP,+10
@@ -38458,15 +38461,15 @@ A1d3d0059:
    push AX
    push AX
    push DS
-   mov AX,offset Y2a17b8b8+48
+   mov AX,offset _ourwin+48
    push AX
-   call far A0a8206bf
+   call far _wprint
    add SP,+0E
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AL,[ES:BX]
@@ -38474,8 +38477,8 @@ A1d3d0059:
    mov BX,AX
    shl BX,1
    shl BX,1
-   push [BX+BA60]
-   push [BX+BA5E]
+   push [BX+offset _kindname+02]
+   push [BX+offset _kindname]
    mov AX,0002
    push AX
    xor AX,AX
@@ -38483,9 +38486,9 @@ A1d3d0059:
    mov AX,001E
    push AX
    push DS
-   mov AX,offset Y2a17b8b8+48
+   mov AX,offset _ourwin+48
    push AX
-   call far A0a8206bf
+   call far _wprint
    add SP,+0E
    push DS
    mov AX,offset Y2a1717fe
@@ -38497,9 +38500,9 @@ A1d3d0059:
    xor AX,AX
    push AX
    push DS
-   mov AX,offset Y2a17b8b8+48
+   mov AX,offset _ourwin+48
    push AX
-   call far A0a8206bf
+   call far _wprint
    add SP,+0E
    mov AX,000A
    push AX
@@ -38510,11 +38513,11 @@ A1d3d0059:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+0D]
-   call far A288c008e
+   call far _itoa
    add SP,+08
    push DX
    push AX
@@ -38525,9 +38528,9 @@ A1d3d0059:
    mov AX,001E
    push AX
    push DS
-   mov AX,offset Y2a17b8b8+48
+   mov AX,offset _ourwin+48
    push AX
-   call far A0a8206bf
+   call far _wprint
    add SP,+0E
    push DS
    mov AX,offset Y2a171810
@@ -38539,9 +38542,9 @@ A1d3d0059:
    xor AX,AX
    push AX
    push DS
-   mov AX,offset Y2a17b8b8+48
+   mov AX,offset _ourwin+48
    push AX
-   call far A0a8206bf
+   call far _wprint
    add SP,+0E
    mov AX,000A
    push AX
@@ -38552,11 +38555,11 @@ A1d3d0059:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+05]
-   call far A288c008e
+   call far _itoa
    add SP,+08
    push DX
    push AX
@@ -38567,9 +38570,9 @@ A1d3d0059:
    mov AX,001E
    push AX
    push DS
-   mov AX,offset Y2a17b8b8+48
+   mov AX,offset _ourwin+48
    push AX
-   call far A0a8206bf
+   call far _wprint
    add SP,+0E
    push DS
    mov AX,offset Y2a171822
@@ -38581,9 +38584,9 @@ A1d3d0059:
    xor AX,AX
    push AX
    push DS
-   mov AX,offset Y2a17b8b8+48
+   mov AX,offset _ourwin+48
    push AX
-   call far A0a8206bf
+   call far _wprint
    add SP,+0E
    mov AX,000A
    push AX
@@ -38594,11 +38597,11 @@ A1d3d0059:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+07]
-   call far A288c008e
+   call far _itoa
    add SP,+08
    push DX
    push AX
@@ -38609,9 +38612,9 @@ A1d3d0059:
    mov AX,001E
    push AX
    push DS
-   mov AX,offset Y2a17b8b8+48
+   mov AX,offset _ourwin+48
    push AX
-   call far A0a8206bf
+   call far _wprint
    add SP,+0E
    push DS
    mov AX,offset Y2a171834
@@ -38623,9 +38626,9 @@ A1d3d0059:
    xor AX,AX
    push AX
    push DS
-   mov AX,offset Y2a17b8b8+48
+   mov AX,offset _ourwin+48
    push AX
-   call far A0a8206bf
+   call far _wprint
    add SP,+0E
    mov AX,000A
    push AX
@@ -38636,11 +38639,11 @@ A1d3d0059:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+13]
-   call far A288c008e
+   call far _itoa
    add SP,+08
    push DX
    push AX
@@ -38651,22 +38654,22 @@ A1d3d0059:
    mov AX,001E
    push AX
    push DS
-   mov AX,offset Y2a17b8b8+48
+   mov AX,offset _ourwin+48
    push AX
-   call far A0a8206bf
+   call far _wprint
    add SP,+0E
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AL,[ES:BX]
    cbw
    mov BX,AX
    shl BX,1
-   test word ptr [BX+C23E],0040
+   test word ptr [BX+offset _kindflags],0040
    jz L1d3d0262
    push DS
    mov AX,offset Y2a171846
@@ -38678,9 +38681,9 @@ A1d3d0059:
    xor AX,AX
    push AX
    push DS
-   mov AX,offset Y2a17b8b8+48
+   mov AX,offset _ourwin+48
    push AX
-   call far A0a8206bf
+   call far _wprint
    add SP,+0E
 L1d3d0262:
    pop SI
@@ -38688,7 +38691,7 @@ L1d3d0262:
    pop BP
 ret far
 
-A1d3d0267:
+_objdesign: ;; 1d3d0267
    push BP
    mov BP,SP
    sub SP,+4A
@@ -38704,7 +38707,7 @@ A1d3d0267:
    mov AX,[BP+08]
    mov CL,04
    shl AX,CL
-   add AX,[C2D2]
+   add AX,[offset _disy]
    mov [BP+08],AX
    mov word ptr [BP-4A],0000
 jmp near L1d3d02f1
@@ -38713,7 +38716,7 @@ L1d3d0297:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -38723,7 +38726,7 @@ L1d3d0297:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -38734,7 +38737,7 @@ L1d3d0297:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AL,[ES:BX]
@@ -38742,14 +38745,14 @@ L1d3d0297:
    mov BX,AX
    shl BX,1
    shl BX,1
-   les BX,[BX+BA5E]
+   les BX,[BX+offset _kindname]
    mov [BP-42],ES
    mov [BP-44],BX
 L1d3d02ee:
    inc word ptr [BP-4A]
 L1d3d02f1:
    mov AX,[BP-4A]
-   cmp AX,[offset Y2a17bc1e]
+   cmp AX,[offset _numobjs]
    jl L1d3d0297
    cmp SI,-01
    jnz L1d3d0307
@@ -38757,9 +38760,9 @@ L1d3d02f1:
    mov word ptr [BP-44],1852
 L1d3d0307:
    push DS
-   mov AX,offset Y2a17b8b8+48
+   mov AX,offset _ourwin+48
    push AX
-   call far A0a820aa4
+   call far _clearvp
    pop CX
    pop CX
    push DS
@@ -38771,9 +38774,9 @@ L1d3d0307:
    push AX
    push AX
    push DS
-   mov AX,offset Y2a17b8b8+48
+   mov AX,offset _ourwin+48
    push AX
-   call far A0a8206bf
+   call far _wprint
    add SP,+0E
    push DS
    mov AX,offset Y2a171863
@@ -38785,9 +38788,9 @@ L1d3d0307:
    xor AX,AX
    push AX
    push DS
-   mov AX,offset Y2a17b8b8+48
+   mov AX,offset _ourwin+48
    push AX
-   call far A0a8206bf
+   call far _wprint
    add SP,+0E
    push DS
    mov AX,offset Y2a17186e
@@ -38799,9 +38802,9 @@ L1d3d0307:
    xor AX,AX
    push AX
    push DS
-   mov AX,offset Y2a17b8b8+48
+   mov AX,offset _ourwin+48
    push AX
-   call far A0a8206bf
+   call far _wprint
    add SP,+0E
    push DS
    mov AX,offset Y2a171878
@@ -38813,9 +38816,9 @@ L1d3d0307:
    xor AX,AX
    push AX
    push DS
-   mov AX,offset Y2a17b8b8+48
+   mov AX,offset _ourwin+48
    push AX
-   call far A0a8206bf
+   call far _wprint
    add SP,+0E
    push [BP-42]
    push [BP-44]
@@ -38826,9 +38829,9 @@ L1d3d0307:
    mov AX,001E
    push AX
    push DS
-   mov AX,offset Y2a17b8b8+48
+   mov AX,offset _ourwin+48
    push AX
-   call far A0a8206bf
+   call far _wprint
    add SP,+0E
    mov AX,0002
    push AX
@@ -38837,21 +38840,21 @@ L1d3d0307:
    xor AX,AX
    push AX
    push DS
-   mov AX,offset Y2a17b8b8+48
+   mov AX,offset _ourwin+48
    push AX
-   call far A0a82075a
+   call far _wgetkey
    add SP,+0A
    push AX
-   call far A29ff000e
+   call far _toupper
    pop CX
-   mov [3D8A],AX
+   mov [offset _key],AX
    push DS
-   mov AX,offset Y2a17b8b8+48
+   mov AX,offset _ourwin+48
    push AX
-   call far A0a820aa4
+   call far _clearvp
    pop CX
    pop CX
-   mov AX,[3D8A]
+   mov AX,[offset _key]
    sub AX,0041
    cmp AX,000F
    jbe L1d3d03df
@@ -38863,12 +38866,12 @@ jmp near [CS:BX+offset Y1d3d03e8]
 Y1d3d03e8:	dw L1d3d0408,L1d3d0501,L1d3d0501,L1d3d0424,L1d3d0501,L1d3d0501,L1d3d0501,L1d3d0501
 		dw L1d3d0501,L1d3d0501,L1d3d04f0,L1d3d0501,L1d3d04fa,L1d3d0501,L1d3d04bb,L1d3d0441
 L1d3d0408:
-   mov SI,[offset Y2a17bc1e]
+   mov SI,[offset _numobjs]
    push [BP+08]
    push DI
    mov AX,0003
    push AX
-   call far A1e3e18b9
+   call far _addobj
    add SP,+06
 L1d3d041c:
    mov word ptr [BP-46],0001
@@ -38882,7 +38885,7 @@ L1d3d042b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov byte ptr [ES:BX],03
@@ -38890,83 +38893,83 @@ jmp near L1d3d09a3
 L1d3d0441:
    push [BP+08]
    push DI
-   mov AX,[17EA]
+   mov AX,[offset Y2a1717ea]
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AL,[ES:BX]
    cbw
    push AX
-   call far A1e3e18b9
+   call far _addobj
    add SP,+06
    mov AX,001F
    push AX
    push DS
-   mov AX,[17EA]
+   mov AX,[offset Y2a1717ea]
    mov DX,001F
    mul DX
-   add AX,offset Y2a17976e
+   add AX,offset _objs
    push AX
    push DS
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    dec AX
    mov DX,001F
    mul DX
-   add AX,offset Y2a17976e
+   add AX,offset _objs
    push AX
-   call far A28a9000a
+   call far _memcpy
    add SP,+0A
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    dec AX
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov [ES:BX+01],DI
    mov AX,[BP+08]
    push AX
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    dec AX
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    mov [ES:BX+03],AX
 jmp near L1d3d09a3
 L1d3d04bb:
-   mov AX,[17EA]
+   mov AX,[offset Y2a1717ea]
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov [ES:BX+01],DI
    mov AX,[BP+08]
    push AX
-   mov AX,[17EA]
+   mov AX,[offset Y2a1717ea]
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    mov [ES:BX+03],AX
-   call far A19dd14a9
+   call far _drawboard
 jmp near L1d3d09a3
 L1d3d04f0:
    or SI,SI
    jl L1d3d0501
-   mov [17EA],SI
+   mov [offset Y2a1717ea],SI
 jmp near L1d3d0501
 L1d3d04fa:
    or SI,SI
@@ -38979,13 +38982,13 @@ jmp near L1d3d09a8
 L1d3d050a:
    push SI
    push CS
-   call near offset A1d3d0059
+   call near offset _printobjinfo
    pop CX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AL,[ES:BX]
@@ -38993,12 +38996,12 @@ L1d3d050a:
    mov BX,AX
    shl BX,1
    shl BX,1
-   push [BX+BA60]
-   push [BX+BA5E]
+   push [BX+offset _kindname+02]
+   push [BX+offset _kindname]
    push SS
    lea AX,[BP-40]
    push AX
-   call far A28a70001
+   call far _strcpy
    add SP,+08
    mov AX,000C
    push AX
@@ -39012,14 +39015,14 @@ L1d3d050a:
    mov AX,001E
    push AX
    push DS
-   mov AX,offset Y2a17b8b8+48
+   mov AX,offset _ourwin+48
    push AX
-   call far A0a8207d2
+   call far _winput
    add SP,+10
    push SS
    lea AX,[BP-40]
    push AX
-   call far A29fd0009
+   call far _strupr
    pop CX
    pop CX
    mov word ptr [BP-4A],0000
@@ -39028,12 +39031,12 @@ L1d3d0572:
    mov BX,[BP-4A]
    shl BX,1
    shl BX,1
-   push [BX+BA60]
-   push [BX+BA5E]
+   push [BX+offset _kindname+02]
+   push [BX+offset _kindname]
    push SS
    lea AX,[BP-40]
    push AX
-   call far A28a3000f
+   call far _strcmp
    add SP,+08
    or AX,AX
    jnz L1d3d05ab
@@ -39043,7 +39046,7 @@ L1d3d0572:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -39057,7 +39060,7 @@ L1d3d05ae:
 L1d3d05b4:
    push SI
    push CS
-   call near offset A1d3d0059
+   call near offset _printobjinfo
    pop CX
    mov AX,000A
    push AX
@@ -39068,11 +39071,11 @@ L1d3d05b4:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+0D]
-   call far A288c008e
+   call far _itoa
    add SP,+08
    mov AX,000C
    push AX
@@ -39086,16 +39089,16 @@ L1d3d05b4:
    mov AX,001E
    push AX
    push DS
-   mov AX,offset Y2a17b8b8+48
+   mov AX,offset _ourwin+48
    push AX
-   call far A0a8207d2
+   call far _winput
    add SP,+10
    cmp byte ptr [BP-40],00
    jz L1d3d0627
    push SS
    lea AX,[BP-40]
    push AX
-   call far A29700003
+   call far _atol
    pop CX
    pop CX
    push AX
@@ -39103,7 +39106,7 @@ L1d3d05b4:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -39111,7 +39114,7 @@ L1d3d05b4:
 L1d3d0627:
    push SI
    push CS
-   call near offset A1d3d0059
+   call near offset _printobjinfo
    pop CX
    mov AX,000A
    push AX
@@ -39122,11 +39125,11 @@ L1d3d0627:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+05]
-   call far A288c008e
+   call far _itoa
    add SP,+08
    mov AX,000C
    push AX
@@ -39140,16 +39143,16 @@ L1d3d0627:
    mov AX,001E
    push AX
    push DS
-   mov AX,offset Y2a17b8b8+48
+   mov AX,offset _ourwin+48
    push AX
-   call far A0a8207d2
+   call far _winput
    add SP,+10
    cmp byte ptr [BP-40],00
    jz L1d3d069a
    push SS
    lea AX,[BP-40]
    push AX
-   call far A29700003
+   call far _atol
    pop CX
    pop CX
    push AX
@@ -39157,7 +39160,7 @@ L1d3d0627:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -39165,7 +39168,7 @@ L1d3d0627:
 L1d3d069a:
    push SI
    push CS
-   call near offset A1d3d0059
+   call near offset _printobjinfo
    pop CX
    mov AX,000A
    push AX
@@ -39176,11 +39179,11 @@ L1d3d069a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+07]
-   call far A288c008e
+   call far _itoa
    add SP,+08
    mov AX,000C
    push AX
@@ -39194,16 +39197,16 @@ L1d3d069a:
    mov AX,001E
    push AX
    push DS
-   mov AX,offset Y2a17b8b8+48
+   mov AX,offset _ourwin+48
    push AX
-   call far A0a8207d2
+   call far _winput
    add SP,+10
    cmp byte ptr [BP-40],00
    jz L1d3d070d
    push SS
    lea AX,[BP-40]
    push AX
-   call far A29700003
+   call far _atol
    pop CX
    pop CX
    push AX
@@ -39211,7 +39214,7 @@ L1d3d069a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -39219,7 +39222,7 @@ L1d3d069a:
 L1d3d070d:
    push SI
    push CS
-   call near offset A1d3d0059
+   call near offset _printobjinfo
    pop CX
    mov AX,000A
    push AX
@@ -39230,11 +39233,11 @@ L1d3d070d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+13]
-   call far A288c008e
+   call far _itoa
    add SP,+08
    mov AX,000C
    push AX
@@ -39248,16 +39251,16 @@ L1d3d070d:
    mov AX,001E
    push AX
    push DS
-   mov AX,offset Y2a17b8b8+48
+   mov AX,offset _ourwin+48
    push AX
-   call far A0a8207d2
+   call far _winput
    add SP,+10
    cmp byte ptr [BP-40],00
    jz L1d3d0780
    push SS
    lea AX,[BP-40]
    push AX
-   call far A29700003
+   call far _atol
    pop CX
    pop CX
    push AX
@@ -39265,7 +39268,7 @@ L1d3d070d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -39275,20 +39278,20 @@ L1d3d0780:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AL,[ES:BX]
    cbw
    mov BX,AX
    shl BX,1
-   mov AX,[BX+B778]
+   mov AX,[BX+offset _kindxl]
    push AX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -39297,20 +39300,20 @@ L1d3d0780:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AL,[ES:BX]
    cbw
    mov BX,AX
    shl BX,1
-   mov AX,[BX+B802]
+   mov AX,[BX+offset _kindyl]
    push AX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -39319,26 +39322,26 @@ L1d3d0780:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AL,[ES:BX]
    cbw
    mov BX,AX
    shl BX,1
-   test word ptr [BX+C23E],0040
+   test word ptr [BX+offset _kindflags],0040
    jnz L1d3d0802
 jmp near L1d3d0975
 L1d3d0802:
    push SI
    push CS
-   call near offset A1d3d0059
+   call near offset _printobjinfo
    pop CX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp byte ptr [ES:BX],15
@@ -39352,7 +39355,7 @@ L1d3d0829:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+17]
@@ -39365,7 +39368,7 @@ L1d3d0848:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+19]
@@ -39373,14 +39376,14 @@ L1d3d0848:
    push SS
    lea AX,[BP-40]
    push AX
-   call far A28a70001
+   call far _strcpy
    add SP,+08
 L1d3d086c:
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+07]
@@ -39388,13 +39391,13 @@ L1d3d086c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+05]
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A0a820abc
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _fontcolor
    add SP,+08
    mov AX,0040
    push AX
@@ -39406,7 +39409,7 @@ L1d3d086c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -39414,19 +39417,19 @@ L1d3d086c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A0a8207d2
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _winput
    add SP,+10
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+17]
@@ -39436,24 +39439,24 @@ L1d3d086c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+19]
    push [ES:BX+17]
-   call far A29110001
+   call far _free
    pop CX
    pop CX
 L1d3d091b:
    push SS
    lea AX,[BP-40]
    push AX
-   call far A28a20004
+   call far _strlen
    pop CX
    pop CX
    inc AX
    push AX
-   call far A27f10003
+   call far _malloc
    pop CX
    push DX
    push AX
@@ -39461,7 +39464,7 @@ L1d3d091b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -39475,36 +39478,36 @@ L1d3d091b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+19]
    push [ES:BX+17]
-   call far A28a70001
+   call far _strcpy
    add SP,+08
    push SI
-   call far A1e3e0269
+   call far _setobjsize
    pop CX
 L1d3d0975:
    push SI
    push CS
-   call near offset A1d3d0059
+   call near offset _printobjinfo
    pop CX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AL,[ES:BX]
    cbw
    mov BX,AX
    shl BX,1
-   mov BX,[BX+BC40]
+   mov BX,[BX+offset _kindtable]
    shl BX,1
-   mov word ptr [BX+2EB4],0001
-   call far A07d3074d
+   mov word ptr [BX+offset _shm_want],0001
+   call far _shm_do
 L1d3d09a3:
    mov AX,0001
 jmp near L1d3d09aa
@@ -39517,7 +39520,7 @@ L1d3d09aa:
    pop BP
 ret far
 
-A1d3d09b0:
+_design: ;; 1d3d09b0
    push BP
    mov BP,SP
    sub SP,+5E
@@ -39526,32 +39529,32 @@ A1d3d09b0:
    mov word ptr [BP-5E],0000
    mov word ptr [BP-5A],0001
    mov word ptr [BP-56],0000
-   mov word ptr [C2D2],0000
-   mov word ptr [13C4],0001
+   mov word ptr [offset _disy],0000
+   mov word ptr [offset _designflag],0001
    mov byte ptr [BP-54],00
    mov byte ptr [BP-34],00
-   call far A1e3e2151
-   mov AX,[976F]
+   call far _setorigin
+   mov AX,[offset _objs+01]
    mov BX,0010
    cwd
    idiv BX
    mov DI,AX
-   mov AX,[9771]
+   mov AX,[offset _objs+03]
    cwd
    idiv BX
    mov SI,AX
-   call far A19dd14a9
+   call far _drawboard
 L1d3d09f8:
    cmp word ptr [BP-56],+00
    jz L1d3d0a19
    push [BP-5A]
    push SI
    push DI
-   call far A1e3e0004
+   call far _setboard
    add SP,+06
    push SI
    push DI
-   call far A19dd140c
+   call far _drawcell
    pop CX
    pop CX
    mov word ptr [BP-5E],0001
@@ -39568,19 +39571,19 @@ L1d3d0a19:
    push AX
    mov AX,0100
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A086000eb
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _drawshape
    add SP,+0A
    mov AX,000A
    push AX
    push SS
    lea AX,[BP-14]
    push AX
-   call far A290e000c
+   call far _coreleft
    push DX
    push AX
-   call far A288c00db
+   call far _ltoa
    add SP,+0A
    push SS
    lea AX,[BP-14]
@@ -39591,20 +39594,20 @@ L1d3d0a19:
    push AX
    push AX
    push DS
-   mov AX,offset Y2a17b8b8+48
+   mov AX,offset _ourwin+48
    push AX
-   call far A0a8206bf
+   call far _wprint
    add SP,+0E
 L1d3d0a73:
    xor AX,AX
    push AX
-   call far A0b39029e
+   call far _checkctrl
    pop CX
-   cmp word ptr [3D7A],+00
+   cmp word ptr [offset _dx1],+00
    jnz L1d3d0a97
-   cmp word ptr [3D7C],+00
+   cmp word ptr [offset _dy1],+00
    jnz L1d3d0a97
-   cmp word ptr [3D8A],+00
+   cmp word ptr [offset _key],+00
    jnz L1d3d0a97
    cmp word ptr [BP-5E],+00
    jz L1d3d0a73
@@ -39612,40 +39615,40 @@ L1d3d0a97:
    mov word ptr [BP-5E],0000
    push SI
    push DI
-   call far A1e3e0040
+   call far _modboard
    pop CX
    pop CX
    xor AX,AX
    push AX
-   call far A1e3e12f9
+   call far _updobjs
    pop CX
    xor AX,AX
    push AX
-   call far A1e3e0d52
+   call far _refresh
    pop CX
-   call far A1e3e24d5
-   cmp word ptr [3D7A],+00
+   call far _purgeobjs
+   cmp word ptr [offset _dx1],+00
    jnz L1d3d0acd
-   cmp word ptr [3D7C],+00
+   cmp word ptr [offset _dy1],+00
    jnz L1d3d0acd
 jmp near L1d3d0c1b
 L1d3d0acd:
-   mov AX,[BA5A]
+   mov AX,[offset _scrnxs]
    mov BX,0002
    cwd
    idiv BX
    dec AX
-   mul word ptr [3D7E]
+   mul word ptr [offset _fire1]
    inc AX
-   mul word ptr [3D7A]
+   mul word ptr [offset _dx1]
    add DI,AX
-   mov AX,[BA5C]
+   mov AX,[offset _scrnys]
    cwd
    idiv BX
    dec AX
-   mul word ptr [3D7E]
+   mul word ptr [offset _fire1]
    inc AX
-   mul word ptr [3D7C]
+   mul word ptr [offset _dy1]
    add SI,AX
    or DI,DI
    jge L1d3d0afa
@@ -39666,10 +39669,10 @@ L1d3d0b11:
    mov AX,DI
    mov CL,04
    shl AX,CL
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    cmp AX,[ES:BX+08]
    jge L1d3d0b40
-   mov AX,[BA5A]
+   mov AX,[offset _scrnxs]
    shl AX,1
    shl AX,1
    shl AX,1
@@ -39678,11 +39681,11 @@ L1d3d0b11:
    jge L1d3d0b3b
    mov word ptr [ES:BX+08],0000
 L1d3d0b3b:
-   call far A19dd14a9
+   call far _drawboard
 L1d3d0b40:
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+08]
-   mov DX,[BA5A]
+   mov DX,[offset _scrnxs]
    mov CL,04
    shl DX,CL
    add AX,DX
@@ -39692,35 +39695,35 @@ L1d3d0b40:
    shl DX,CL
    cmp AX,DX
    jg L1d3d0b99
-   mov AX,[BA5A]
+   mov AX,[offset _scrnxs]
    shl AX,1
    shl AX,1
    shl AX,1
    add [ES:BX+08],AX
    mov AX,[ES:BX+08]
    mov DX,0080
-   sub DX,[BA5A]
+   sub DX,[offset _scrnxs]
    mov CL,04
    shl DX,CL
    add DX,+08
    cmp AX,DX
    jl L1d3d0b94
    mov AX,0080
-   sub AX,[BA5A]
+   sub AX,[offset _scrnxs]
    mov CL,04
    shl AX,CL
    add AX,0008
    mov [ES:BX+08],AX
 L1d3d0b94:
-   call far A19dd14a9
+   call far _drawboard
 L1d3d0b99:
    mov AX,SI
    mov CL,04
    shl AX,CL
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    cmp AX,[ES:BX+0A]
    jge L1d3d0bc8
-   mov AX,[BA5C]
+   mov AX,[offset _scrnys]
    shl AX,1
    shl AX,1
    shl AX,1
@@ -39729,11 +39732,11 @@ L1d3d0b99:
    jge L1d3d0bc3
    mov word ptr [ES:BX+0A],0000
 L1d3d0bc3:
-   call far A19dd14a9
+   call far _drawboard
 L1d3d0bc8:
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+0A]
-   mov DX,[BA5C]
+   mov DX,[offset _scrnys]
    dec DX
    mov CL,04
    shl DX,CL
@@ -39743,30 +39746,30 @@ L1d3d0bc8:
    shl DX,CL
    cmp AX,DX
    jg L1d3d0c1b
-   mov AX,[BA5C]
+   mov AX,[offset _scrnys]
    shl AX,1
    shl AX,1
    shl AX,1
    add [ES:BX+0A],AX
    mov AX,[ES:BX+0A]
    mov DX,0040
-   sub DX,[BA5C]
+   sub DX,[offset _scrnys]
    inc DX
    mov CL,04
    shl DX,CL
    cmp AX,DX
    jl L1d3d0c16
    mov AX,0040
-   sub AX,[BA5C]
+   sub AX,[offset _scrnys]
    inc AX
    mov CL,04
    shl AX,CL
    mov [ES:BX+0A],AX
 L1d3d0c16:
-   call far A19dd14a9
+   call far _drawboard
 L1d3d0c1b:
-   push [3D8A]
-   call far A29ff000e
+   push [offset _key]
+   call far _toupper
    pop CX
    mov CX,000E
    mov BX,offset Y1d3d0c3b
@@ -39785,9 +39788,9 @@ Y1d3d0c57:	dw L1d3d0d3b,L1d3d0c73,L1d3d0d67,L1d3d0dcc,L1d3d0d7c,L1d3d0d49,L1d3d0
 		dw L1d3d0fa8,L1d3d0e6d,L1d3d0fd5,L1d3d0d95,L1d3d0f2f,L1d3d0e7b,L1d3d0ef1
 L1d3d0c73:
    push DS
-   mov AX,offset Y2a17b8b8+48
+   mov AX,offset _ourwin+48
    push AX
-   call far A0a820aa4
+   call far _clearvp
    pop CX
    pop CX
    push DS
@@ -39799,9 +39802,9 @@ L1d3d0c73:
    push AX
    push AX
    push DS
-   mov AX,offset Y2a17b8b8+48
+   mov AX,offset _ourwin+48
    push AX
-   call far A0a8206bf
+   call far _wprint
    add SP,+0E
    mov AX,0010
    push AX
@@ -39815,14 +39818,14 @@ L1d3d0c73:
    xor AX,AX
    push AX
    push DS
-   mov AX,offset Y2a17b8b8+48
+   mov AX,offset _ourwin+48
    push AX
-   call far A0a8207d2
+   call far _winput
    add SP,+10
    push SS
    lea AX,[BP-54]
    push AX
-   call far A29fd0009
+   call far _strupr
    pop CX
    pop CX
    mov word ptr [BP-58],0000
@@ -39832,7 +39835,7 @@ L1d3d0ccd:
    shl BX,1
    shl BX,1
    shl BX,1
-   add BX,offset Y2a1784ae
+   add BX,offset _info
    push DS
    pop ES
    push [ES:BX+06]
@@ -39840,7 +39843,7 @@ L1d3d0ccd:
    push SS
    lea AX,[BP-54]
    push AX
-   call far A28a3000f
+   call far _strcmp
    add SP,+08
    or AX,AX
    jnz L1d3d0d2f
@@ -39849,13 +39852,13 @@ L1d3d0ccd:
    push AX
    push SI
    push DI
-   call far A1e3e0004
+   call far _setboard
    add SP,+06
    mov BX,[BP-58]
    shl BX,1
    shl BX,1
    shl BX,1
-   add BX,offset Y2a1784ae
+   add BX,offset _info
    push DS
    pop ES
    mov BX,[ES:BX]
@@ -39863,8 +39866,8 @@ L1d3d0ccd:
    sar BX,CL
    and BX,003F
    shl BX,1
-   mov word ptr [BX+2EB4],0001
-   call far A07d3074d
+   mov word ptr [BX+offset _shm_want],0001
+   call far _shm_do
 jmp near L1d3d0d74
 L1d3d0d2f:
    inc word ptr [BP-58]
@@ -39883,7 +39886,7 @@ L1d3d0d49:
    mov BX,DI
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,SI
@@ -39897,41 +39900,41 @@ L1d3d0d67:
    push [BP-5A]
    push SI
    push DI
-   call far A1e3e0004
+   call far _setboard
    add SP,+06
 L1d3d0d74:
    mov word ptr [BP-5E],0001
 jmp near L1d3d0ff8
 L1d3d0d7c:
-   mov word ptr [offset Y2a17848e],0000
-   mov word ptr [offset Y2a17848e],0064
+   mov word ptr [offset _pl+26],0000
+   mov word ptr [offset _pl+26],0064
    mov AX,0001
    push AX
-   call far A19dd1d96
+   call far _printhi
    pop CX
 jmp near L1d3d0ff8
 L1d3d0d95:
-   cmp word ptr [offset Y2a17846c],+00
+   cmp word ptr [offset _pl+04],+00
    jnz L1d3d0da7
    xor AX,AX
    push AX
-   call far A1e3e1a38
+   call far _addinv
    pop CX
 jmp near L1d3d0db2
 L1d3d0da7:
-   mov word ptr [offset Y2a17846c],0000
-   call far A1e3e1ad8
+   mov word ptr [offset _pl+04],0000
+   call far _initinv
 L1d3d0db2:
-   mov word ptr [offset Y2a17848e+2],0000
-   mov word ptr [offset Y2a17848e],0000
-   mov word ptr [offset Y2a178468],0000
-   call far A19dd05c6
+   mov word ptr [offset _pl+26+02],0000
+   mov word ptr [offset _pl+26],0000
+   mov word ptr [offset _pl],0000
+   call far _drawstats
 jmp near L1d3d0ff8
 L1d3d0dcc:
    mov BX,DI
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,SI
@@ -39946,11 +39949,11 @@ L1d3d0dec:
    push [BP-5A]
    push SI
    push [BP-5C]
-   call far A1e3e0004
+   call far _setboard
    add SP,+06
    push SI
    push [BP-5C]
-   call far A19dd140c
+   call far _drawcell
    pop CX
    pop CX
    dec word ptr [BP-5C]
@@ -39958,7 +39961,7 @@ L1d3d0e09:
    mov BX,[BP-5C]
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,SI
@@ -39976,11 +39979,11 @@ L1d3d0e2f:
    push [BP-5A]
    push SI
    push [BP-5C]
-   call far A1e3e0004
+   call far _setboard
    add SP,+06
    push SI
    push [BP-5C]
-   call far A19dd140c
+   call far _drawcell
    pop CX
    pop CX
    inc word ptr [BP-5C]
@@ -39988,7 +39991,7 @@ L1d3d0e4c:
    mov BX,[BP-5C]
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,SI
@@ -40003,7 +40006,7 @@ L1d3d0e6d:
    push SI
    push DI
    push CS
-   call near offset A1d3d0267
+   call near offset _objdesign
    pop CX
    pop CX
    mov [BP-5E],AX
@@ -40016,21 +40019,21 @@ L1d3d0e7b:
    mov AX,offset Y2a171883
    push AX
    push CS
-   call near offset A1d3d000d
+   call near offset _infname
    add SP,+08
    mov AL,[BP-34]
    cbw
    push AX
-   call far A29ff000e
+   call far _toupper
    pop CX
    cmp AX,0059
    jz L1d3d0e9f
 jmp near L1d3d0ff8
 L1d3d0e9f:
-   call far A19dd121e
-   call far A1e3e0079
+   call far _initboard
+   call far _initobjs
 L1d3d0ea9:
-   call far A19dd14a9
+   call far _drawboard
 jmp near L1d3d0ff8
 L1d3d0eb1:
    push SS
@@ -40040,7 +40043,7 @@ L1d3d0eb1:
    mov AX,offset Y2a17188a
    push AX
    push CS
-   call near offset A1d3d000d
+   call near offset _infname
    add SP,+08
    cmp byte ptr [BP-34],00
    jnz L1d3d0ecb
@@ -40049,16 +40052,16 @@ L1d3d0ecb:
    push SS
    lea AX,[BP-34]
    push AX
-   call far A19dd0aca
+   call far _loadboard
    pop CX
    pop CX
-   call far A1e3e2151
-   mov AX,[976F]
+   call far _setorigin
+   mov AX,[offset _objs+01]
    mov BX,0010
    cwd
    idiv BX
    mov DI,AX
-   mov AX,[9771]
+   mov AX,[offset _objs+03]
    cwd
    idiv BX
    mov SI,AX
@@ -40066,33 +40069,33 @@ jmp near L1d3d0ea9
 L1d3d0ef1:
    xor AX,AX
    push AX
-   call far A0b39029e
+   call far _checkctrl
    pop CX
-   cmp word ptr [3D7A],+00
+   cmp word ptr [offset _dx1],+00
    jnz L1d3d0f08
-   cmp word ptr [3D7C],+00
+   cmp word ptr [offset _dy1],+00
    jz L1d3d0ef1
 L1d3d0f08:
-   mov AX,[3D7C]
+   mov AX,[offset _dy1]
    shl AX,1
    shl AX,1
    shl AX,1
    push AX
-   mov AX,[3D7A]
+   mov AX,[offset _dx1]
    shl AX,1
    shl AX,1
    shl AX,1
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A09270e73
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _scrollvp
    add SP,+08
 jmp near L1d3d0ff8
 L1d3d0f2f:
    push DS
-   mov AX,offset Y2a17b8b8+48
+   mov AX,offset _ourwin+48
    push AX
-   call far A0a820aa4
+   call far _clearvp
    pop CX
    pop CX
    push DS
@@ -40104,17 +40107,17 @@ L1d3d0f2f:
    push AX
    push AX
    push DS
-   mov AX,offset Y2a17b8b8+48
+   mov AX,offset _ourwin+48
    push AX
-   call far A0a8206bf
+   call far _wprint
    add SP,+0E
    mov AX,000A
    push AX
    push SS
    lea AX,[BP-54]
    push AX
-   push [C2D2]
-   call far A288c008e
+   push [offset _disy]
+   call far _itoa
    add SP,+08
    mov AX,0010
    push AX
@@ -40128,21 +40131,21 @@ L1d3d0f2f:
    xor AX,AX
    push AX
    push DS
-   mov AX,offset Y2a17b8b8+48
+   mov AX,offset _ourwin+48
    push AX
-   call far A0a8207d2
+   call far _winput
    add SP,+10
    push SS
    lea AX,[BP-54]
    push AX
-   call far A29700003
+   call far _atol
    pop CX
    pop CX
-   mov [C2D2],AX
+   mov [offset _disy],AX
    push SS
    lea AX,[BP-54]
    push AX
-   call far A29fd0009
+   call far _strupr
    pop CX
    pop CX
 jmp near L1d3d0ff8
@@ -40154,17 +40157,17 @@ L1d3d0fa8:
    mov AX,offset Y2a171897
    push AX
    push CS
-   call near offset A1d3d000d
+   call near offset _infname
    add SP,+08
    mov AL,[BP-34]
    cbw
    push AX
-   call far A29ff000e
+   call far _toupper
    pop CX
    cmp AX,0059
    jnz L1d3d0ff8
-   call far A19dd08ea
-   call far A19dd121e
+   call far _zapobjs
+   call far _initboard
 jmp near L1d3d0ff8
 L1d3d0fd5:
    push SS
@@ -40174,23 +40177,23 @@ L1d3d0fd5:
    mov AX,offset Y2a1718a2
    push AX
    push CS
-   call near offset A1d3d000d
+   call near offset _infname
    add SP,+08
    cmp byte ptr [BP-34],00
    jz L1d3d0ff8
    push SS
    lea AX,[BP-34]
    push AX
-   call far A19dd0cbf
+   call far _saveboard
    pop CX
    pop CX
 L1d3d0ff8:
-   cmp word ptr [3D8A],+1B
+   cmp word ptr [offset _key],+1B
    jz L1d3d1002
 jmp near L1d3d09f8
 L1d3d1002:
-   mov word ptr [3D8A],0000
-   mov word ptr [13C4],0000
+   mov word ptr [offset _key],0000
+   mov word ptr [offset _designflag],0000
    pop DI
    pop SI
    mov SP,BP
@@ -40198,7 +40201,7 @@ L1d3d1002:
 ret far
 
 Segment 1e3e ;; JMAN.C:JMAN, JVOL.C:JVOL
-A1e3e0004:
+_setboard: ;; 1e3e0004
    push BP
    mov BP,SP
    push SI
@@ -40217,7 +40220,7 @@ A1e3e0004:
    mov BX,SI
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push AX
    push DS
    pop ES
@@ -40232,7 +40235,7 @@ L1e3e003c:
    pop BP
 ret far
 
-A1e3e0040:
+_modboard: ;; 1e3e0040
    push BP
    mov BP,SP
    push SI
@@ -40250,7 +40253,7 @@ A1e3e0040:
    mov BX,SI
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,DI
@@ -40263,40 +40266,40 @@ L1e3e0075:
    pop BP
 ret far
 
-A1e3e0079:
-   mov word ptr [offset Y2a17bc1e],0001
-   mov byte ptr [976E],00
-   mov word ptr [976F],0020
-   mov word ptr [9771],0020
-   mov word ptr [9773],0000
-   mov word ptr [9775],0000
-   mov word ptr [977B],0000
-   mov word ptr [977D],0000
-   mov word ptr [977F],0000
-   mov word ptr [9781],0000
-   mov AX,[B778]
-   mov [9777],AX
-   mov AX,[B802]
-   mov [9779],AX
-   mov word ptr [9789],0000
-   mov word ptr [978B],0000
-   mov word ptr [9787],0000
-   mov word ptr [9785],0000
-   mov word ptr [offset Y2a17846c],0000
-   mov word ptr [offset Y2a178468],0001
-   call far A1e3e1ad8
+_initobjs: ;; 1e3e0079
+   mov word ptr [offset _numobjs],0001
+   mov byte ptr [offset _objs],00
+   mov word ptr [offset _objs+01],0020
+   mov word ptr [offset _objs+03],0020
+   mov word ptr [offset _objs+05],0000
+   mov word ptr [offset _objs+07],0000
+   mov word ptr [offset _objs+0d],0000
+   mov word ptr [offset _objs+0f],0000
+   mov word ptr [offset _objs+11],0000
+   mov word ptr [offset _objs+13],0000
+   mov AX,[offset _kindxl]
+   mov [offset _objs+09],AX
+   mov AX,[offset _kindyl]
+   mov [offset _objs+0b],AX
+   mov word ptr [offset _objs+1b],0000
+   mov word ptr [offset _objs+1d],0000
+   mov word ptr [offset _objs+19],0000
+   mov word ptr [offset _objs+17],0000
+   mov word ptr [offset _pl+04],0000
+   mov word ptr [offset _pl],0001
+   call far _initinv
    mov AL,00
    push AX
    mov AX,0016
    push AX
    push DS
-   mov AX,offset Y2a178498
+   mov AX,offset _pl+30
    push AX
-   call far A28ac0000
+   call far _setmem
    add SP,+08
 ret far
 
-A1e3e00fe:
+_playerkill: ;; 1e3e00fe
    push BP
    mov BP,SP
    push SI
@@ -40305,7 +40308,7 @@ A1e3e00fe:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
@@ -40313,7 +40316,7 @@ A1e3e00fe:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
@@ -40321,27 +40324,27 @@ A1e3e00fe:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AL,[ES:BX]
    cbw
    mov BX,AX
    shl BX,1
-   push [BX+BCCA]
-   call far A1e3e1fa4
+   push [BX+offset _kindscore]
+   call far _addscore
    add SP,+06
    push SI
-   call far A1e3e0198
+   call far _notemod
    pop CX
    push SI
-   call far A1e3e188a
+   call far _killobj
    pop CX
    pop SI
    pop BP
 ret far
 
-A1e3e015f:
+_countobj: ;; 1e3e015f
    push BP
    mov BP,SP
    push SI
@@ -40354,7 +40357,7 @@ L1e3e016a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AL,[ES:BX]
@@ -40369,7 +40372,7 @@ L1e3e0189:
    add DI,AX
    inc SI
 L1e3e018c:
-   cmp SI,[BC1E]
+   cmp SI,[offset _numobjs]
    jl L1e3e016a
    mov AX,DI
    pop DI
@@ -40377,7 +40380,7 @@ L1e3e018c:
    pop BP
 ret far
 
-A1e3e0198:
+_notemod: ;; 1e3e0198
    push BP
    mov BP,SP
    sub SP,+0A
@@ -40388,7 +40391,7 @@ A1e3e0198:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -40399,7 +40402,7 @@ A1e3e0198:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -40410,7 +40413,7 @@ A1e3e0198:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -40419,7 +40422,7 @@ A1e3e0198:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -40432,7 +40435,7 @@ A1e3e0198:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -40441,7 +40444,7 @@ A1e3e0198:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -40460,7 +40463,7 @@ L1e3e0248:
    push [BP-02]
    push DI
    push CS
-   call near offset A1e3e0040
+   call near offset _modboard
    pop CX
    pop CX
    inc DI
@@ -40478,7 +40481,7 @@ L1e3e025b:
    pop BP
 ret far
 
-A1e3e0269:
+_setobjsize: ;; 1e3e0269
    push BP
    mov BP,SP
    sub SP,+08
@@ -40490,20 +40493,20 @@ A1e3e0269:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AL,[ES:BX]
    cbw
    mov BX,AX
    shl BX,1
-   mov AX,[BX+B778]
+   mov AX,[BX+offset _kindxl]
    push AX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -40512,20 +40515,20 @@ A1e3e0269:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AL,[ES:BX]
    cbw
    mov BX,AX
    shl BX,1
-   mov AX,[BX+B802]
+   mov AX,[BX+offset _kindyl]
    push AX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -40534,7 +40537,7 @@ A1e3e0269:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+17]
@@ -40544,12 +40547,12 @@ A1e3e0269:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+19]
    push [ES:BX+17]
-   call far A28a20004
+   call far _strlen
    pop CX
    pop CX
    mov DI,AX
@@ -40558,7 +40561,7 @@ L1e3e030f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp byte ptr [ES:BX],14
@@ -40571,7 +40574,7 @@ L1e3e030f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -40582,7 +40585,7 @@ L1e3e0343:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp byte ptr [ES:BX],15
@@ -40596,7 +40599,7 @@ L1e3e0343:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -40607,7 +40610,7 @@ L1e3e0377:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp byte ptr [ES:BX],1B
@@ -40621,26 +40624,26 @@ L1e3e0377:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+0D]
-   call far A288c008e
+   call far _itoa
    add SP,+08
    push DX
    push AX
-   call far A28a20004
+   call far _strlen
    pop CX
    pop CX
    inc AX
    inc AX
-   mul word ptr [B7AE]
+   mul word ptr [offset _kindxl+2*1b]
    push AX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -40652,7 +40655,7 @@ L1e3e03d4:
    pop BP
 ret far
 
-A1e3e03da:
+_findcheckpt: ;; 1e3e03da
    push BP
    mov BP,SP
    push SI
@@ -40663,7 +40666,7 @@ L1e3e03e2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp byte ptr [ES:BX],0C
@@ -40672,7 +40675,7 @@ L1e3e03e2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -40683,7 +40686,7 @@ jmp near L1e3e041c
 L1e3e0413:
    inc SI
 L1e3e0414:
-   cmp SI,[offset Y2a17bc1e]
+   cmp SI,[offset _numobjs]
    jl L1e3e03e2
    xor AX,AX
 L1e3e041c:
@@ -40691,15 +40694,15 @@ L1e3e041c:
    pop BP
 ret far
 
-A1e3e041f:
+_dolevelsong: ;; 1e3e041f
    push BP
    mov BP,SP
    sub SP,+02
    push SI
    push DI
-   push [offset Y2a178468]
+   push [offset _pl]
    push CS
-   call near offset A1e3e03da
+   call near offset _findcheckpt
    pop CX
    mov SI,AX
    or SI,SI
@@ -40710,7 +40713,7 @@ L1e3e0439:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+17]
@@ -40720,7 +40723,7 @@ L1e3e0439:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    les BX,[ES:BX+17]
@@ -40730,7 +40733,7 @@ L1e3e0439:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    les BX,[ES:BX+17]
@@ -40740,7 +40743,7 @@ L1e3e0439:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    les BX,[ES:BX+17]
@@ -40751,28 +40754,28 @@ L1e3e049d:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+19]
    push [ES:BX+17]
    push DS
-   mov AX,offset Y2a17bc20
+   mov AX,offset _newlevel
    push AX
-   call far A28a70001
+   call far _strcpy
    add SP,+08
 jmp near L1e3e0519
 L1e3e04c3:
    xor AX,AX
    push AX
    push CS
-   call near offset A1e3e03da
+   call near offset _findcheckpt
    pop CX
    mov [BP-02],AX
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    les BX,[ES:BX+17]
@@ -40790,15 +40793,15 @@ L1e3e04f4:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+19]
    push [ES:BX+17]
    push DS
-   mov AX,offset Y2a17bc20
+   mov AX,offset _newlevel
    push AX
-   call far A28a70001
+   call far _strcpy
    add SP,+08
 L1e3e0519:
    pop DI
@@ -40807,23 +40810,23 @@ L1e3e0519:
    pop BP
 ret far
 
-A1e3e051f:
+_p_reenter: ;; 1e3e051f
    push BP
    mov BP,SP
    sub SP,+0C
    push SI
    push DI
-   or word ptr [C23A],C000
-   push [offset Y2a178468]
+   or word ptr [offset _statmodflg],C000
+   push [offset _pl]
    push CS
-   call near offset A1e3e03da
+   call near offset _findcheckpt
    pop CX
    mov SI,AX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -40832,12 +40835,12 @@ A1e3e051f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
    mov [BP-0A],AX
-   cmp byte ptr [976E],17
+   cmp byte ptr [offset _objs],17
    jz L1e3e056f
    sub word ptr [BP-0A],+10
 L1e3e056f:
@@ -40849,48 +40852,48 @@ L1e3e056f:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+0D],+01
    jnz L1e3e05d2
-   mov DX,[offset Y2a178494+2]
-   mov AX,[offset Y2a178494]
+   mov DX,[offset _pl+2c+02]
+   mov AX,[offset _pl+2c]
    mov [BP-02],DX
    mov [BP-04],AX
-   mov AX,[offset Y2a178468]
+   mov AX,[offset _pl]
    mov [BP-06],AX
    push DS
-   mov AX,offset Y2a17bbfe
+   mov AX,offset _curlevel
    push AX
-   call far A19dd0aca
+   call far _loadboard
    pop CX
    pop CX
    mov AX,[BP-06]
-   mov [offset Y2a178468],AX
+   mov [offset _pl],AX
    mov DX,[BP-02]
    mov AX,[BP-04]
-   mov [offset Y2a17848e+2],DX
-   mov [offset Y2a17848e],AX
-   mov word ptr [offset Y2a17846a],0006
-   push [offset Y2a178468]
+   mov [offset _pl+26+02],DX
+   mov [offset _pl+26],AX
+   mov word ptr [offset _pl+02],0006
+   push [offset _pl]
    push CS
-   call near offset A1e3e03da
+   call near offset _findcheckpt
    pop CX
    mov SI,AX
 L1e3e05d2:
-   mov DX,[offset Y2a17848e+2]
-   mov AX,[offset Y2a17848e]
-   mov [offset Y2a178494+2],DX
-   mov [offset Y2a178494],AX
+   mov DX,[offset _pl+26+02]
+   mov AX,[offset _pl+26]
+   mov [offset _pl+2c+02],DX
+   mov [offset _pl+2c],AX
    push CS
-   call near offset A1e3e041f
+   call near offset _dolevelsong
    and word ptr [BP-0C],FFF8
    mov AX,[BP-0C]
-   mov [976F],AX
+   mov [offset _objs+01],AX
    mov AX,[BP-0A]
-   mov [9771],AX
-   call far A1e3e2151
+   mov [offset _objs+03],AX
+   call far _setorigin
    xor DI,DI
 jmp near L1e3e0634
 L1e3e05fe:
@@ -40900,7 +40903,7 @@ L1e3e0605:
    mov BX,DI
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,[BP-08]
@@ -40912,7 +40915,7 @@ L1e3e0605:
    push [BP-08]
    push DI
    push CS
-   call near offset A1e3e0004
+   call near offset _setboard
    add SP,+06
    inc word ptr [BP-08]
 L1e3e062d:
@@ -40922,84 +40925,84 @@ L1e3e062d:
 L1e3e0634:
    cmp DI,0080
    jl L1e3e05fe
-   mov word ptr [977B],0004
-   mov word ptr [977F],0000
+   mov word ptr [offset _objs+0d],0004
+   mov word ptr [offset _objs+11],0000
    pop DI
    pop SI
    mov SP,BP
    pop BP
 ret far
 
-A1e3e064c:
+_p_ouch: ;; 1e3e064c
    push BP
    mov BP,SP
    push SI
    push DI
    mov DI,[BP+08]
    mov SI,[BP+06]
-   cmp byte ptr [976E],17
+   cmp byte ptr [offset _objs],17
    jnz L1e3e0661
 jmp near L1e3e0715
 L1e3e0661:
-   cmp byte ptr [976E],00
+   cmp byte ptr [offset _objs],00
    jnz L1e3e0679
-   mov BX,[977B]
+   mov BX,[offset _objs+0d]
    shl BX,1
-   test word ptr [BX+C22E],0002
+   test word ptr [BX+offset _stateinfo],0002
    jz L1e3e0679
 jmp near L1e3e0715
 L1e3e0679:
    mov AX,000A
    push AX
-   call far A1e3e1aaa
+   call far _invcount
    pop CX
    sub SI,AX
    or SI,SI
    jg L1e3e068c
 jmp near L1e3e0715
 L1e3e068c:
-   or word ptr [C23A],C000
-   sub [offset Y2a17846a],SI
-   mov word ptr [offset Y2a178492],0001
-   cmp word ptr [offset Y2a17846a],+00
+   or word ptr [offset _statmodflg],C000
+   sub [offset _pl+02],SI
+   mov word ptr [offset _pl+2a],0001
+   cmp word ptr [offset _pl+02],+00
    jle L1e3e06b4
    mov AX,0013
    push AX
    mov AX,0004
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
 jmp near L1e3e0715
 L1e3e06b4:
-   mov word ptr [offset Y2a17846a],0000
-   mov byte ptr [976E],00
-   mov word ptr [9777],0010
-   mov word ptr [9779],0020
-   mov word ptr [977B],0005
-   mov word ptr [977F],0000
-   mov [977D],DI
+   mov word ptr [offset _pl+02],0000
+   mov byte ptr [offset _objs],00
+   mov word ptr [offset _objs+09],0010
+   mov word ptr [offset _objs+0b],0020
+   mov word ptr [offset _objs+0d],0005
+   mov word ptr [offset _objs+11],0000
+   mov [offset _objs+0f],DI
    cmp DI,+01
    jnz L1e3e06ea
-   mov AX,[9771]
+   mov AX,[offset _objs+03]
    dec AX
    and AX,FFF0
-   mov [9771],AX
+   mov [offset _objs+03],AX
 L1e3e06ea:
-   mov word ptr [9775],FFF4
+   mov word ptr [offset _objs+07],FFF4
    mov AX,DI
    add AX,0027
    push AX
    mov AX,0004
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
    mov AX,000A
    push AX
-   push [9771]
-   push [976F]
-   call far A11860a35
+   push [offset _objs+03]
+   push [offset _objs+01]
+   call far _explode1
    add SP,+06
 L1e3e0715:
    pop DI
@@ -41007,7 +41010,7 @@ L1e3e0715:
    pop BP
 ret far
 
-A1e3e0719:
+_seekplayer: ;; 1e3e0719
    push BP
    mov BP,SP
    push SI
@@ -41016,11 +41019,11 @@ A1e3e0719:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
-   cmp AX,[976F]
+   cmp AX,[offset _objs+01]
    jge L1e3e073e
    mov AX,0001
 jmp near L1e3e0740
@@ -41032,11 +41035,11 @@ L1e3e0740:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
-   cmp AX,[976F]
+   cmp AX,[offset _objs+01]
    jle L1e3e075f
    mov AX,0001
 jmp near L1e3e0761
@@ -41051,11 +41054,11 @@ L1e3e0761:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
-   cmp AX,[9771]
+   cmp AX,[offset _objs+03]
    jge L1e3e0788
    mov AX,0001
 jmp near L1e3e078a
@@ -41067,11 +41070,11 @@ L1e3e078a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
-   cmp AX,[9771]
+   cmp AX,[offset _objs+03]
    jle L1e3e07a9
    mov AX,0001
 jmp near L1e3e07ab
@@ -41086,7 +41089,7 @@ L1e3e07ab:
    pop BP
 ret far
 
-A1e3e07b7:
+_modjunglescroll: ;; 1e3e07b7
    push BP
    mov BP,SP
    sub SP,+0C
@@ -41096,7 +41099,7 @@ A1e3e07b7:
    jg L1e3e07c8
 jmp near L1e3e089f
 L1e3e07c8:
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+08]
    add AX,[ES:BX+04]
    sub AX,[BP+06]
@@ -41104,9 +41107,9 @@ L1e3e07c8:
    cwd
    idiv BX
    mov [BP-02],AX
-   mov BX,[offset Y2a17b8b4]
+   mov BX,[offset _gamevp]
    mov AX,[ES:BX+08]
-   mov BX,[offset Y2a17b8b4]
+   mov BX,[offset _gamevp]
    add AX,[ES:BX+04]
    dec AX
    mov BX,0010
@@ -41114,9 +41117,9 @@ L1e3e07c8:
    idiv BX
    cmp AX,007F
    jge L1e3e0815
-   mov BX,[offset Y2a17b8b4]
+   mov BX,[offset _gamevp]
    mov AX,[ES:BX+08]
-   mov BX,[offset Y2a17b8b4]
+   mov BX,[offset _gamevp]
    add AX,[ES:BX+04]
    dec AX
    mov BX,0010
@@ -41133,7 +41136,7 @@ L1e3e0821:
    mov word ptr [BP-0C],0000
 jmp near L1e3e088b
 L1e3e0828:
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+0A]
    mov BX,0010
    cwd
@@ -41141,7 +41144,7 @@ L1e3e0828:
    add AX,[BP-0C]
    cmp AX,003F
    jge L1e3e0853
-   mov BX,[offset Y2a17b8b4]
+   mov BX,[offset _gamevp]
    mov AX,[ES:BX+0A]
    mov BX,0010
    cwd
@@ -41155,7 +41158,7 @@ L1e3e0856:
    mov BX,DI
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,SI
@@ -41167,19 +41170,19 @@ L1e3e0856:
    push SI
    push DI
    push CS
-   call near offset A1e3e0004
+   call near offset _setboard
    add SP,+06
    cmp word ptr [BP+0A],4000
    jnz L1e3e0888
    push SI
    push DI
-   call far A19dd140c
+   call far _drawcell
    pop CX
    pop CX
 L1e3e0888:
    inc word ptr [BP-0C]
 L1e3e088b:
-   mov AX,[BA5C]
+   mov AX,[offset _scrnys]
    inc AX
    cmp AX,[BP-0C]
    jg L1e3e0828
@@ -41193,7 +41196,7 @@ jmp near L1e3e0913
 L1e3e089f:
    cmp word ptr [BP+06],+00
    jge L1e3e0913
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+08]
    mov BX,0010
    cwd
@@ -41202,7 +41205,7 @@ L1e3e089f:
    mov word ptr [BP-0C],0000
 jmp near L1e3e090a
 L1e3e08bd:
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+0A]
    mov BX,0010
    cwd
@@ -41212,7 +41215,7 @@ L1e3e08bd:
    mov BX,[BP-0A]
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,SI
@@ -41224,19 +41227,19 @@ L1e3e08bd:
    push SI
    push [BP-0A]
    push CS
-   call near offset A1e3e0004
+   call near offset _setboard
    add SP,+06
    cmp word ptr [BP+0A],4000
    jnz L1e3e0907
    push SI
    push [BP-0A]
-   call far A19dd140c
+   call far _drawcell
    pop CX
    pop CX
 L1e3e0907:
    inc word ptr [BP-0C]
 L1e3e090a:
-   mov AX,[BA5C]
+   mov AX,[offset _scrnys]
    inc AX
    cmp AX,[BP-0C]
    jg L1e3e08bd
@@ -41245,7 +41248,7 @@ L1e3e0913:
    jg L1e3e091c
 jmp near L1e3e09d2
 L1e3e091c:
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+0A]
    add AX,[ES:BX+06]
    mov [BP-08],AX
@@ -41275,7 +41278,7 @@ L1e3e0956:
    xor DI,DI
 jmp near L1e3e09be
 L1e3e095a:
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+08]
    mov BX,0010
    cwd
@@ -41283,7 +41286,7 @@ L1e3e095a:
    add AX,DI
    cmp AX,007F
    jge L1e3e0981
-   mov BX,[offset Y2a17b8b4]
+   mov BX,[offset _gamevp]
    mov AX,[ES:BX+08]
    mov BX,0010
    cwd
@@ -41297,7 +41300,7 @@ L1e3e0984:
    mov BX,AX
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,SI
@@ -41309,19 +41312,19 @@ L1e3e0984:
    push SI
    push [BP-0A]
    push CS
-   call near offset A1e3e0004
+   call near offset _setboard
    add SP,+06
    cmp word ptr [BP+0A],4000
    jnz L1e3e09bd
    push SI
    push [BP-0A]
-   call far A19dd140c
+   call far _drawcell
    pop CX
    pop CX
 L1e3e09bd:
    inc DI
 L1e3e09be:
-   mov AX,[BA5A]
+   mov AX,[offset _scrnxs]
    inc AX
    cmp AX,DI
    jg L1e3e095a
@@ -41337,7 +41340,7 @@ L1e3e09d2:
    jl L1e3e09db
 jmp near L1e3e0a77
 L1e3e09db:
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+0A]
    mov BX,0010
    cwd
@@ -41348,7 +41351,7 @@ L1e3e09ed:
    xor DI,DI
 jmp near L1e3e0a55
 L1e3e09f1:
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+08]
    mov BX,0010
    cwd
@@ -41356,7 +41359,7 @@ L1e3e09f1:
    add AX,DI
    cmp AX,007F
    jge L1e3e0a18
-   mov BX,[offset Y2a17b8b4]
+   mov BX,[offset _gamevp]
    mov AX,[ES:BX+08]
    mov BX,0010
    cwd
@@ -41370,7 +41373,7 @@ L1e3e0a1b:
    mov BX,AX
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,SI
@@ -41382,25 +41385,25 @@ L1e3e0a1b:
    push SI
    push [BP-0A]
    push CS
-   call near offset A1e3e0004
+   call near offset _setboard
    add SP,+06
    cmp word ptr [BP+0A],4000
    jnz L1e3e0a54
    push SI
    push [BP-0A]
-   call far A19dd140c
+   call far _drawcell
    pop CX
    pop CX
 L1e3e0a54:
    inc DI
 L1e3e0a55:
-   mov AX,[BA5A]
+   mov AX,[offset _scrnxs]
    inc AX
    cmp AX,DI
    jg L1e3e09f1
    inc SI
 L1e3e0a5e:
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+0A]
    sub AX,[BP+08]
    dec AX
@@ -41417,7 +41420,7 @@ L1e3e0a77:
    pop BP
 ret far
 
-A1e3e0a7d:
+_junglescroll: ;; 1e3e0a7d
    push BP
    mov BP,SP
    sub SP,+1C
@@ -41425,42 +41428,42 @@ A1e3e0a7d:
    push DI
    mov DI,[BP+08]
    mov SI,[BP+06]
-   mov AX,[4464]
+   mov AX,[offset _oldx0]
    mov CL,04
    sar AX,CL
    mov [BP-10],AX
-   mov AX,[4466]
+   mov AX,[offset _oldy0]
    mov CL,04
    sar AX,CL
    mov [BP-0E],AX
-   mov AX,[4464]
-   add AX,[9777]
+   mov AX,[offset _oldx0]
+   add AX,[offset _objs+09]
    add AX,000F
    mov CL,04
    sar AX,CL
    mov [BP-08],AX
-   mov AX,[4466]
-   add AX,[9779]
+   mov AX,[offset _oldy0]
+   add AX,[offset _objs+0b]
    add AX,000F
    mov CL,04
    sar AX,CL
    mov [BP-06],AX
-   mov AX,[976F]
+   mov AX,[offset _objs+01]
    mov CL,04
    sar AX,CL
    mov [BP-0C],AX
-   mov AX,[9771]
+   mov AX,[offset _objs+03]
    mov CL,04
    sar AX,CL
    mov [BP-0A],AX
-   mov AX,[976F]
-   add AX,[9777]
+   mov AX,[offset _objs+01]
+   add AX,[offset _objs+09]
    add AX,000F
    mov CL,04
    sar AX,CL
    mov [BP-04],AX
-   mov AX,[9771]
-   add AX,[9779]
+   mov AX,[offset _objs+03]
+   add AX,[offset _objs+0b]
    add AX,000F
    mov CL,04
    sar AX,CL
@@ -41477,7 +41480,7 @@ L1e3e0b0a:
 L1e3e0b0d:
    mov CL,04
    shl AX,CL
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    sub AX,[ES:BX+08]
    mov [BP-16],AX
    mov AX,[BP-08]
@@ -41489,7 +41492,7 @@ L1e3e0b26:
 L1e3e0b29:
    mov CL,04
    shl AX,CL
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    sub AX,[ES:BX+08]
    mov [BP-14],AX
    mov AX,[ES:BX+04]
@@ -41503,9 +41506,9 @@ L1e3e0b29:
    push [BP-16]
    push AX
    push [BP-18]
-   push [offset Y2a17b8b4+2]
+   push [offset _gamevp+02]
    push BX
-   call far A092709f8
+   call far _scroll
    add SP,+10
 jmp near L1e3e0bcb
 L1e3e0b61:
@@ -41521,7 +41524,7 @@ L1e3e0b74:
 L1e3e0b77:
    mov CL,04
    shl AX,CL
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    sub AX,[ES:BX+0A]
    mov [BP-16],AX
    mov AX,[BP-06]
@@ -41533,7 +41536,7 @@ L1e3e0b90:
 L1e3e0b93:
    mov CL,04
    shl AX,CL
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    sub AX,[ES:BX+0A]
    mov [BP-14],AX
    mov AX,[ES:BX+06]
@@ -41548,9 +41551,9 @@ L1e3e0b93:
    push [BP-18]
    xor AX,AX
    push AX
-   push [offset Y2a17b8b4+2]
+   push [offset _gamevp+02]
    push BX
-   call far A092709f8
+   call far _scroll
    add SP,+10
 L1e3e0bcb:
    mov AX,[BP-10]
@@ -41563,13 +41566,13 @@ jmp near L1e3e0c13
 L1e3e0bdb:
    push [BP-1A]
    push [BP-1C]
-   call far A19dd140c
+   call far _drawcell
    pop CX
    pop CX
    mov BX,[BP-1C]
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,[BP-1A]
@@ -41581,7 +41584,7 @@ L1e3e0bdb:
    push [BP-1A]
    push [BP-1C]
    push CS
-   call near offset A1e3e0004
+   call near offset _setboard
    add SP,+06
    inc word ptr [BP-1A]
 L1e3e0c13:
@@ -41600,41 +41603,41 @@ L1e3e0c1e:
    push AX
    xor AX,AX
    push AX
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    push [ES:BX+06]
    push [BP-14]
    push AX
    push [BP-16]
-   push [offset Y2a17b8b4+2]
+   push [offset _gamevp+02]
    push BX
-   call far A092709f8
+   call far _scroll
    add SP,+10
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    add [ES:BX+0A],DI
    xor AX,AX
    push AX
    push AX
    push AX
-   mov AL,[976E]
+   mov AL,[offset _objs]
    cbw
    mov BX,AX
    shl BX,1
    shl BX,1
-   call far [BX+B910]
+   call far [BX+offset _kindmsg]
    add SP,+06
    mov AX,DI
    neg AX
    push AX
    xor AX,AX
    push AX
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    push [ES:BX+06]
    push [BP-12]
    push AX
    push [BP-14]
-   push [offset Y2a17b8b4+2]
+   push [offset _gamevp+02]
    push BX
-   call far A092709f8
+   call far _scroll
    add SP,+10
 jmp near L1e3e0d3f
 L1e3e0c93:
@@ -41646,27 +41649,27 @@ L1e3e0c93:
    neg AX
    push AX
    push [BP-14]
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    push [ES:BX+04]
    push [BP-16]
    xor AX,AX
    push AX
-   push [offset Y2a17b8b4+2]
+   push [offset _gamevp+02]
    push BX
-   call far A092709f8
+   call far _scroll
    add SP,+10
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    add [ES:BX+08],SI
    xor AX,AX
    push AX
    push AX
    push AX
-   mov AL,[976E]
+   mov AL,[offset _objs]
    cbw
    mov BX,AX
    shl BX,1
    shl BX,1
-   call far [BX+B910]
+   call far [BX+offset _kindmsg]
    add SP,+06
    xor AX,AX
    push AX
@@ -41674,14 +41677,14 @@ L1e3e0c93:
    neg AX
    push AX
    push [BP-12]
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    push [ES:BX+04]
    push [BP-14]
    xor AX,AX
    push AX
-   push [offset Y2a17b8b4+2]
+   push [offset _gamevp+02]
    push BX
-   call far A092709f8
+   call far _scroll
    add SP,+10
 jmp near L1e3e0d3f
 L1e3e0d03:
@@ -41691,23 +41694,23 @@ L1e3e0d03:
    mov AX,SI
    neg AX
    push AX
-   push [offset Y2a17b8b4+2]
-   push [offset Y2a17b8b4]
-   call far A09270e73
+   push [offset _gamevp+02]
+   push [offset _gamevp]
+   call far _scrollvp
    add SP,+08
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    add [ES:BX+08],SI
    add [ES:BX+0A],DI
    xor AX,AX
    push AX
    push AX
    push AX
-   mov AL,[976E]
+   mov AL,[offset _objs]
    cbw
    mov BX,AX
    shl BX,1
    shl BX,1
-   call far [BX+B910]
+   call far [BX+offset _kindmsg]
    add SP,+06
 L1e3e0d3f:
    mov AX,4000
@@ -41715,7 +41718,7 @@ L1e3e0d3f:
    push DI
    push SI
    push CS
-   call near offset A1e3e07b7
+   call near offset _modjunglescroll
    add SP,+06
    pop DI
    pop SI
@@ -41723,7 +41726,7 @@ L1e3e0d3f:
    pop BP
 ret far
 
-A1e3e0d52:
+_refresh: ;; 1e3e0d52
    push BP
    mov BP,SP
    sub SP,+10
@@ -41733,44 +41736,44 @@ A1e3e0d52:
    jnz L1e3e0d63
 jmp near L1e3e0f7b
 L1e3e0d63:
-   cmp word ptr [C23A],+00
+   cmp word ptr [offset _statmodflg],+00
    jz L1e3e0d7b
-   call far A19dd05c6
-   mov AX,[3B56]
+   call far _drawstats
+   mov AX,[offset _pagedraw]
    inc AX
    mov CL,0E
    shl AX,CL
-   and [C23A],AX
+   and [offset _statmodflg],AX
 L1e3e0d7b:
-   mov AX,[BB72]
-   add AX,[C2C8]
+   mov AX,[offset _scrollxd]
+   add AX,[offset _oldscrollxd]
    jnz L1e3e0d8d
-   mov AX,[BB74]
-   add AX,[C2CA]
+   mov AX,[offset _scrollyd]
+   add AX,[offset _oldscrollyd]
    jz L1e3e0dec
 L1e3e0d8d:
-   mov AX,[C2C8]
-   les BX,[offset Y2a17b8b4]
+   mov AX,[offset _oldscrollxd]
+   les BX,[offset _gamevp]
    sub [ES:BX+08],AX
-   mov AX,[C2CA]
+   mov AX,[offset _oldscrollyd]
    sub [ES:BX+0A],AX
-   mov AX,[BB72]
-   add AX,[C2C8]
+   mov AX,[offset _scrollxd]
+   add AX,[offset _oldscrollxd]
    mov [BP-04],AX
-   mov AX,[BB74]
-   add AX,[C2CA]
+   mov AX,[offset _scrollyd]
+   add AX,[offset _oldscrollyd]
    mov [BP-02],AX
    neg AX
    push AX
    mov AX,[BP-04]
    neg AX
    push AX
-   push [offset Y2a17b8b4+2]
+   push [offset _gamevp+02]
    push BX
-   call far A09270e73
+   call far _scrollvp
    add SP,+08
    mov AX,[BP-04]
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    add [ES:BX+08],AX
    mov AX,[BP-02]
    add [ES:BX+0A],AX
@@ -41779,48 +41782,48 @@ L1e3e0d8d:
    push [BP-02]
    push [BP-04]
    push CS
-   call near offset A1e3e07b7
+   call near offset _modjunglescroll
    add SP,+06
 L1e3e0dec:
-   mov AX,[BB72]
-   mov [C2C8],AX
-   mov AX,[BB74]
-   mov [C2CA],AX
-   les BX,[offset Y2a17b8b4]
+   mov AX,[offset _scrollxd]
+   mov [offset _oldscrollxd],AX
+   mov AX,[offset _scrollyd]
+   mov [offset _oldscrollyd],AX
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+08]
    mov CL,04
    sar AX,CL
-   add AX,[BA5A]
+   add AX,[offset _scrnxs]
    cmp AX,007F
    jge L1e3e0e1b
    mov AX,[ES:BX+08]
    mov CL,04
    sar AX,CL
-   add AX,[BA5A]
+   add AX,[offset _scrnxs]
 jmp near L1e3e0e1e
 L1e3e0e1b:
    mov AX,007F
 L1e3e0e1e:
    mov [BP-0C],AX
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+0A]
    mov CL,04
    sar AX,CL
-   add AX,[BA5C]
+   add AX,[offset _scrnys]
    dec AX
    cmp AX,003F
    jge L1e3e0e46
    mov AX,[ES:BX+0A]
    mov CL,04
    sar AX,CL
-   add AX,[BA5C]
+   add AX,[offset _scrnys]
    dec AX
 jmp near L1e3e0e49
 L1e3e0e46:
    mov AX,003F
 L1e3e0e49:
    mov [BP-0A],AX
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+08]
    mov CL,04
    sar AX,CL
@@ -41829,14 +41832,14 @@ L1e3e0e49:
    xor AX,AX
 jmp near L1e3e0e70
 L1e3e0e61:
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+08]
    mov CL,04
    sar AX,CL
    add AX,FFFE
 L1e3e0e70:
    mov [BP-08],AX
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+0A]
    mov CL,04
    sar AX,CL
@@ -41845,7 +41848,7 @@ L1e3e0e70:
    xor AX,AX
 jmp near L1e3e0e97
 L1e3e0e88:
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+0A]
    mov CL,04
    sar AX,CL
@@ -41861,7 +41864,7 @@ L1e3e0ea4:
    mov BX,SI
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,DI
@@ -41871,20 +41874,20 @@ L1e3e0ea4:
    jz L1e3e0ef4
    push DI
    push SI
-   call far A19dd140c
+   call far _drawcell
    pop CX
    pop CX
    mov BX,SI
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,DI
    shl AX,1
    add BX,AX
    mov AX,[ES:BX]
-   mov DX,[3B56]
+   mov DX,[offset _pagedraw]
    inc DX
    mov CL,0E
    shl DX,CL
@@ -41894,7 +41897,7 @@ L1e3e0ea4:
    push DI
    push SI
    push CS
-   call near offset A1e3e0004
+   call near offset _setboard
    add SP,+06
 L1e3e0ef4:
    dec DI
@@ -41905,7 +41908,7 @@ L1e3e0ef5:
 L1e3e0efb:
    cmp SI,[BP-08]
    jge L1e3e0e9f
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    dec AX
    mov [BP-0E],AX
 jmp near L1e3e0f6d
@@ -41914,7 +41917,7 @@ L1e3e0f09:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    test word ptr [ES:BX+15],C000
@@ -41927,7 +41930,7 @@ L1e3e0f09:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AL,[ES:BX]
@@ -41935,9 +41938,9 @@ L1e3e0f09:
    mov BX,AX
    shl BX,1
    shl BX,1
-   call far [BX+B910]
+   call far [BX+offset _kindmsg]
    add SP,+06
-   mov AX,[3B56]
+   mov AX,[offset _pagedraw]
    inc AX
    mov CL,0E
    shl AX,CL
@@ -41947,7 +41950,7 @@ L1e3e0f09:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -41957,13 +41960,13 @@ L1e3e0f6a:
 L1e3e0f6d:
    cmp word ptr [BP-0E],+00
    jge L1e3e0f09
-   call far A08600689
+   call far _pageflip
 jmp near L1e3e11f5
 L1e3e0f7b:
-   cmp word ptr [C23A],+00
+   cmp word ptr [offset _statmodflg],+00
    jz L1e3e0f8d
-   call far A19dd05c6
-   mov word ptr [C23A],0000
+   call far _drawstats
+   mov word ptr [offset _statmodflg],0000
 L1e3e0f8d:
    mov word ptr [BP-10],0000
 jmp near L1e3e0fab
@@ -41972,7 +41975,7 @@ L1e3e0f94:
    mov DX,0014
    mul DX
    mov BX,AX
-   add BX,offset Y2a17c2d4
+   add BX,offset _updtab
    push DS
    pop ES
    mov byte ptr [ES:BX],FF
@@ -41980,55 +41983,55 @@ L1e3e0f94:
 L1e3e0fab:
    cmp word ptr [BP-10],0080
    jl L1e3e0f94
-   cmp word ptr [BB72],+00
+   cmp word ptr [offset _scrollxd],+00
    jnz L1e3e0fc0
-   cmp word ptr [BB74],+00
+   cmp word ptr [offset _scrollyd],+00
    jz L1e3e0fce
 L1e3e0fc0:
-   push [BB74]
-   push [BB72]
+   push [offset _scrollyd]
+   push [offset _scrollxd]
    push CS
-   call near offset A1e3e0a7d
+   call near offset _junglescroll
    pop CX
    pop CX
 L1e3e0fce:
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+08]
    mov CL,04
    sar AX,CL
-   add AX,[BA5A]
+   add AX,[offset _scrnxs]
    dec AX
    cmp AX,007F
    jge L1e3e0ff3
    mov AX,[ES:BX+08]
    mov CL,04
    sar AX,CL
-   add AX,[BA5A]
+   add AX,[offset _scrnxs]
    dec AX
 jmp near L1e3e0ff6
 L1e3e0ff3:
    mov AX,007F
 L1e3e0ff6:
    mov [BP-0C],AX
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+0A]
    mov CL,04
    sar AX,CL
-   add AX,[BA5C]
+   add AX,[offset _scrnys]
    dec AX
    cmp AX,003F
    jge L1e3e101e
    mov AX,[ES:BX+0A]
    mov CL,04
    sar AX,CL
-   add AX,[BA5C]
+   add AX,[offset _scrnys]
    dec AX
 jmp near L1e3e1021
 L1e3e101e:
    mov AX,003F
 L1e3e1021:
    mov [BP-0A],AX
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+08]
    mov CL,04
    sar AX,CL
@@ -42037,14 +42040,14 @@ L1e3e1021:
    xor AX,AX
 jmp near L1e3e1048
 L1e3e1039:
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+08]
    mov CL,04
    sar AX,CL
    add AX,FFFE
 L1e3e1048:
    mov [BP-08],AX
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+0A]
    mov CL,04
    sar AX,CL
@@ -42053,7 +42056,7 @@ L1e3e1048:
    xor AX,AX
 jmp near L1e3e106f
 L1e3e1060:
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+0A]
    mov CL,04
    sar AX,CL
@@ -42067,7 +42070,7 @@ L1e3e107a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    test word ptr [ES:BX+15],C000
@@ -42078,7 +42081,7 @@ L1e3e1095:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov SI,[ES:BX+01]
@@ -42097,7 +42100,7 @@ L1e3e10bf:
    mov DX,0014
    mul DX
    mov BX,AX
-   add BX,offset Y2a17c2d4
+   add BX,offset _updtab
    push DS
    pop ES
    add BX,[BP-10]
@@ -42109,7 +42112,7 @@ L1e3e10bf:
    mov DX,0014
    mul DX
    mov BX,AX
-   add BX,offset Y2a17c2d4
+   add BX,offset _updtab
    push DS
    pop ES
    add BX,[BP-10]
@@ -42119,7 +42122,7 @@ L1e3e10bf:
    mov DX,0014
    mul DX
    mov BX,AX
-   add BX,offset Y2a17c2d4
+   add BX,offset _updtab
    push DS
    pop ES
    add BX,[BP-10]
@@ -42128,7 +42131,7 @@ L1e3e10bf:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    and word ptr [ES:BX+15],3FFF
@@ -42136,7 +42139,7 @@ L1e3e111e:
    inc word ptr [BP-0E]
 L1e3e1121:
    mov AX,[BP-0E]
-   cmp AX,[offset Y2a17bc1e]
+   cmp AX,[offset _numobjs]
    jge L1e3e112d
 jmp near L1e3e107a
 L1e3e112d:
@@ -42149,7 +42152,7 @@ L1e3e1138:
    mov BX,SI
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,DI
@@ -42159,13 +42162,13 @@ L1e3e1138:
    jz L1e3e117c
    push DI
    push SI
-   call far A19dd140c
+   call far _drawcell
    pop CX
    pop CX
    mov BX,SI
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,DI
@@ -42177,7 +42180,7 @@ L1e3e1138:
    push DI
    push SI
    push CS
-   call near offset A1e3e0004
+   call near offset _setboard
    add SP,+06
 L1e3e117c:
    dec DI
@@ -42191,7 +42194,7 @@ L1e3e1189:
    mov DX,0014
    mul DX
    mov BX,AX
-   add BX,offset Y2a17c2d4
+   add BX,offset _updtab
    push DS
    pop ES
    add BX,[BP-10]
@@ -42206,7 +42209,7 @@ L1e3e1189:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AL,[ES:BX]
@@ -42214,7 +42217,7 @@ L1e3e1189:
    mov BX,AX
    shl BX,1
    shl BX,1
-   call far [BX+B910]
+   call far [BX+offset _kindmsg]
    add SP,+06
    inc word ptr [BP-10]
 L1e3e11ce:
@@ -42222,7 +42225,7 @@ L1e3e11ce:
    mov DX,0014
    mul DX
    mov BX,AX
-   add BX,offset Y2a17c2d4
+   add BX,offset _updtab
    push DS
    pop ES
    add BX,[BP-10]
@@ -42237,10 +42240,10 @@ L1e3e11ed:
    jl L1e3e11f5
 jmp near L1e3e1133
 L1e3e11f5:
-   cmp word ptr [offset Y2a178492],+00
+   cmp word ptr [offset _pl+2a],+00
    jz L1e3e1208
-   mov word ptr [offset Y2a178492],0000
-   or word ptr [C23A],C000
+   mov word ptr [offset _pl+2a],0000
+   or word ptr [offset _statmodflg],C000
 L1e3e1208:
    sti
    pop DI
@@ -42249,13 +42252,13 @@ L1e3e1208:
    pop BP
 ret far
 
-A1e3e120f:
+_updbkgnd: ;; 1e3e120f
    push BP
    mov BP,SP
    sub SP,+0A
    push SI
    push DI
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+08]
    mov CL,04
    sar AX,CL
@@ -42265,22 +42268,22 @@ A1e3e120f:
    sar AX,CL
    mov [BP-06],AX
    mov AX,[BP-08]
-   add AX,[BA5A]
+   add AX,[offset _scrnxs]
    cmp AX,007F
    jge L1e3e1246
    mov AX,[BP-08]
-   add AX,[BA5A]
+   add AX,[offset _scrnxs]
 jmp near L1e3e1249
 L1e3e1246:
    mov AX,007F
 L1e3e1249:
    mov [BP-04],AX
    mov AX,[BP-06]
-   add AX,[BA5C]
+   add AX,[offset _scrnys]
    cmp AX,003F
    jge L1e3e1261
    mov AX,[BP-06]
-   add AX,[BA5C]
+   add AX,[offset _scrnys]
 jmp near L1e3e1264
 L1e3e1261:
    mov AX,003F
@@ -42295,7 +42298,7 @@ L1e3e1272:
    mov BX,SI
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,DI
@@ -42308,7 +42311,7 @@ L1e3e1272:
    shl BX,1
    shl BX,1
    shl BX,1
-   add BX,offset Y2a1784ae
+   add BX,offset _info
    push DS
    pop ES
    test word ptr [ES:BX+02],0020
@@ -42316,7 +42319,7 @@ L1e3e1272:
    mov BX,SI
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,DI
@@ -42328,7 +42331,7 @@ L1e3e1272:
    push AX
    push DI
    push SI
-   call far A16680006
+   call far _msg_block
    add SP,+06
    or AX,AX
    jz L1e3e12d0
@@ -42345,7 +42348,7 @@ L1e3e12d2:
    push DI
    push SI
    push CS
-   call near offset A1e3e0004
+   call near offset _setboard
    add SP,+06
 L1e3e12e4:
    inc DI
@@ -42364,15 +42367,15 @@ L1e3e12f3:
    pop BP
 ret far
 
-A1e3e12f9:
+_updobjs: ;; 1e3e12f9
    push BP
    mov BP,SP
    sub SP,+1A
    push SI
    push DI
-   mov word ptr [C2CE],0001
-   mov word ptr [BDAE],0000
-   les BX,[offset Y2a17b8b4]
+   mov word ptr [offset _numscrnobjs],0001
+   mov word ptr [offset _scrnobjs],0000
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+08]
    add AX,FFA0
    mov [BP-08],AX
@@ -42394,7 +42397,7 @@ L1e3e1347:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -42403,7 +42406,7 @@ L1e3e1347:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -42416,7 +42419,7 @@ L1e3e1377:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -42426,7 +42429,7 @@ L1e3e1377:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -42435,7 +42438,7 @@ L1e3e1377:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -42446,17 +42449,17 @@ L1e3e1377:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
    cmp AX,[BP-02]
    jg L1e3e1401
-   mov BX,[C2CE]
+   mov BX,[offset _numscrnobjs]
    shl BX,1
-   mov [BX+BDAE],SI
-   inc word ptr [C2CE]
-   mov AX,[3B56]
+   mov [BX+offset _scrnobjs],SI
+   inc word ptr [offset _numscrnobjs]
+   mov AX,[offset _pagedraw]
    mov CL,0E
    shl AX,CL
    xor AX,FFFF
@@ -42465,7 +42468,7 @@ L1e3e1377:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -42473,29 +42476,29 @@ L1e3e1377:
 L1e3e1401:
    inc SI
 L1e3e1402:
-   cmp SI,[offset Y2a17bc1e]
+   cmp SI,[offset _numobjs]
    jge L1e3e1413
-   cmp word ptr [C2CE],00C0
+   cmp word ptr [offset _numscrnobjs],00C0
    jge L1e3e1413
 jmp near L1e3e1347
 L1e3e1413:
-   mov word ptr [BB72],0000
-   mov word ptr [BB74],0000
-   mov AX,[976F]
-   mov [4464],AX
-   mov AX,[9771]
-   mov [4466],AX
+   mov word ptr [offset _scrollxd],0000
+   mov word ptr [offset _scrollyd],0000
+   mov AX,[offset _objs+01]
+   mov [offset _oldx0],AX
+   mov AX,[offset _objs+03]
+   mov [offset _oldy0],AX
    mov word ptr [BP-1A],0000
 jmp near L1e3e1767
 L1e3e1433:
    mov BX,[BP-1A]
    shl BX,1
-   mov SI,[BX+BDAE]
+   mov SI,[BX+offset _scrnobjs]
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -42504,7 +42507,7 @@ L1e3e1433:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -42513,7 +42516,7 @@ L1e3e1433:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+09]
@@ -42522,7 +42525,7 @@ L1e3e1433:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+0B]
@@ -42533,7 +42536,7 @@ L1e3e1433:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+1D],+00
@@ -42542,7 +42545,7 @@ L1e3e1433:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    dec word ptr [ES:BX+1D]
@@ -42556,7 +42559,7 @@ L1e3e14c3:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AL,[ES:BX]
@@ -42564,7 +42567,7 @@ L1e3e14c3:
    mov BX,AX
    shl BX,1
    shl BX,1
-   call far [BX+B910]
+   call far [BX+offset _kindmsg]
    add SP,+06
    or AX,AX
    jz L1e3e1504
@@ -42573,7 +42576,7 @@ L1e3e14ef:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    or word ptr [ES:BX+15],C000
@@ -42582,14 +42585,14 @@ L1e3e1504:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AL,[ES:BX]
    cbw
    mov BX,AX
    shl BX,1
-   test word ptr [BX+C23E],0008
+   test word ptr [BX+offset _kindflags],0008
    jnz L1e3e1526
 jmp near L1e3e16c8
 L1e3e1526:
@@ -42598,7 +42601,7 @@ jmp near L1e3e16bc
 L1e3e152e:
    mov BX,[BP-18]
    shl BX,1
-   mov DI,[BX+BDAE]
+   mov DI,[BX+offset _scrnobjs]
    cmp DI,SI
    jnz L1e3e153e
 jmp near L1e3e16b9
@@ -42607,7 +42610,7 @@ L1e3e153e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -42616,7 +42619,7 @@ L1e3e153e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -42626,7 +42629,7 @@ L1e3e153e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -42638,7 +42641,7 @@ L1e3e1580:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -42647,7 +42650,7 @@ L1e3e1580:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -42657,7 +42660,7 @@ L1e3e1580:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -42669,7 +42672,7 @@ L1e3e15c2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -42678,7 +42681,7 @@ L1e3e15c2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -42688,7 +42691,7 @@ L1e3e15c2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -42700,7 +42703,7 @@ L1e3e1604:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -42709,7 +42712,7 @@ L1e3e1604:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -42719,7 +42722,7 @@ L1e3e1604:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -42733,7 +42736,7 @@ L1e3e1604:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AL,[ES:BX]
@@ -42741,13 +42744,13 @@ L1e3e1604:
    mov BX,AX
    shl BX,1
    shl BX,1
-   call far [BX+B910]
+   call far [BX+offset _kindmsg]
    add SP,+06
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    or word ptr [ES:BX+15],C000
@@ -42759,7 +42762,7 @@ L1e3e1604:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AL,[ES:BX]
@@ -42767,13 +42770,13 @@ L1e3e1604:
    mov BX,AX
    shl BX,1
    shl BX,1
-   call far [BX+B910]
+   call far [BX+offset _kindmsg]
    add SP,+06
    mov AX,DI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    or word ptr [ES:BX+15],C000
@@ -42781,7 +42784,7 @@ L1e3e16b9:
    inc word ptr [BP-18]
 L1e3e16bc:
    mov AX,[BP-18]
-   cmp AX,[C2CE]
+   cmp AX,[offset _numscrnobjs]
    jg L1e3e16c8
 jmp near L1e3e152e
 L1e3e16c8:
@@ -42789,7 +42792,7 @@ L1e3e16c8:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    test word ptr [ES:BX+15],C000
@@ -42827,7 +42830,7 @@ L1e3e1726:
    mov BX,[BP-0C]
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,[BP-0A]
@@ -42839,7 +42842,7 @@ L1e3e1726:
    push [BP-0A]
    push [BP-0C]
    push CS
-   call near offset A1e3e0004
+   call near offset _setboard
    add SP,+06
    inc word ptr [BP-0C]
 L1e3e1751:
@@ -42855,7 +42858,7 @@ L1e3e1764:
    inc word ptr [BP-1A]
 L1e3e1767:
    mov AX,[BP-1A]
-   cmp AX,[C2CE]
+   cmp AX,[offset _numscrnobjs]
    jge L1e3e1773
 jmp near L1e3e1433
 L1e3e1773:
@@ -42864,12 +42867,12 @@ jmp near L1e3e1878
 L1e3e177b:
    mov BX,[BP-1A]
    shl BX,1
-   mov SI,[BX+BDAE]
+   mov SI,[BX+offset _scrnobjs]
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -42878,7 +42881,7 @@ L1e3e177b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -42895,7 +42898,7 @@ L1e3e177b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+09]
@@ -42908,7 +42911,7 @@ L1e3e177b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+0B]
@@ -42931,7 +42934,7 @@ L1e3e1819:
    mov BX,[BP-0C]
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,[BP-0A]
@@ -42962,7 +42965,7 @@ L1e3e1852:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    or word ptr [ES:BX+15],C000
@@ -42970,7 +42973,7 @@ L1e3e1875:
    inc word ptr [BP-1A]
 L1e3e1878:
    mov AX,[BP-1A]
-   cmp AX,[C2CE]
+   cmp AX,[offset _numscrnobjs]
    jge L1e3e1884
 jmp near L1e3e177b
 L1e3e1884:
@@ -42980,14 +42983,14 @@ L1e3e1884:
    pop BP
 ret far
 
-A1e3e188a:
+_killobj: ;; 1e3e188a
    push BP
    mov BP,SP
    mov AX,[BP+06]
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    or word ptr [ES:BX+15],C000
@@ -42995,181 +42998,181 @@ A1e3e188a:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov byte ptr [ES:BX],03
    pop BP
 ret far
 
-A1e3e18b9:
+_addobj: ;; 1e3e18b9
    push BP
    mov BP,SP
    mov AL,[BP+06]
    push AX
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    mov [ES:BX],AL
    mov AX,[BP+08]
    push AX
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    mov [ES:BX+01],AX
    mov AX,[BP+0A]
    push AX
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    mov [ES:BX+03],AX
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0D],0000
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+05],0000
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],0000
    mov BX,[BP+06]
    shl BX,1
-   mov AX,[BX+B778]
+   mov AX,[BX+offset _kindxl]
    push AX
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    mov [ES:BX+09],AX
    mov BX,[BP+06]
    shl BX,1
-   mov AX,[BX+B802]
+   mov AX,[BX+offset _kindyl]
    push AX
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    mov [ES:BX+0B],AX
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+0F],0000
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+11],0000
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+15],0000
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+19],0000
    mov word ptr [ES:BX+17],0000
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+1B],0000
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+1D],0000
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+13],0000
-   cmp word ptr [offset Y2a17bc1e],0100
+   cmp word ptr [offset _numobjs],0100
    jge L1e3e1a32
-   inc word ptr [offset Y2a17bc1e]
+   inc word ptr [offset _numobjs]
 L1e3e1a32:
-   mov AX,[offset Y2a17bc1e]
+   mov AX,[offset _numobjs]
    dec AX
    pop BP
 ret far
 
-A1e3e1a38:
+_addinv: ;; 1e3e1a38
    push BP
    mov BP,SP
-   cmp word ptr [offset Y2a17846c],+0F
+   cmp word ptr [offset _pl+04],+0F
    jge L1e3e1a59
-   or word ptr [C23A],C000
+   or word ptr [offset _statmodflg],C000
    mov AX,[BP+06]
-   mov BX,[offset Y2a17846c]
+   mov BX,[offset _pl+04]
    shl BX,1
-   mov [BX+offset Y2a17846e],AX
-   inc word ptr [offset Y2a17846c]
+   mov [BX+offset _pl+06],AX
+   inc word ptr [offset _pl+04]
 L1e3e1a59:
    pop BP
 ret far
 
-A1e3e1a5b:
+_takeinv: ;; 1e3e1a5b
    push BP
    mov BP,SP
    push SI
@@ -43179,7 +43182,7 @@ jmp near L1e3e1a9e
 L1e3e1a64:
    mov BX,SI
    shl BX,1
-   mov AX,[BX+offset Y2a17846e]
+   mov AX,[BX+offset _pl+06]
    cmp AX,[BP+06]
    jnz L1e3e1a9d
    mov DI,SI
@@ -43188,23 +43191,23 @@ jmp near L1e3e1a88
 L1e3e1a76:
    mov BX,DI
    shl BX,1
-   mov AX,[BX+offset Y2a17846e]
+   mov AX,[BX+offset _pl+06]
    mov BX,DI
    dec BX
    shl BX,1
-   mov [BX+offset Y2a17846e],AX
+   mov [BX+offset _pl+06],AX
    inc DI
 L1e3e1a88:
-   cmp DI,[offset Y2a17846c]
+   cmp DI,[offset _pl+04]
    jl L1e3e1a76
-   dec word ptr [offset Y2a17846c]
-   or word ptr [C23A],C000
+   dec word ptr [offset _pl+04]
+   or word ptr [offset _statmodflg],C000
    mov AX,0001
 jmp near L1e3e1aa6
 L1e3e1a9d:
    inc SI
 L1e3e1a9e:
-   cmp SI,[offset Y2a17846c]
+   cmp SI,[offset _pl+04]
    jl L1e3e1a64
    xor AX,AX
 L1e3e1aa6:
@@ -43213,7 +43216,7 @@ L1e3e1aa6:
    pop BP
 ret far
 
-A1e3e1aaa:
+_invcount: ;; 1e3e1aaa
    push BP
    mov BP,SP
    push SI
@@ -43224,7 +43227,7 @@ jmp near L1e3e1acc
 L1e3e1ab5:
    mov BX,SI
    shl BX,1
-   mov AX,[BX+offset Y2a17846e]
+   mov AX,[BX+offset _pl+06]
    cmp AX,[BP+06]
    jnz L1e3e1ac7
    mov AX,0001
@@ -43235,7 +43238,7 @@ L1e3e1ac9:
    add DI,AX
    inc SI
 L1e3e1acc:
-   cmp SI,[offset Y2a17846c]
+   cmp SI,[offset _pl+04]
    jl L1e3e1ab5
    mov AX,DI
    pop DI
@@ -43243,19 +43246,19 @@ L1e3e1acc:
    pop BP
 ret far
 
-A1e3e1ad8:
-   mov word ptr [offset Y2a17846a],0006
+_initinv: ;; 1e3e1ad8
+   mov word ptr [offset _pl+02],0006
 L1e3e1ade:
    xor AX,AX
    push AX
    push CS
-   call near offset A1e3e1a5b
+   call near offset _takeinv
    pop CX
    or AX,AX
    jnz L1e3e1ade
 ret far
 
-A1e3e1aeb:
+_moveobj: ;; 1e3e1aeb
    push BP
    mov BP,SP
    push SI
@@ -43271,7 +43274,7 @@ L1e3e1b03:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,03F0
@@ -43283,7 +43286,7 @@ L1e3e1b03:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,03F0
@@ -43300,7 +43303,7 @@ L1e3e1b43:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,07F0
@@ -43312,7 +43315,7 @@ L1e3e1b43:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov DI,07F0
@@ -43323,7 +43326,7 @@ L1e3e1b77:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov [ES:BX+01],DI
@@ -43333,7 +43336,7 @@ L1e3e1b77:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -43343,7 +43346,7 @@ L1e3e1b77:
    pop BP
 ret far
 
-A1e3e1ba6:
+_standfloor: ;; 1e3e1ba6
    push BP
    mov BP,SP
    sub SP,+0A
@@ -43354,7 +43357,7 @@ A1e3e1ba6:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -43364,7 +43367,7 @@ A1e3e1ba6:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov SI,[ES:BX+03]
@@ -43373,7 +43376,7 @@ A1e3e1ba6:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+0B]
@@ -43386,7 +43389,7 @@ L1e3e1bfd:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+0B]
@@ -43405,7 +43408,7 @@ L1e3e1bfd:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+09]
@@ -43421,7 +43424,7 @@ L1e3e1c4e:
    mov BX,[BP-02]
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,SI
@@ -43432,7 +43435,7 @@ L1e3e1c4e:
    shl BX,1
    shl BX,1
    shl BX,1
-   add BX,offset Y2a1784ae
+   add BX,offset _info
    push DS
    pop ES
    mov AX,[ES:BX+02]
@@ -43457,7 +43460,7 @@ L1e3e1c95:
    pop BP
 ret far
 
-A1e3e1c9b:
+_trymove: ;; 1e3e1c9b
    push BP
    mov BP,SP
    push SI
@@ -43468,7 +43471,7 @@ A1e3e1c9b:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -43480,7 +43483,7 @@ L1e3e1cc2:
    push [BP+0A]
    push [BP+08]
    push SI
-   call far A1e3e21fd
+   call far _cando
    add SP,+08
    cmp AX,DI
    jnz L1e3e1cea
@@ -43488,7 +43491,7 @@ L1e3e1cc2:
    push [BP+08]
    push SI
    push CS
-   call near offset A1e3e1aeb
+   call near offset _moveobj
    add SP,+06
    mov AX,0001
 jmp near L1e3e1d7a
@@ -43499,12 +43502,12 @@ L1e3e1cea:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e21fd
+   call far _cando
    add SP,+08
    cmp AX,DI
    jnz L1e3e1d31
@@ -43513,13 +43516,13 @@ L1e3e1cea:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
    push CS
-   call near offset A1e3e1aeb
+   call near offset _moveobj
    add SP,+06
    mov AX,0002
 jmp near L1e3e1d7a
@@ -43529,13 +43532,13 @@ L1e3e1d31:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
    push [BP+08]
    push SI
-   call far A1e3e21fd
+   call far _cando
    add SP,+08
    cmp AX,DI
    jnz L1e3e1d78
@@ -43543,14 +43546,14 @@ L1e3e1d31:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+03]
    push [BP+08]
    push SI
    push CS
-   call near offset A1e3e1aeb
+   call near offset _moveobj
    add SP,+06
    mov AX,0004
 jmp near L1e3e1d7a
@@ -43562,7 +43565,7 @@ L1e3e1d7a:
    pop BP
 ret far
 
-A1e3e1d7e:
+_justmove: ;; 1e3e1d7e
    push BP
    mov BP,SP
    mov AX,0001
@@ -43570,7 +43573,7 @@ A1e3e1d7e:
    push [BP+0A]
    push [BP+08]
    push [BP+06]
-   call far A1e3e21fd
+   call far _cando
    mov SP,BP
    or AX,AX
    jz L1e3e1dad
@@ -43578,7 +43581,7 @@ A1e3e1d7e:
    push [BP+08]
    push [BP+06]
    push CS
-   call near offset A1e3e1aeb
+   call near offset _moveobj
    mov SP,BP
    mov AX,0001
 jmp near L1e3e1daf
@@ -43588,7 +43591,7 @@ L1e3e1daf:
    pop BP
 ret far
 
-A1e3e1db1:
+_onscreen: ;; 1e3e1db1
    push BP
    mov BP,SP
    push SI
@@ -43597,7 +43600,7 @@ A1e3e1db1:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -43606,12 +43609,12 @@ A1e3e1db1:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    add AX,[ES:BX+09]
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    cmp AX,[ES:BX+08]
    jge L1e3e1ded
 jmp near L1e3e1e66
@@ -43620,7 +43623,7 @@ L1e3e1ded:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -43629,12 +43632,12 @@ L1e3e1ded:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    add AX,[ES:BX+0B]
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    cmp AX,[ES:BX+0A]
    jl L1e3e1e66
    mov AX,[ES:BX+08]
@@ -43644,13 +43647,13 @@ L1e3e1ded:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
    cmp AX,[ES:BX+01]
    jl L1e3e1e66
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+0A]
    add AX,[ES:BX+06]
    push AX
@@ -43658,7 +43661,7 @@ L1e3e1ded:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -43673,7 +43676,7 @@ L1e3e1e68:
    pop BP
 ret far
 
-A1e3e1e6b:
+_trymovey: ;; 1e3e1e6b
    push BP
    mov BP,SP
    push SI
@@ -43684,7 +43687,7 @@ A1e3e1e6b:
    push [BP+0A]
    push [BP+08]
    push SI
-   call far A1e3e21fd
+   call far _cando
    add SP,+08
    cmp AX,DI
    jnz L1e3e1eb2
@@ -43692,15 +43695,15 @@ A1e3e1e6b:
    push [BP+08]
    push SI
    push CS
-   call near offset A1e3e1aeb
+   call near offset _moveobj
    add SP,+06
-   mov AX,[3D7A]
+   mov AX,[offset _dx1]
    push AX
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -43713,12 +43716,12 @@ L1e3e1eb2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
-   call far A1e3e21fd
+   call far _cando
    add SP,+08
    cmp AX,DI
    jnz L1e3e1f0e
@@ -43727,19 +43730,19 @@ L1e3e1eb2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+01]
    push SI
    push CS
-   call near offset A1e3e1aeb
+   call near offset _moveobj
    add SP,+06
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+05],0000
@@ -43751,7 +43754,7 @@ L1e3e1f0e:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+05],0000
@@ -43762,7 +43765,7 @@ L1e3e1f25:
    pop BP
 ret far
 
-A1e3e1f29:
+_crawl: ;; 1e3e1f29
    push BP
    mov BP,SP
    sub SP,+02
@@ -43773,7 +43776,7 @@ A1e3e1f29:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov DI,[ES:BX+01]
@@ -43782,7 +43785,7 @@ A1e3e1f29:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -43792,7 +43795,7 @@ A1e3e1f29:
    push [BP+08]
    push SI
    push CS
-   call near offset A1e3e1ba6
+   call near offset _standfloor
    add SP,+06
    or AX,AX
    jz L1e3e1f9c
@@ -43801,7 +43804,7 @@ A1e3e1f29:
    push [BP-02]
    push DI
    push SI
-   call far A1e3e21fd
+   call far _cando
    add SP,+08
    cmp AX,0001
    jnz L1e3e1f9c
@@ -43809,7 +43812,7 @@ A1e3e1f29:
    push DI
    push SI
    push CS
-   call near offset A1e3e1aeb
+   call near offset _moveobj
    add SP,+06
    mov AX,0001
 jmp near L1e3e1f9e
@@ -43822,7 +43825,7 @@ L1e3e1f9e:
    pop BP
 ret far
 
-A1e3e1fa4:
+_addscore: ;; 1e3e1fa4
    push BP
    mov BP,SP
    push SI
@@ -43833,7 +43836,7 @@ A1e3e1fa4:
    mov AX,001B
    push AX
    push CS
-   call near offset A1e3e18b9
+   call near offset _addobj
    add SP,+06
    mov SI,AX
    or SI,SI
@@ -43846,7 +43849,7 @@ L1e3e1fc4:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -43855,11 +43858,11 @@ L1e3e1fc4:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+13],0010
-   cmp DI,[976F]
+   cmp DI,[offset _objs+01]
    jle L1e3e1ffc
    mov AX,0001
 jmp near L1e3e1ffe
@@ -43867,7 +43870,7 @@ L1e3e1ffc:
    xor AX,AX
 L1e3e1ffe:
    push AX
-   cmp DI,[976F]
+   cmp DI,[offset _objs+01]
    jge L1e3e200a
    mov AX,0001
 jmp near L1e3e200c
@@ -43882,7 +43885,7 @@ L1e3e200c:
    push DX
    mul BX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -43891,25 +43894,25 @@ L1e3e200c:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],0003
    push SI
    push CS
-   call near offset A1e3e0269
+   call near offset _setobjsize
    pop CX
 L1e3e2041:
-   or word ptr [C23A],C000
+   or word ptr [offset _statmodflg],C000
    mov AX,[BP+06]
    cwd
-   add [offset Y2a17848e],AX
-   adc [offset Y2a17848e+2],DX
+   add [offset _pl+26],AX
+   adc [offset _pl+26+02],DX
 X1e3e2052:
    test BL,[BX+5E]
    pop BP
 ret far
-X1e3e2057:
+_addtext: ;; 1e3e2057 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    push SI
@@ -43917,7 +43920,7 @@ X1e3e2057:
    push [BP+0C]
    push [BP+0A]
    push CS
-   call near offset A1e3e18b9
+   call near offset _addobj
    add SP,+06
    mov SI,AX
    or SI,SI
@@ -43926,13 +43929,13 @@ X1e3e2057:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+13],0040
    push [BP+08]
    push [BP+06]
-   call far A29f8000f
+   call far _strdup
    pop CX
    pop CX
    push DX
@@ -43941,7 +43944,7 @@ X1e3e2057:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -43952,7 +43955,7 @@ X1e3e2057:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+05],0002
@@ -43960,20 +43963,20 @@ X1e3e2057:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+07],FFFF
    push SI
    push CS
-   call near offset A1e3e0269
+   call near offset _setobjsize
    pop CX
 L1e3e20de:
    pop SI
    pop BP
 ret far
 
-A1e3e20e1:
+_sendtrig: ;; 1e3e20e1
    push BP
    mov BP,SP
    push SI
@@ -43984,20 +43987,20 @@ L1e3e20e9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AL,[ES:BX]
    cbw
    mov BX,AX
    shl BX,1
-   test word ptr [BX+C23E],0100
+   test word ptr [BX+offset _kindflags],0100
    jz L1e3e2147
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+13]
@@ -44010,7 +44013,7 @@ L1e3e20e9:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AL,[ES:BX]
@@ -44018,79 +44021,79 @@ L1e3e20e9:
    mov BX,AX
    shl BX,1
    shl BX,1
-   call far [BX+B910]
+   call far [BX+offset _kindmsg]
    add SP,+06
 L1e3e2147:
    inc SI
 L1e3e2148:
-   cmp SI,[offset Y2a17bc1e]
+   cmp SI,[offset _numobjs]
    jl L1e3e20e9
    pop SI
    pop BP
 ret far
 
-A1e3e2151:
-   mov AX,[BA5A]
+_setorigin: ;; 1e3e2151
+   mov AX,[offset _scrnxs]
    shl AX,1
    shl AX,1
    shl AX,1
-   mov DX,[976F]
+   mov DX,[offset _objs+01]
    sub DX,AX
    and DX,FFF8
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov [ES:BX+08],DX
    cmp word ptr [ES:BX+08],+00
    jge L1e3e217b
    mov word ptr [ES:BX+08],0000
 jmp near L1e3e21a1
 L1e3e217b:
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+08]
    mov DX,0080
-   sub DX,[BA5A]
+   sub DX,[offset _scrnxs]
    mov CL,04
    shl DX,CL
    cmp AX,DX
    jle L1e3e21a1
    mov AX,0080
-   sub AX,[BA5A]
+   sub AX,[offset _scrnxs]
    mov CL,04
    shl AX,CL
    mov [ES:BX+08],AX
 L1e3e21a1:
-   mov AX,[BA5C]
+   mov AX,[offset _scrnys]
    shl AX,1
    shl AX,1
    shl AX,1
-   mov DX,[9771]
+   mov DX,[offset _objs+03]
    add DX,+10
    sub DX,AX
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov [ES:BX+0A],DX
    cmp word ptr [ES:BX+0A],+00
    jge L1e3e21ca
    mov word ptr [ES:BX+0A],0000
 jmp near L1e3e21f0
 L1e3e21ca:
-   les BX,[offset Y2a17b8b4]
+   les BX,[offset _gamevp]
    mov AX,[ES:BX+0A]
    mov DX,0041
-   sub DX,[BA5C]
+   sub DX,[offset _scrnys]
    mov CL,04
    shl DX,CL
    cmp AX,DX
    jle L1e3e21f0
    mov AX,0041
-   sub AX,[BA5C]
+   sub AX,[offset _scrnys]
    mov CL,04
    shl AX,CL
    mov [ES:BX+0A],AX
 L1e3e21f0:
-   mov word ptr [C2C8],0000
-   mov word ptr [C2CA],0000
+   mov word ptr [offset _oldscrollxd],0000
+   mov word ptr [offset _oldscrollyd],0000
 ret far
 
-A1e3e21fd:
+_cando: ;; 1e3e21fd
    push BP
    mov BP,SP
    sub SP,+10
@@ -44108,7 +44111,7 @@ A1e3e21fd:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+09]
@@ -44121,7 +44124,7 @@ A1e3e21fd:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+0B]
@@ -44134,7 +44137,7 @@ A1e3e21fd:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -44143,7 +44146,7 @@ A1e3e21fd:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AL,[ES:BX]
@@ -44151,7 +44154,7 @@ A1e3e21fd:
    mov BX,AX
    shl BX,1
    pop AX
-   add AX,[BX+B802]
+   add AX,[BX+offset _kindyl]
    add AX,000F
    mov CL,04
    sar AX,CL
@@ -44171,7 +44174,7 @@ L1e3e22b5:
    mov BX,DI
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,SI
@@ -44182,7 +44185,7 @@ L1e3e22b5:
    shl BX,1
    shl BX,1
    shl BX,1
-   add BX,offset Y2a1784ae
+   add BX,offset _info
    push DS
    pop ES
    mov AX,[ES:BX+02]
@@ -44205,7 +44208,7 @@ L1e3e22f1:
    pop BP
 ret far
 
-A1e3e22ff:
+_objdo: ;; 1e3e22ff
    push BP
    mov BP,SP
    sub SP,+0A
@@ -44224,7 +44227,7 @@ A1e3e22ff:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+09]
@@ -44237,7 +44240,7 @@ A1e3e22ff:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+0B]
@@ -44255,7 +44258,7 @@ L1e3e236c:
    mov BX,SI
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,DI
@@ -44266,7 +44269,7 @@ L1e3e236c:
    shl BX,1
    shl BX,1
    shl BX,1
-   add BX,offset Y2a1784ae
+   add BX,offset _info
    push DS
    pop ES
    mov AX,[ES:BX+02]
@@ -44287,7 +44290,7 @@ L1e3e23a2:
    pop BP
 ret far
 
-A1e3e23b0:
+_touchbkgnd: ;; 1e3e23b0
    push BP
    mov BP,SP
    sub SP,+0A
@@ -44298,12 +44301,12 @@ A1e3e23b0:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov BX,[ES:BX+0D]
    shl BX,1
-   test word ptr [BX+C22E],0002
+   test word ptr [BX+offset _stateinfo],0002
    jz L1e3e23db
 jmp near L1e3e24cf
 L1e3e23db:
@@ -44311,7 +44314,7 @@ L1e3e23db:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -44322,7 +44325,7 @@ L1e3e23db:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -44333,7 +44336,7 @@ L1e3e23db:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -44342,7 +44345,7 @@ L1e3e23db:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -44355,7 +44358,7 @@ L1e3e23db:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -44364,7 +44367,7 @@ L1e3e23db:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -44383,7 +44386,7 @@ L1e3e2480:
    mov BX,DI
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,[BP-0A]
@@ -44394,7 +44397,7 @@ L1e3e2480:
    shl BX,1
    shl BX,1
    shl BX,1
-   add BX,offset Y2a1784ae
+   add BX,offset _info
    push DS
    pop ES
    test word ptr [ES:BX+02],0008
@@ -44403,7 +44406,7 @@ L1e3e2480:
    push AX
    push [BP-0A]
    push DI
-   call far A16680006
+   call far _msg_block
    add SP,+06
 L1e3e24be:
    inc DI
@@ -44422,7 +44425,7 @@ L1e3e24cf:
    pop BP
 ret far
 
-A1e3e24d5:
+_purgeobjs: ;; 1e3e24d5
    push SI
    push DI
    xor DI,DI
@@ -44437,22 +44440,22 @@ L1e3e24de:
    mov AX,SI
    mov DX,001F
    mul DX
-   add AX,offset Y2a17976e
+   add AX,offset _objs
    push AX
    push DS
    mov AX,DI
    mov DX,001F
    mul DX
-   add AX,offset Y2a17976e
+   add AX,offset _objs
    push AX
-   call far A28a9000a
+   call far _memcpy
    add SP,+0A
 L1e3e2506:
    mov AX,SI
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp byte ptr [ES:BX],03
@@ -44461,7 +44464,7 @@ L1e3e2506:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+17]
@@ -44471,12 +44474,12 @@ L1e3e2506:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    push [ES:BX+19]
    push [ES:BX+17]
-   call far A29110001
+   call far _free
    pop CX
    pop CX
 jmp near L1e3e2555
@@ -44485,61 +44488,61 @@ L1e3e2554:
 L1e3e2555:
    inc SI
 L1e3e2556:
-   cmp SI,[offset Y2a17bc1e]
+   cmp SI,[offset _numobjs]
    jge L1e3e255f
 jmp near L1e3e24de
 L1e3e255f:
-   mov [offset Y2a17bc1e],DI
+   mov [offset _numobjs],DI
    pop DI
    pop SI
 ret far
 
-A1e3e2566:
-   cmp byte ptr [offset Y2a17b724],00
+_updbotmsg: ;; 1e3e2566
+   cmp byte ptr [offset _botmsg],00
    jz L1e3e257e
-   dec word ptr [B776]
+   dec word ptr [offset _bottime]
    jge L1e3e257e
-   mov byte ptr [offset Y2a17b724],00
-   or word ptr [C23A],C000
+   mov byte ptr [offset _botmsg],00
+   or word ptr [offset _statmodflg],C000
 L1e3e257e:
 ret far
 
-A1e3e257f:
+_hitplayer: ;; 1e3e257f
    push BP
    mov BP,SP
    mov AX,[BP+06]
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    cmp word ptr [ES:BX+1D],+00
    jnz L1e3e25b4
-   mov BX,[977B]
+   mov BX,[offset _objs+0d]
    shl BX,1
-   test word ptr [BX+C22E],0002
+   test word ptr [BX+offset _stateinfo],0002
    jnz L1e3e25b4
    xor AX,AX
    push AX
    mov AX,0001
    push AX
    push CS
-   call near offset A1e3e064c
+   call near offset _p_ouch
    mov SP,BP
 L1e3e25b4:
    mov AX,[BP+06]
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov word ptr [ES:BX+1D],0003
    pop BP
 ret far
 
-A1e3e25cc:
+_fishdo: ;; 1e3e25cc
    push BP
    mov BP,SP
    mov AX,2001
@@ -44548,7 +44551,7 @@ A1e3e25cc:
    push [BP+08]
    push [BP+06]
    push CS
-   call near offset A1e3e22ff
+   call near offset _objdo
    mov SP,BP
    cmp AX,2001
    jnz L1e3e25fb
@@ -44556,7 +44559,7 @@ A1e3e25cc:
    push [BP+08]
    push [BP+06]
    push CS
-   call near offset A1e3e1aeb
+   call near offset _moveobj
    mov SP,BP
    mov AX,0001
 jmp near L1e3e25fd
@@ -44566,7 +44569,7 @@ L1e3e25fd:
    pop BP
 ret far
 
-A1e3e25ff:
+_pointvect: ;; 1e3e25ff
    push BP
    mov BP,SP
    push SI
@@ -44575,7 +44578,7 @@ A1e3e25ff:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov DI,[ES:BX+01]
@@ -44583,7 +44586,7 @@ A1e3e25ff:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    sub DI,[ES:BX+01]
@@ -44591,7 +44594,7 @@ A1e3e25ff:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov SI,[ES:BX+03]
@@ -44599,7 +44602,7 @@ A1e3e25ff:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    sub SI,[ES:BX+03]
@@ -44700,14 +44703,14 @@ L1e3e26e4:
    pop BP
 ret far
 
-A1e3e26f4:
+_vectdist: ;; 1e3e26f4
    push BP
    mov BP,SP
    mov AX,[BP+06]
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+01]
@@ -44716,7 +44719,7 @@ A1e3e26f4:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -44729,7 +44732,7 @@ A1e3e26f4:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+03]
@@ -44738,7 +44741,7 @@ A1e3e26f4:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    pop AX
@@ -44752,7 +44755,7 @@ A1e3e26f4:
    pop BP
 ret far
 
-A1e3e275d:
+_trybreakwall: ;; 1e3e275d
    push BP
    mov BP,SP
    sub SP,+02
@@ -44776,7 +44779,7 @@ L1e3e2785:
    mov BX,SI
    mov CL,07
    shl BX,CL
-   add BX,offset Y2a174468
+   add BX,offset _bd
    push DS
    pop ES
    mov AX,DI
@@ -44791,7 +44794,7 @@ L1e3e2785:
    push DI
    push SI
    push CS
-   call near offset A1e3e0004
+   call near offset _setboard
    add SP,+06
    mov AX,[BP-02]
    inc word ptr [BP-02]
@@ -44807,13 +44810,13 @@ L1e3e2785:
    mov CL,04
    shl AX,CL
    push AX
-   call far A11860a35
+   call far _explode1
    add SP,+06
    mov AX,0031
    push AX
    mov AX,0002
    push AX
-   call far A0c7e0304
+   call far _snd_play
    pop CX
    pop CX
 L1e3e27e1:
@@ -44823,7 +44826,7 @@ L1e3e27e2:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+0B]
@@ -44841,7 +44844,7 @@ L1e3e2807:
    mov DX,001F
    mul DX
    mov BX,AX
-   add BX,offset Y2a17976e
+   add BX,offset _objs
    push DS
    pop ES
    mov AX,[ES:BX+09]
@@ -44862,13 +44865,16 @@ ret far
 
 ;; === External Library Modules ===
 Segment 20c1 ;; WRX_CORE
-Y20c10004:	byte
-Y20c10005:	db "XXXXXXXXXXXXXXXXXXXXXX"
-Y20c1001b:	word
-Y20c1001d:	word
-Y20c1001f:	ds 0004
-Y20c10023:	word
-Y20c10025:	word
+;; (@) Unnamed near calls: B20c14d45 B20c15477 B20c15573 B20c15596 B20c15681 B20c156ea B20c157ae
+;; (@) Unnamed near calls: B20c158b4 B20c15a12 B20c15b26 B20c15b85 B20c1614b B20c1623f B20c162c2
+;; (@) Unnamed near calls: B20c164a6 B20c16700 B20c16725 B20c168e7 B20c1695d
+Y20c10004:	byte	;; ExtendedWx
+Y20c10005:	db "XXXXXXXXXXXXXXXXXXXXXX"	;; VidBuf
+Y20c1001b:	word	;; JoyPixX
+Y20c1001d:	word	;; JoyPixY
+Y20c1001f:	ds 0004	;; JoyButton
+Y20c10023:	word	;; JoyPixDx
+Y20c10025:	word	;; JoyPixDy
 Y20c10027:	db 01,11,4f,00,f1,f2,53,74,00,00
 Y20c10031:	db 08,00,08,02,08,04,08,0b,08,0d,08,0f,08,16,08,18,08,1a
 Y20c10043:	dw 0000,0000,0000,0000,0000,0000,0000,0000,0000,a675,a0b8,9659,8d3c,852a,7df8,7782
@@ -44879,7 +44885,11 @@ Y20c10043:	dw 0000,0000,0000,0000,0000,0000,0000,0000,0000,a675,a0b8,9659,8d3c,8
 		dw 02ce,02a5,027f,025b,023a,021a,01fb,01df,01c4,01ab,0193,017c,0167,0152,013f,012d
 		dw 011d,010d,00fd,00ef,00e2,00d5,00c9,00be,00b3,00a9,009f,0096,008e,0086,007e,0077
 		dw 0071,006a,0064,005f,0059,0054,004f,004b,0047,0043,003f,003b,0038,0035,0032,002f
-Y20c10143:	db 01,01, 4f,12, f1,d3, 50,7c, 00,00, 06
+Y20c10143:	;; struct {
+		;;    word AmVibrato, Level, AttackDecay, SustainRelease, Waveform;
+		;;    byte FeedbackAlgorithm;
+		;; } SbiTab[0x80];
+		db 01,01, 4f,12, f1,d3, 50,7c, 00,00, 06
 		db 02,01, 50,12, f1,d2, 50,76, 00,00, 06
 		db 01,01, 4b,17, f1,d2, 50,76, 00,00, 06
 		db 13,01, 50,11, f1,d2, 50,76, 00,00, 06
@@ -45023,40 +45033,47 @@ Y20c10776:	db 00,01,02,08,09,0a,10,11,12
 Y20c1077f:	db 03,04,05,0b,0c,0d,13,14,15
 Y20c10788:	db 16,16,16,16,16,16,16,16,16,16,16,16,16
 Y20c10795:	ds 0010
-Y20c107a5:	ds 2*0009
-Y20c107b7:	ds 0010
-Y20c107c7:	db 7f,7f,7f,7f,7f,7f,7f,7f,7f,7f,7f,7f,7f,7f,7f,7f
-Y20c107d7:	ds 0009
-Y20c107e0:	ds 0009
-Y20c107e9:	db "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-Y20c1081c:	byte
+Y20c107a5:	ds 2*0009	;; ResetWx
+Y20c107b7:	ds 0010	;; ModeWx
+Y20c107c7:	db 7f,7f,7f,7f,7f,7f,7f,7f,7f,7f,7f,7f,7f,7f,7f,7f	;; ConfigPortWx
+Y20c107d7:	ds 0009	;; SoundOnWx
+Y20c107e0:	ds 0009	;; LevelWx
+Y20c107e9:	db "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"	;; WxXs
+Y20c1081c:	byte	;; StrCheckWx
+;; WORX toolkit for driver-free sound interfaces with CMF files and other early 1990's standard formats.
+;; PC Magazine, 1993-06-15, p. 57
+;; https://books.google.com/books?id=jMKfH6i9OcYC&lpg=PA77&ots=nd-NZ5yIxK&pg=PA77#v=onepage&q&f=false
+;; The library functions are in assembly and called from through the 80x86 interrupt 0x63. 
+;; Example: DSPReset call interrupt 0x63 with AX = 0x01, BX = 0, ES = 0, DI = 0.
+;; The function table is set up from _CORE_STARTWORX (with AX ranging from 0x01 to 0x3b).
+;; Interrupt 0x63 with AX = 0x01 calls the internal assembly language routine for DSPReset.
 Y20c1081d:	db "WORX TOOLKIT VERSION 2.01(F)COPYRIGHT 1993 BY MYSTIC SOFTWARE"
-Y20c1085a:	word
-Y20c1085c:	dw ffff
-Y20c1085e:	dword
-Y20c10862:	dword
-Y20c10866:	byte
-Y20c10867:	word
-Y20c10869:	word
-Y20c1086b:	word
-Y20c1086d:	word
-Y20c1086f:	byte
-Y20c10870:	word
-Y20c10872:	word
-Y20c10874:	db 01
-Y20c10875:	ds 2*0020
-Y20c108b5:	ds 0080
-Y20c10935:	ds 2*0020
-Y20c10975:	byte
-Y20c10976:	ds 2*0010
-Y20c10996:	db f4
+Y20c1085a:	word	;; ErrorWx
+Y20c1085c:	dw ffff	;; TimeDeltaWx
+Y20c1085e:	dword	;; TimeLeftWx
+Y20c10862:	dword	;; TimeSetWx
+Y20c10866:	byte	;; TimedOutWx
+Y20c10867:	word	;; PhaseWx
+Y20c10869:	word	;; MidiBeatWx
+Y20c1086b:	word	;; WxItems
+Y20c1086d:	word	;; FrequencyWx
+Y20c1086f:	byte	;; DoCmWx
+Y20c10870:	word	;; SegWx
+Y20c10872:	word	;; OffWx
+Y20c10874:	db 01	;; DoLoopWx
+Y20c10875:	ds 2*0020	;; WxBlock
+Y20c108b5:	ds 0080	;;
+Y20c10935:	ds 2*0020	;;
+Y20c10975:	byte	;; MidiPlaying
+Y20c10976:	ds 2*0010	;;
+Y20c10996:	db f4	;;
 Y20c10997:	db 02,02,02,02,01,01,02,00
 Y20c1099f:	word
 Y20c109a1:	word
-Y20c109a3:	dword
+Y20c109a3:	dword	;; ExInt00
 Y20c109a7:	byte
-Y20c109a8:	db 01
-Y20c109a9:	byte
+Y20c109a8:	db 01	;; AudioMode
+Y20c109a9:	byte	;; MidiSpeaker
 Y20c109aa:	word
 Y20c109ac:	word
 Y20c109ae:	word
@@ -45067,10 +45084,10 @@ Y20c109b3:	byte
 Y20c109b4:	byte
 Y20c109b5:	byte
 Y20c109b6:	byte
-Y20c109b7:	dword
+Y20c109b7:	dword	;; ExInt07
 Y20c109bb:	word
 Y20c109bd:	word
-Y20c109bf:	ds 0020
+Y20c109bf:	ds 2*0010	;; WorxTab2
 Y20c109df:	byte
 Y20c109e0:	db 14,75,77,17
 Y20c109e4:	db 14,74,76,16
@@ -45602,25 +45619,26 @@ Y20c10a01:	db 80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,
 		db 80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80
 		db 80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80
 		db 80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80
-Y20c14a01:	dw ffff
-Y20c14a03:	db "Creative Voice File",1a,1a,00,0a,01,29,11,01,0a,00,00,a0,00,80,80,80,80,80,80,80,80,00
-Y20c14a2c:	byte
-Y20c14a2d:	db 0a,07,05,03,02,ff,14,75,77,17,14,74,76,16
-Y20c14a3b:	byte
-Y20c14a3c:	dword
-Y20c14a40:	dw 0210
-Y20c14a42:	byte
-Y20c14a43:	dw ffff
-Y20c14a45:	word
-Y20c14a47:	dword	;; 00
+Y20c14a01:	dw ffff	;; WxVocIx
+Y20c14a03:	db "Creative Voice File",1a,1a,00,0a,01,29,11,01,0a,00,00,a0,00,80,80,80,80,80,80,80,80,00	;; WxVocStr
+Y20c14a2c:	byte	;; WxIntNum
+Y20c14a2d:	db 0a,07,05,03,02,ff,14,75,77,17,14,74,76,16	;; WxIntTab
+Y20c14a3b:	byte	;; WxMode
+Y20c14a3c:	dword	;; WxIntVec
+Y20c14a40:	dw 0210	;; OutPortWx
+Y20c14a42:	byte	;; SoundingWx
+Y20c14a43:	dw ffff	;; WorxFD
+Y20c14a45:	word	;; ResourceWx
+Y20c14a47:	;; WorxBuf
+		dword	;; 00
 		ds 0004	;; 04
 		dword	;; 08
 		ds 000d	;; 0c
-Y20c14a60:	byte
-Y20c14a61:	dword
-Y20c14a65:	ds 2*0046
+Y20c14a60:	byte	;; WorxFileOpen
+Y20c14a61:	dword	;; WxExInt63
+Y20c14a65:	ds 2*0046	;; WorxTab
 
-B20c14af1:
+B20c14af1: ;; CvtStringWx
    push AX
    push BX
    xor BX,BX
@@ -45646,7 +45664,7 @@ L20c14b1a:
    pop AX
 ret near
 
-B20c14b1d:
+B20c14b1d: ;; LoadWxXs
    push CX
    push DS
    push SI
@@ -45669,11 +45687,11 @@ B20c14b1d:
    mov DI,offset Y20c107e9
 ret near
 
-B20c14b3e:
+B20c14b3e: ;; Worx26
    mov byte ptr [CS:offset Y20c1081c],01
 ret near
 
-A20c14b45:
+_CORE_STARTWORX: ;; 20c14b45
    cli
    push AX
    push BX
@@ -45690,7 +45708,7 @@ A20c14b45:
    call near B20c161fc
    mov [CS:offset Y20c14a61],DI
    mov AX,ES
-   mov [CS:offset Y20c14a61+2],AX
+   mov [CS:offset Y20c14a61+02],AX
    mov DI,offset B20c150f3
    mov AX,CS
    mov ES,AX
@@ -45700,125 +45718,125 @@ A20c14b45:
    mov AX,DS
    mov ES,AX
    mov AX,0000
-   stosw
+   stosw ;; Worx00
    mov AX,offset B20c16324
-   stosw
+   stosw ;; Worx01: DSPResetWx
    mov AX,offset B20c1649a
-   stosw
+   stosw ;; Worx02: ForceConfigWx
    mov AX,offset B20c15082
-   stosw
+   stosw ;; Worx03: GetErrorWx
    mov AX,offset B20c1646a
-   stosw
+   stosw ;; Worx04: DSPCloseWx
    mov AX,offset B20c165fb
-   stosw
+   stosw ;; Worx05: PlayVOCFileWx
    mov AX,offset B20c1655c
-   stosw
+   stosw ;; Worx06: PlayVOCBlockWx
    mov AX,offset B20c162e1
-   stosw
+   stosw ;; Worx07: StopVOCWx
    mov AX,offset B20c16135
-   stosw
+   stosw ;; Worx08: VOCPlayingWx
    mov AX,offset B20c15094
-   stosw
+   stosw ;; Worx09: SetRealTimeWx
    mov AX,offset B20c150c1
-   stosw
+   stosw ;; Worx0A: ResetRealTimeWx
    mov AX,offset B20c150e5
-   stosw
+   stosw ;; Worx0B: TimerDoneWx
    mov AX,offset B20c15d6a
-   stosw
+   stosw ;; Worx0C: PlayMIDBlockWx
    mov AX,offset B20c15bd1
-   stosw
+   stosw ;; Worx0D: StopSequenceWx
    mov AX,offset B20c16128
-   stosw
+   stosw ;; Worx0E: SequencePlayingWx
    mov AX,offset B20c1553a
-   stosw
+   stosw ;; Worx0F: LoadSBIItemWx
    mov AX,offset B20c15b14
-   stosw
+   stosw ;; Worx10: GoNoteWx
    mov AX,offset B20c15b1c
-   stosw
+   stosw ;; Worx11: StopNoteWx
    mov AX,offset B20c15b7c
-   stosw
+   stosw ;; Worx12: ProgramChangeWx
    mov AX,offset B20c14ff8
-   stosw
+   stosw ;; Worx13: SetAudioModeWx
    mov AX,offset B20c15288
-   stosw
+   stosw ;; Worx14: StartResourceWx
    mov AX,offset B20c15438
-   stosw
+   stosw ;; Worx15: StopPWMWx
    mov AX,offset B20c14ffd
-   stosw
+   stosw ;; Worx16: SetMIDISpeakerWx
    mov AX,offset B20c1518d
-   stosw
+   stosw ;; Worx17: OpenElementWx
    mov AX,offset B20c15124
-   stosw
+   stosw ;; Worx18: ElementReadWx
    mov AX,offset B20c152db
-   stosw
+   stosw ;; Worx19: CloseWorxFWx
    mov AX,offset B20c152f7
-   stosw
+   stosw ;; Worx1A: ElementGetsWx
    mov AX,offset B20c1533c
-   stosw
+   stosw ;; Worx1B: PlayPWMBlockWx
    mov AX,offset B20c1532b
-   stosw
+   stosw ;; Worx1C: PWMPlayingWx
    mov AX,offset B20c15bac
-   stosw
+   stosw ;; Worx1D: SetLoopModeWx
    mov AX,offset B20c15e90
-   stosw
+   stosw ;; Worx1E: PlayCMFBlockWx
    mov AX,offset B20c16144
-   stosw
+   stosw ;; Worx1F: ContinueSequenceWx
    mov AX,offset B20c154d7
-   stosw
+   stosw ;; Worx20: SetMasterVolumeWx
    mov AX,offset B20c15519
-   stosw
+   stosw ;; Worx21: SetVOCVolumeWx
    mov AX,offset B20c154f8
-   stosw
+   stosw ;; Worx22: SetFMVolumeWx
    mov AX,offset B20c15011
-   stosw
+   stosw ;; Worx23: AdLibDetectWx
    mov AX,offset B20c14f9d
-   stosw
+   stosw ;; Worx24
    mov AX,offset B20c14fd2
-   stosw
+   stosw ;; Worx25: CloseWorxDriverWx
    mov AX,offset B20c14b3e
-   stosw
+   stosw ;; Worx26
    mov AX,offset B20c14d00
-   stosw
+   stosw ;; Worx27: GetLastVOCMarkerWx
    mov AX,offset B20c14cf9
-   stosw
+   stosw ;; Worx28: SetVOCIndexWx
    mov AX,offset B20c15cfc
-   stosw
+   stosw ;; Worx29: JoyStickUpdateWx
    mov AX,offset B20c15cb9
-   stosw
+   stosw ;; Worx2A: JoyStickXWx
    mov AX,offset B20c15cd3
-   stosw
+   stosw ;; Worx2B: JoyStickYWx
    mov AX,offset B20c15ced
-   stosw
+   stosw ;; Worx2C: JoyStickButtonWx
    mov AX,offset B20c1613f
-   stosw
+   stosw ;; Worx2D: GetMIDIBeatWx
    mov AX,offset B20c15bb8
-   stosw
+   stosw ;; Worx2E: WorxOff
    mov AX,offset B20c15f81
-   stosw
+   stosw ;; Worx2F
    mov AX,offset B20c15f7b
-   stosw
+   stosw ;; Worx30: GetTimeDeltaWx
    mov AX,offset B20c150ec
-   stosw
+   stosw ;; Worx31: EnableExtenderModeWx
    mov AX,0000
-   stosw
+   stosw ;; Worx32: StartPoly
    mov AX,0000
-   stosw
+   stosw ;; Worx33: PlaySMPItemL
    mov AX,0000
-   stosw
+   stosw ;; Worx34: ClosePoly
    mov AX,0000
-   stosw
+   stosw ;; Worx35: PlaySMPItemH
    mov AX,0000
-   stosw
+   stosw ;; Worx36: PolyCellStatus
    mov AX,offset B20c164a0
-   stosw
+   stosw ;; Worx37: DSPPortSettingWx
    mov AX,offset B20c16747
-   stosw
+   stosw ;; Worx38: ResetMPU401Wx
    mov AX,offset B20c16793
-   stosw
+   stosw ;; Worx39: LoadIBKFileWx
    mov AX,offset B20c167e9
-   stosw
+   stosw ;; Worx3A: PlayWAVBlockWx
    mov AX,offset B20c1686a
-   stosw
+   stosw ;; Worx3B: PlayWAVFileWx
    mov AX,C0BD
    call near B20c1565b
    call near B20c1565b
@@ -45848,25 +45866,25 @@ L20c14c7f:
    mov AX,DS
    mov ES,AX
    mov AX,offset B20c14f43
-   stosw
+   stosw ;; Worx00B
    mov AX,offset B20c14e7d
-   stosw
+   stosw ;; Worx01B
    mov AX,offset B20c14db9
-   stosw
+   stosw ;; Worx02_09B
    mov AX,offset B20c14d43
-   stosw
+   stosw ;; Worx03B
    mov AX,offset B20c14d06
-   stosw
+   stosw ;; Worx04B
    mov AX,offset B20c14cf7
-   stosw
+   stosw ;; Worx05B
    mov AX,offset B20c14cf5
-   stosw
+   stosw ;; Worx06B
    mov AX,offset B20c14cf3
-   stosw
+   stosw ;; Worx07B
    mov AX,offset B20c14cf1
-   stosw
+   stosw ;; Worx08B
    mov AX,offset B20c14db9
-   stosw
+   stosw ;; Worx02_09B
    mov AX,1000
    call near B20c161b7
    mov word ptr [CS:offset Y20c1085c],0800
@@ -45879,30 +45897,30 @@ L20c14c7f:
    sti
 ret far
 
-B20c14cf1:
+B20c14cf1: ;; Worx08B
    stc
 ret near
-B20c14cf3:
+B20c14cf3: ;; Worx07B
    stc
 ret near
-B20c14cf5:
+B20c14cf5: ;; Worx06B
    stc
 ret near
-B20c14cf7:
+B20c14cf7: ;; Worx05B
    stc
 ret near
 
-B20c14cf9:
+B20c14cf9: ;; Worx28: SetVOCIndexWx
    mov [CS:offset Y20c14a01],BX
    clc
 ret near
 
-B20c14d00:
+B20c14d00: ;; Worx27: GetLastVOCMarkerWx
    mov AX,[CS:offset Y20c109fa]
    clc
 ret near
 
-B20c14d06:
+B20c14d06: ;; Worx04B
    cmp byte ptr [CS:offset Y20c14a3b],00
    jz L20c14d1b
    mov DI,offset Y20c107e9
@@ -45923,7 +45941,7 @@ L20c14d1b:
    stc
 ret near
 
-B20c14d43:
+B20c14d43: ;; Worx03B
    stc
 ret near
 
@@ -45945,7 +45963,7 @@ L20c14d4b:
    out 0B,AL
    test byte ptr [CS:offset Y20c109df],01
    jz L20c14d73
-   mov AX,[CS:offset  Y20c109f0]
+   mov AX,[CS:offset Y20c109f0]
 jmp near L20c14d77
 X20c14d72:
    nop
@@ -45984,7 +46002,7 @@ L20c14da7:
    sti
 ret near
 
-B20c14db9:
+B20c14db9: ;; Worx02_09B
 L20c14db9:
    push DS
    mov CX,[CS:offset Y20c109e8]
@@ -46008,7 +46026,7 @@ jmp near L20c14e07
 X20c14e01:
    nop
 L20c14e02:
-   mov DI,[CS:offset  Y20c109f0]
+   mov DI,[CS:offset Y20c109f0]
 L20c14e07:
    pop SI
    push ES
@@ -46068,7 +46086,7 @@ L20c14e7b:
    clc
 ret near
 
-B20c14e7d:
+B20c14e7d: ;; Worx01B
    push DS
    cmp byte ptr [CS:offset Y20c14a3b],00
    jz L20c14e93
@@ -46105,7 +46123,7 @@ jmp near L20c14efe
 X20c14ef8:
    nop
 L20c14ef9:
-   mov DI,[CS:offset  Y20c109f0]
+   mov DI,[CS:offset Y20c109f0]
 L20c14efe:
    pop SI
    push ES
@@ -46143,7 +46161,7 @@ L20c14f2e:
    mov ES,AX
 jmp near L20c14db9
 
-B20c14f43:
+B20c14f43: ;; Worx00B
    mov CX,[CS:offset Y20c109e8]
    mov byte ptr [CS:offset Y20c109fc],FF
    jcxz L20c14f54
@@ -46154,7 +46172,7 @@ L20c14f54:
    clc
 ret near
 
-B20c14f59:
+B20c14f59: ;; ConfigSoundPort
    mov DX,0020
    mov CX,0005
    mov SI,offset Y20c10027
@@ -46189,12 +46207,12 @@ L20c14f8a:
    call near B20c1565b
 ret near
 
-B20c14f9d:
+B20c14f9d: ;; Worx24
    mov BX,1234
    mov DX,5678
 ret near
 
-A20c14fa4:
+_CORE_CLOSEWORX: ;; 20c14fa4
    push AX
    push BX
    push CX
@@ -46207,7 +46225,7 @@ A20c14fa4:
    call near B20c15573
    call near B20c15bb8
    mov DI,[CS:offset Y20c14a61]
-   mov AX,[CS:offset Y20c14a61+2]
+   mov AX,[CS:offset Y20c14a61+02]
    mov ES,AX
    mov AL,63
    call near B20c161e3
@@ -46221,7 +46239,7 @@ A20c14fa4:
    clc
 ret far
 
-B20c14fd2:
+B20c14fd2: ;; Worx25: CloseWorxDriverWx
    push AX
    push CX
    push DI
@@ -46230,7 +46248,7 @@ B20c14fd2:
    call near B20c15573
    call near B20c15bb8
    mov DI,[CS:offset Y20c14a61]
-   mov AX,[CS:offset Y20c14a61+2]
+   mov AX,[CS:offset Y20c14a61+02]
    mov ES,AX
    mov AL,63
    call near B20c161e3
@@ -46242,15 +46260,15 @@ B20c14fd2:
    clc
 ret near
 
-B20c14ff8:
+B20c14ff8: ;; Worx13: SetAudioModeWx
    mov [CS:offset Y20c109a8],AL
 ret near
 
-B20c14ffd:
+B20c14ffd: ;; Worx16: SetMIDISpeakerWx
    mov [CS:offset Y20c109a9],AL
 ret near
 
-B20c15002:
+B20c15002: ;; GetAdLibVec
    push AX
    push CX
    push DX
@@ -46265,7 +46283,7 @@ L20c15008:
    pop AX
 ret near
 
-B20c15011:
+B20c15011: ;; Worx23: AdLibDetectWx
    push BX
    push DX
    mov DX,0388
@@ -46323,7 +46341,7 @@ L20c1507e:
    clc
 ret near
 
-B20c15082:
+B20c15082: ;; Worx03: GetErrorWx
    push DS
    mov AX,CS
    mov DS,AX
@@ -46332,7 +46350,7 @@ B20c15082:
    pop DS
 ret near
 
-B20c15094:
+B20c15094: ;; Worx09: SetRealTimeWx
    push BX
    push DX
    push DS
@@ -46343,9 +46361,9 @@ B20c15094:
    mov BX,04A9
    mul BX
    mov [CS:offset Y20c1085e],AX
-   mov [CS:offset Y20c1085e+2],DX
+   mov [CS:offset Y20c1085e+02],DX
    mov [CS:offset Y20c10862],AX
-   mov [CS:offset Y20c10862+2],DX
+   mov [CS:offset Y20c10862+02],DX
    mov byte ptr [CS:offset Y20c10866],00
    clc
    pop DS
@@ -46353,7 +46371,7 @@ B20c15094:
    pop AX
 ret near
 
-B20c150c1:
+B20c150c1: ;; Worx0A: ResetRealTimeWx
    push AX
    push DX
    push DS
@@ -46361,8 +46379,8 @@ B20c150c1:
    mov DS,AX
    mov AX,[CS:offset Y20c10862]
    add [CS:offset Y20c1085e],AX
-   mov AX,[CS:offset Y20c10862+2]
-   adc [CS:offset Y20c1085e+2],AX
+   mov AX,[CS:offset Y20c10862+02]
+   adc [CS:offset Y20c1085e+02],AX
    mov byte ptr [CS:offset Y20c10866],00
    clc
    pop DS
@@ -46370,16 +46388,16 @@ B20c150c1:
    pop AX
 ret near
 
-B20c150e5:
+B20c150e5: ;; Worx0B: TimerDoneWx
    xor AH,AH
    mov AL,[CS:offset Y20c10866]
 ret near
 
-B20c150ec:
+B20c150ec: ;; Worx31: EnableExtenderModeWx
    mov byte ptr [CS:offset Y20c10004],01
 ret near
 
-B20c150f3:
+B20c150f3: ;; CallWorx (interrupt call)
    sti
    push CX
    push DS
@@ -46411,7 +46429,7 @@ L20c1511f:
    pop CX
 iret
 
-B20c15124:
+B20c15124: ;; Worx18: ElementReadWx
    push BX
    push CX
    push DX
@@ -46476,7 +46494,7 @@ L20c15186:
    pop BX
 ret near
 
-B20c1518d:
+B20c1518d: ;; Worx17: OpenElementWx
    push BX
    push CX
    push SI
@@ -46592,7 +46610,7 @@ L20c15282:
    pop BX
 ret near
 
-B20c15288:
+B20c15288: ;; Worx14: StartResourceWx
    push BX
    push CX
    push DX
@@ -46639,7 +46657,7 @@ L20c152d6:
    pop BX
 ret near
 
-B20c152db:
+B20c152db: ;; Worx19: CloseWorxFWx
    mov BX,[CS:offset Y20c14a43]
    cmp BX,-01
    jz L20c152e9
@@ -46650,7 +46668,7 @@ L20c152e9:
    mov word ptr [CS:offset Y20c14a43],FFFF
 ret near
 
-A20c152f7:
+A20c152f7: ;; Worx1A: ElementGetsWx
    push AX
    push BX
    push CX
@@ -46682,7 +46700,7 @@ L20c15317:
 L20c1532a:
 ret near
 
-B20c1532b:
+B20c1532b: ;; Worx1C: PWMPlayingWx
    push DS
    mov AX,CS
    mov DS,AX
@@ -46693,7 +46711,7 @@ B20c1532b:
    clc
 ret near
 
-B20c1533c:
+B20c1533c: ;; Worx1B: PlayPWMBlockWx
    cli
    push DI
    push DS
@@ -46716,7 +46734,7 @@ L20c1534f:
    call near B20c161fc
    mov [CS:offset Y20c109b7],DI
    mov AX,ES
-   mov [CS:offset Y20c109b7+2],AX
+   mov [CS:offset Y20c109b7+02],AX
    mov DI,offset A20c153ce
    mov AX,CS
    mov ES,AX
@@ -46754,18 +46772,18 @@ L20c153c9:
    sti
 ret near
 
-A20c153ce:
+A20c153ce: ;; Int08Fn (interrupt call)
    cli
    push AX
    push ES
-L20c153d1:		;; (@) Self-modifying code point at L20c153d1+1.
-   mov AX,0000		;; (@) B8 [0000]
+L20c153d1: ;; (@) Self-modifying code point at L20c153d1+1.
+   mov AX,0000	;; (@) B8 [0000]
    mov ES,AX
    xor AX,AX
-L20c153d8:		;; (@) Self-modifying code point at L20c153d8+1.
-   cmp AX,0000		;; (@) 3D [0000]
+L20c153d8: ;; (@) Self-modifying code point at L20c153d8+1.
+   cmp AX,0000	;; (@) 3D [0000]
    jz L20c153f8
-L20c153dd:		;; (@) Self-modifying code point at L20c153dd+2.
+L20c153dd: ;; (@) Self-modifying code point at L20c153dd+1.
    mov AL,[ES:0000]	;; (@) 26A0 [0000]
    out 42,AL
    xor AL,AL
@@ -46796,7 +46814,7 @@ L20c153f8:
    xor AL,AL
    mov [CS:offset Y20c109b6],AL
    mov DI,[CS:offset Y20c109b7]
-   mov AX,[CS:offset Y20c109b7+2]
+   mov AX,[CS:offset Y20c109b7+02]
    mov ES,AX
    mov AL,08
    call near B20c161e3
@@ -46808,7 +46826,7 @@ L20c153f8:
    pop AX
 iret
 
-B20c15438:
+B20c15438: ;; Worx15: StopPWMWx
    cli
    push AX
    push ES
@@ -46830,7 +46848,7 @@ B20c15438:
    xor AL,AL
    mov [CS:offset Y20c109b6],AL
    mov DI,[CS:offset Y20c109b7]
-   mov AX,[CS:offset Y20c109b7+2]
+   mov AX,[CS:offset Y20c109b7+02]
    mov ES,AX
    mov AL,08
    call near B20c161e3
@@ -46877,7 +46895,7 @@ L20c154cb:
    jb L20c15482
 ret near
 
-B20c154d7:
+B20c154d7: ;; Worx20: SetMasterVolumeWx
    cmp byte ptr [CS:offset Y20c14a42],01
    jb L20c154f2
    mov DX,[CS:offset Y20c14a40]
@@ -46896,7 +46914,7 @@ L20c154f2:
    clc
 ret near
 
-B20c154f8:
+B20c154f8: ;; Worx22: SetFMVolumeWx
    cmp byte ptr [CS:offset Y20c14a42],01
    jb L20c15513
    mov DX,[CS:offset Y20c14a40]
@@ -46915,7 +46933,7 @@ L20c15513:
    clc
 ret near
 
-B20c15519:
+B20c15519: ;; Worx21: SetVOCVolumeWx
    cmp byte ptr [CS:offset Y20c14a42],01
    jb L20c15534
    mov DX,[CS:offset Y20c14a40]
@@ -46934,7 +46952,7 @@ L20c15534:
    clc
 ret near
 
-B20c1553a:
+B20c1553a: ;; Worx0F: LoadSBIItemWx
    push BX
    push CX
    push SI
@@ -47090,7 +47108,7 @@ B20c15596:
    pop AX
 ret near
 
-B20c1565b:
+B20c1565b: ;; PutAdLib
    push AX
    push BX
    push CX
@@ -47625,13 +47643,13 @@ L20c15ae7:
    pop BX
 ret near
 
-B20c15b14:
+B20c15b14: ;; Worx10: GoNoteWx
    and AL,0F
    or AL,90
    call near B20c157ae
 ret near
 
-B20c15b1c:
+B20c15b1c: ;; Worx11: StopNoteWx
    and AL,0F
    or AL,80
    xor BL,BL
@@ -47681,7 +47699,7 @@ L20c15b39:
    pop AX
 ret near
 
-B20c15b7c:
+B20c15b7c: ;; Worx12: ProgramChangeWx
    mov [CS:offset Y20c109b0],AL
    mov [CS:offset Y20c109b1],BL
 
@@ -47705,7 +47723,7 @@ L20c15ba8:
    pop AX
 ret near
 
-B20c15bac:
+B20c15bac: ;; Worx1D: SetLoopModeWx
    push AX
    mov AX,CS
    mov DS,AX
@@ -47713,10 +47731,10 @@ B20c15bac:
    pop AX
 ret near
 
-B20c15bb8:
+B20c15bb8: ;; Worx2E: WorxOff
    cli
    mov DI,[CS:offset Y20c109a3]
-   mov AX,[CS:offset Y20c109a3+2]
+   mov AX,[CS:offset Y20c109a3+02]
    mov ES,AX
    mov AL,00
    call near B20c16215
@@ -47725,7 +47743,7 @@ B20c15bb8:
    sti
 ret near
 
-B20c15bd1:
+B20c15bd1: ;; Worx0D: StopSequenceWx
    push AX
    push CX
    call near B20c15681
@@ -47773,13 +47791,13 @@ L20c15c23:
    clc
 ret near
 
-B20c15c2e:
+B20c15c2e: ;; WorxOn
    cli
    mov AL,00
    call near B20c1622a
    mov [CS:offset Y20c109a3],DI
    mov AX,ES
-   mov [CS:offset Y20c109a3+2],ES
+   mov [CS:offset Y20c109a3+02],ES
    mov DI,offset A20c15c4e
    mov AX,CS
    mov ES,AX
@@ -47788,7 +47806,7 @@ B20c15c2e:
    sti
 ret near
 
-A20c15c4e:
+A20c15c4e: ;; Int00Fn (interrupt call)
    push AX
    push BP
    push BX
@@ -47803,7 +47821,7 @@ A20c15c4e:
    mov DS,AX
    mov AX,[CS:offset Y20c1085c]
    sub [CS:offset Y20c1085e],AX
-   sbb word ptr [CS:offset Y20c1085e+2],+00
+   sbb word ptr [CS:offset Y20c1085e+02],+00
    jnb L20c15c73
    mov byte ptr [CS:offset Y20c10866],01
 L20c15c73:
@@ -47846,7 +47864,7 @@ L20c15caa:
    pop AX
 iret
 
-B20c15cb9:
+B20c15cb9: ;; Worx2A: JoyStickXWx
    mov AX,[CS:offset Y20c1001b]
    mov BX,0040
    mul BX
@@ -47860,7 +47878,7 @@ B20c15cb9:
 L20c15cd2:
 ret near
 
-B20c15cd3:
+B20c15cd3: ;; Worx2B: JoyStickYWx
    mov AX,[CS:offset Y20c1001d]
    mov BX,0040
    mul BX
@@ -47874,7 +47892,7 @@ B20c15cd3:
 L20c15cec:
 ret near
 
-B20c15ced:
+B20c15ced: ;; Worx2C: JoyStickButtonWx
    push SI
    mov SI,offset Y20c1001f
    xor AH,AH
@@ -47885,7 +47903,7 @@ B20c15ced:
    clc
 ret near
 
-B20c15cfc:
+B20c15cfc: ;; Worx29: JoyStickUpdateWx
    push AX
    push DX
    mov DX,0201
@@ -47933,7 +47951,7 @@ L20c15d67:
    pop AX
 ret near
 
-B20c15d6a:
+B20c15d6a: ;; Worx0C: PlayMIDBlockWx
    push SI
    push DI
    push DS
@@ -48060,7 +48078,7 @@ L20c15e89:
    pop SI
 ret near
 
-B20c15e90:
+B20c15e90: ;; Worx1E: PlayCMFBlockWx
    push SI
    push DI
    push DS
@@ -48168,12 +48186,12 @@ L20c15f61:
    pop SI
 ret near
 
-B20c15f7b:
+B20c15f7b: ;; Worx30: GetTimeDeltaWx
    mov AX,[CS:offset Y20c1085c]
    clc
 ret near
 
-B20c15f81:
+B20c15f81: ;; Worx2F
    mov AX,CS
    mov DS,AX
    cmp byte ptr [CS:offset Y20c10975],00
@@ -48362,7 +48380,7 @@ L20c16121:
    mov [CS:offset Y20c10975],AL
 ret near
 
-B20c16128:
+B20c16128: ;; Worx0E: SequencePlayingWx
    push DS
    mov AX,CS
    mov DS,AX
@@ -48371,17 +48389,17 @@ B20c16128:
    pop DS
 ret near
 
-B20c16135:
+B20c16135: ;; Worx08: VOCPlayingWx
    xor AH,AH
    mov AL,[CS:offset Y20c109f8]
    and AX,0001
 ret near
 
-B20c1613f:
+B20c1613f: ;; Worx2D: GetMIDIBeatWx
    mov AX,[CS:offset Y20c10869]
 ret near
 
-B20c16144:
+B20c16144: ;; Worx1F: ContinueSequenceWx
    mov byte ptr [CS:offset Y20c10975],01
 ret near
 
@@ -48418,7 +48436,7 @@ L20c1617f:
    pop BX
 ret near
 
-B20c16182:
+B20c16182: ;; FlattenSeg
    push AX
    push DX
    mov AX,ES
@@ -48448,7 +48466,7 @@ B20c16182:
    pop AX
 ret near
 
-B20c161b7:
+B20c161b7: ;; SetTimer
    push AX
    push BX
    push DS
@@ -48476,7 +48494,7 @@ B20c161b7:
    pop AX
 ret near
 
-B20c161e3:
+B20c161e3: ;; SetIntVec
    push AX
    push DI
    push ES
@@ -48497,7 +48515,7 @@ B20c161e3:
    pop AX
 ret near
 
-B20c161fc:
+B20c161fc: ;; GetIntVec
    push AX
    push DS
    push SI
@@ -48516,7 +48534,7 @@ B20c161fc:
    pop AX
 ret near
 
-B20c16215:
+B20c16215: ;; SetUserIntVec
    push AX
    cmp AL,08
    jnb L20c16221
@@ -48531,7 +48549,7 @@ L20c16221:
    pop AX
 ret near
 
-B20c1622a:
+B20c1622a: ;; GetUserIntVec
    push AX
    cmp AL,08
    jnb L20c16236
@@ -48606,7 +48624,7 @@ L20c16292:
    stc
 ret near
 
-B20c16298:
+B20c16298: ;; MaskUserInt
    push AX
    push BX
    push DX
@@ -48658,7 +48676,7 @@ L20c162da:
    pop AX
 ret near
 
-B20c162e1:
+B20c162e1: ;; Worx07: StopVOCWx
    cli
    push AX
    push BX
@@ -48694,7 +48712,7 @@ jmp near L20c1634c
 X20c16323:
    nop
 
-B20c16324:
+B20c16324: ;; Worx01: DSPResetWx
    push ES
    mov AX,DS
    xor DX,DX
@@ -48722,7 +48740,7 @@ L20c1634c:
    mov [CS:offset Y20c109ed],DL
    mov [CS:offset Y20c109ee],AX
    add AX,1000
-   mov [CS:offset  Y20c109f0],AX
+   mov [CS:offset Y20c109f0],AX
    push AX
    push CX
    push DI
@@ -48802,7 +48820,7 @@ L20c163ea:
    call near B20c1622a
    mov [CS:offset Y20c14a3c],DI
    mov BX,ES
-   mov [CS:offset Y20c14a3e],BX
+   mov [CS:offset Y20c14a3c+02],BX
    mov AL,[SI]
    mov [CS:offset Y20c14a2c],AL
    mov DI,offset A20c164ee
@@ -48826,7 +48844,7 @@ L20c16431:
    cmp byte ptr [CS:offset Y20c109f8],00
    jz L20c1645b
    mov DI,[CS:offset Y20c14a3c]
-   mov AX,[CS:offset Y20c14a3e]
+   mov AX,[CS:offset Y20c14a3c+02]
    mov ES,AX
    mov AL,[SI]
    call near B20c16298
@@ -48850,7 +48868,7 @@ L20c1645b:
    clc
 ret near
 
-B20c1646a:
+B20c1646a: ;; Worx04: DSPCloseWx
    cli
    push AX
    push BX
@@ -48865,7 +48883,7 @@ B20c1646a:
    call near B20c16298
    mov AL,[CS:offset Y20c14a2c]
    mov DI,[CS:offset Y20c14a3c]
-   mov BX,[CS:offset Y20c14a3e]
+   mov BX,[CS:offset Y20c14a3c+02]
    mov ES,BX
    call near B20c16215
 L20c16492:
@@ -48878,11 +48896,11 @@ L20c16492:
    sti
 ret near
 
-B20c1649a:
+B20c1649a: ;; Worx02: ForceConfigWx
    mov [CS:offset Y20c14a40],BX
 ret near
 
-B20c164a0:
+B20c164a0: ;; Worx37: DSPPortSettingWx
    mov AX,[CS:offset Y20c14a40]
    clc
 ret near
@@ -48986,7 +49004,7 @@ L20c16553:
    pop AX
 iret
 
-B20c1655c:
+B20c1655c: ;; Worx06: PlayVOCBlockWx
    call near B20c162e1
    mov byte ptr [CS:offset Y20c14a3b],00
    mov [CS:offset Y20c109ea],BL
@@ -49035,7 +49053,7 @@ L20c165e2:
    clc
 ret near
 
-B20c165fb:
+B20c165fb: ;; Worx05: PlayVOCFileWx
    call near B20c162e1
    mov byte ptr [CS:offset Y20c14a3b],01
    mov [CS:offset Y20c109ea],BL
@@ -49114,7 +49132,7 @@ jmp near L20c166d0
 X20c166ca:
    nop
 L20c166cb:
-   mov DI,[CS:offset  Y20c109f0]
+   mov DI,[CS:offset Y20c109f0]
 L20c166d0:
    mov AH,[CS:offset Y20c109ed]
    xor AL,AL
@@ -49203,7 +49221,7 @@ L20c16742:
    stc
 ret near
 
-B20c16747:
+B20c16747: ;; Worx38: ResetMPU401Wx
    xor BX,BX
 L20c16749:
    cmp BX,+03
@@ -49250,7 +49268,7 @@ L20c16791:
    stc
 ret near
 
-B20c16793:
+B20c16793: ;; Worx39: LoadIBKFileWx
    push BX
    push CX
    push DI
@@ -49278,13 +49296,13 @@ L20c167a5:
 ret near
 
 Y20c167bd:	db "RIFF",00,00,00,00,"WAVEfmt ",00,00,00,00,00,00,00,00
-Y20c167d5:	word
+Y20c167d5:	word	;; WavDiv
 Y20c167d7:	ds 000a
 Y20c167e1:	db "data"
 Y20c167e5:	word
 Y20c167e7:	word
 
-B20c167e9:
+B20c167e9: ;; Worx3A: PlayWAVBlockWx
    push DI
    push SI
    call near B20c16182
@@ -49325,7 +49343,7 @@ L20c167f6:
    pop DI
 ret near
 
-B20c1686a:
+B20c1686a: ;; Worx3B: PlayWAVFileWx
    push DI
    push ES
    push SI
@@ -49387,7 +49405,7 @@ L20c16903:
    sbb word ptr [CS:offset Y20c109ff],+00
    test byte ptr [CS:offset Y20c109df],01
    jz L20c1691e
-   mov DI,[CS:offset  Y20c109f0]
+   mov DI,[CS:offset Y20c109f0]
 jmp near L20c16923
 X20c1691d:
    nop
@@ -49470,7 +49488,7 @@ L20c16990:
    jl L20c169a9
    add BL,07
 L20c169a9:
-   mov [CS:offset Y20c10005+1],BL
+   mov [CS:offset Y20c10005+01],BL
    mov CL,04
    mov BX,AX
    shr BX,CL
@@ -49480,7 +49498,7 @@ L20c169a9:
    jl L20c169c2
    add BL,07
 L20c169c2:
-   mov [CS:offset Y20c10005+2],BL
+   mov [CS:offset Y20c10005+02],BL
    mov CL,00
    mov BX,AX
    shr BX,CL
@@ -49490,8 +49508,8 @@ L20c169c2:
    jl L20c169db
    add BL,07
 L20c169db:
-   mov [CS:offset Y20c10005+3],BL
-   mov [CS:offset Y20c10005+4],CL
+   mov [CS:offset Y20c10005+03],BL
+   mov [CS:offset Y20c10005+04],CL
    mov SI,offset Y20c10005
    call near B20c1695d
    pop DX
@@ -49501,7 +49519,7 @@ L20c169db:
 ret near
 
 Segment 2760 ;; WRX_SHEL
-A27600000:
+_WORX_CALL: ;; 27600000
    push BP
    mov BP,SP
    sub SP,+18
@@ -49526,33 +49544,33 @@ A27600000:
    push AX
    mov AX,0063
    push AX
-   call far A2995003f
+   call far _int86x
    add SP,+0E
    mov AX,[BP-18]
-   mov [CCD4],AX
+   mov [offset _WORX_AX],AX
    mov AX,[BP-08]
-   mov [CCDC],AX
+   mov [offset _WORX_ES],AX
    mov AX,[BP-16]
-   mov [CCD6],AX
+   mov [offset _WORX_BX],AX
    mov AX,[BP-12]
-   mov [CCD8],AX
+   mov [offset _WORX_DX],AX
    mov AX,[BP-0E]
-   mov [CCDA],AX
-   mov AX,[CCD4]
+   mov [offset _WORX_DI],AX
+   mov AX,[offset _WORX_AX]
 jmp near L27600062
 L27600062:
    mov SP,BP
    pop BP
 ret far
 
-A27600066:
+_CloseWorx: ;; 27600066
    push BP
    mov BP,SP
-   call far A20c14fa4
+   call far _CORE_CLOSEWORX
    pop BP
 ret far
 
-X27600070:
+_GetMIDIBeat: ;; 27600070 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    xor AX,AX
@@ -49566,14 +49584,14 @@ X27600070:
    mov AL,2D
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
 jmp near L2760008b
 L2760008b:
    pop BP
 ret far
 
-X2760008d:
+_ContinueSequence: ;; 2760008d ;; (@) Unaccessed.
    push BP
    mov BP,SP
    xor AX,AX
@@ -49587,12 +49605,12 @@ X2760008d:
    mov AL,1F
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
    pop BP
 ret far
 
-X276000a8:
+_SetAudioMode: ;; 276000a8 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    xor AX,AX
@@ -49606,19 +49624,19 @@ X276000a8:
    mov AL,13
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
    pop BP
 ret far
 
-X276000c4:
+_LoadIBKFile: ;; 276000c4 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    sub SP,+04
    push [BP+08]
    push [BP+06]
    push CS
-   call near offset A27600426
+   call near offset _LoadOneShot
    nop
    pop CX
    pop CX
@@ -49641,7 +49659,7 @@ L276000ec:
    mov AL,39
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
 L27600102:
    xor AX,AX
@@ -49651,7 +49669,7 @@ L27600106:
    pop BP
 ret far
 
-X2760010a:
+_EnableExtenderMode: ;; 2760010a ;; (@) Unaccessed.
    push BP
    mov BP,SP
    xor AX,AX
@@ -49665,12 +49683,12 @@ X2760010a:
    mov AL,31
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
    pop BP
 ret far
 
-X27600125:
+_SetMIDISpeaker: ;; 27600125 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    xor AX,AX
@@ -49684,12 +49702,12 @@ X27600125:
    mov AL,16
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
    pop BP
 ret far
 
-X27600141:
+_ResetMPU401: ;; 27600141 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    xor AX,AX
@@ -49703,14 +49721,14 @@ X27600141:
    mov AL,38
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
 jmp near L2760015c
 L2760015c:
    pop BP
 ret far
 
-A2760015e:
+_SetMasterVolume: ;; 2760015e
    push BP
    mov BP,SP
    xor AX,AX
@@ -49730,14 +49748,14 @@ A2760015e:
    mov AL,20
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
 jmp near L27600187
 L27600187:
    pop BP
 ret far
 
-X27600189:
+_GetLastVOCMarker: ;; 27600189 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    xor AX,AX
@@ -49751,14 +49769,14 @@ X27600189:
    mov AL,27
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
 jmp near L276001a4
 L276001a4:
    pop BP
 ret far
 
-X276001a6:
+_SetVOCIndex: ;; 276001a6 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    xor AX,AX
@@ -49771,12 +49789,12 @@ X276001a6:
    mov AL,28
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
    pop BP
 ret far
 
-X276001c1:
+_SetVOCVolume: ;; 276001c1 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    xor AX,AX
@@ -49796,14 +49814,14 @@ X276001c1:
    mov AL,21
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
 jmp near L276001ea
 L276001ea:
    pop BP
 ret far
 
-A276001ec:
+_SetFMVolume: ;; 276001ec
    push BP
    mov BP,SP
    xor AX,AX
@@ -49823,14 +49841,14 @@ A276001ec:
    mov AL,22
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
 jmp near L27600215
 L27600215:
    pop BP
 ret far
 
-X27600217:
+_JoyStickUpdate: ;; 27600217 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    xor AX,AX
@@ -49844,12 +49862,12 @@ X27600217:
    mov AL,29
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
    pop BP
 ret far
 
-X27600232:
+_JoyStickButton: ;; 27600232 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    xor AX,AX
@@ -49863,14 +49881,14 @@ X27600232:
    mov AL,2C
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
 jmp near L2760024e
 L2760024e:
    pop BP
 ret far
 
-X27600250:
+_JoyStickX: ;; 27600250 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    xor AX,AX
@@ -49884,14 +49902,14 @@ X27600250:
    mov AL,2A
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
 jmp near L2760026b
 L2760026b:
    pop BP
 ret far
 
-X2760026d:
+_JoyStickY: ;; 2760026d ;; (@) Unaccessed.
    push BP
    mov BP,SP
    xor AX,AX
@@ -49905,14 +49923,14 @@ X2760026d:
    mov AL,2B
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
 jmp near L27600288
 L27600288:
    pop BP
 ret far
 
-A2760028a:
+_AdlibDetect: ;; 2760028a
    push BP
    mov BP,SP
    xor AX,AX
@@ -49926,14 +49944,14 @@ A2760028a:
    mov AL,23
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
 jmp near L276002a5
 L276002a5:
    pop BP
 ret far
 
-X276002a7:
+_DSPPortSetting: ;; 276002a7 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    xor AX,AX
@@ -49947,14 +49965,14 @@ X276002a7:
    mov AL,37
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
 jmp near L276002c2
 L276002c2:
    pop BP
 ret far
 
-A276002c4:
+_DSPClose: ;; 276002c4
    push BP
    mov BP,SP
    xor AX,AX
@@ -49968,12 +49986,12 @@ A276002c4:
    mov AL,04
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
    pop BP
 ret far
 
-A276002df:
+_DSPReset: ;; 276002df
    push BP
    mov BP,SP
    xor AX,AX
@@ -49987,14 +50005,14 @@ A276002df:
    mov AL,01
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
 jmp near L276002fa
 L276002fa:
    pop BP
 ret far
 
-X276002fc:
+_ElementGets: ;; 276002fc ;; (@) Unaccessed.
    push BP
    mov BP,SP
    push [BP+06]
@@ -50006,7 +50024,7 @@ X276002fc:
    mov AL,1A
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
    les BX,[BP+06]
    cmp byte ptr [ES:BX],00
@@ -50024,7 +50042,7 @@ L2760032f:
    pop BP
 ret far
 
-A27600331:
+_ElementRead: ;; 27600331
    push BP
    mov BP,SP
    push SI
@@ -50036,7 +50054,7 @@ A27600331:
    mov AL,18
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
    mov SI,AX
    cmp SI,-01
@@ -50046,14 +50064,14 @@ jmp near L2760035d
 X27600356:
 jmp near L2760035d
 L27600358:
-   mov AX,[CCD4]
+   mov AX,[offset _WORX_AX]
 jmp near L2760035d
 L2760035d:
    pop SI
    pop BP
 ret far
 
-X27600360:
+_ForceConfig: ;; 27600360 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    xor AX,AX
@@ -50066,14 +50084,14 @@ X27600360:
    mov AL,02
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
 jmp near L2760037c
 L2760037c:
    pop BP
 ret far
 
-A2760037e:
+_GetSequence: ;; 2760037e
    push BP
    mov BP,SP
    sub SP,+08
@@ -50082,7 +50100,7 @@ A2760037e:
    push [BP+08]
    push [BP+06]
    push CS
-   call near offset A276004fb
+   call near offset _OpenElement
    nop
    pop CX
    pop CX
@@ -50097,7 +50115,7 @@ L276003af:
    xor AX,AX
    push AX
    push [BP-08]
-   call far A27f10204
+   call far _farmalloc
    pop CX
    pop CX
    mov [BP-04],AX
@@ -50113,7 +50131,7 @@ L276003d0:
    push [BP-02]
    push [BP-04]
    push CS
-   call near offset A27600331
+   call near offset _ElementRead
    add SP,+06
    mov [BP-08],AX
    mov word ptr [BP-06],0000
@@ -50131,7 +50149,7 @@ L276003f8:
    pop BP
 ret far
 
-X276003fc:
+_GoNote: ;; 276003fc ;; (@) Unaccessed.
    push BP
    mov BP,SP
    xor AX,AX
@@ -50151,12 +50169,12 @@ X276003fc:
    mov AL,10
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
    pop BP
 ret far
 
-A27600426:
+_LoadOneShot: ;; 27600426
    push BP
    mov BP,SP
    sub SP,+08
@@ -50165,7 +50183,7 @@ A27600426:
    push [BP+08]
    push [BP+06]
    push CS
-   call near offset A276004fb
+   call near offset _OpenElement
    nop
    pop CX
    pop CX
@@ -50180,7 +50198,7 @@ L27600457:
    xor AX,AX
    push AX
    push [BP-08]
-   call far A27f10204
+   call far _farmalloc
    pop CX
    pop CX
    mov [BP-04],AX
@@ -50196,7 +50214,7 @@ L27600478:
    push [BP-02]
    push [BP-04]
    push CS
-   call near offset A27600331
+   call near offset _ElementRead
    add SP,+06
 jmp near L27600490
 L2760048a:
@@ -50212,14 +50230,14 @@ L27600498:
    pop BP
 ret far
 
-X2760049c:
+_LoadSBIFile: ;; 2760049c ;; (@) Unaccessed.
    push BP
    mov BP,SP
    sub SP,0084
    push [BP+08]
    push [BP+06]
    push CS
-   call near offset A276004fb
+   call near offset _OpenElement
    nop
    pop CX
    pop CX
@@ -50233,12 +50251,12 @@ X2760049c:
 L276004c4:
    push [BP-04]
    push SS
-   lea AX,[BP+FF7C]
+   lea AX,[BP-0084]
    push AX
    push CS
-   call near offset A27600331
+   call near offset _ElementRead
    add SP,+06
-   lea AX,[BP+FF7C]
+   lea AX,[BP-0084]
    push AX
    push SS
    mov AL,[BP+0A]
@@ -50249,7 +50267,7 @@ L276004c4:
    mov AL,0F
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
 jmp near L276004f3
 L276004ee:
@@ -50263,7 +50281,7 @@ L276004f7:
    pop BP
 ret far
 
-A276004fb:
+_OpenElement: ;; 276004fb
    push BP
    mov BP,SP
    push [BP+06]
@@ -50275,18 +50293,18 @@ A276004fb:
    mov AL,17
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
-   mov DX,[CCD8]
+   mov DX,[offset _WORX_DX]
    xor AX,AX
-   add AX,[CCD4]
+   add AX,[offset _WORX_AX]
    adc DX,+00
 jmp near L27600523
 L27600523:
    pop BP
 ret far
 
-X27600525:
+_PlayPWMBlock: ;; 27600525 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    mov AX,[BP+06]
@@ -50304,14 +50322,14 @@ L27600535:
    mov AL,1B
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
 jmp near L2760054d
 L2760054d:
    pop BP
 ret far
 
-A2760054f:
+_PlayVOCBlock: ;; 2760054f
    push BP
    mov BP,SP
    mov AX,[BP+06]
@@ -50328,14 +50346,14 @@ L2760055f:
    mov AL,06
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
 jmp near L27600577
 L27600577:
    pop BP
 ret far
 
-X27600579:
+_PlayWAVBlock: ;; 27600579 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    mov AX,[BP+06]
@@ -50353,14 +50371,14 @@ L27600589:
    mov AL,3A
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
 jmp near L276005a1
 L276005a1:
    pop BP
 ret far
 
-A276005a3:
+_PlayCMFBlock: ;; 276005a3
    push BP
    mov BP,SP
    mov AX,[BP+06]
@@ -50377,13 +50395,13 @@ L276005b0:
    mov AL,1E
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
 L276005c6:
    pop BP
 ret far
 
-X276005c8:
+_PlayMIDBlock: ;; 276005c8 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    mov AX,[BP+06]
@@ -50400,13 +50418,13 @@ L276005d5:
    mov AL,0C
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
 L276005eb:
    pop BP
 ret far
 
-X276005ed:
+_PlayVOCFile: ;; 276005ed ;; (@) Unaccessed.
    push BP
    mov BP,SP
    push [BP+06]
@@ -50417,14 +50435,14 @@ X276005ed:
    mov AL,05
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
 jmp near L27600608
 L27600608:
    pop BP
 ret far
 
-X2760060a:
+_PlayWAVFile: ;; 2760060a ;; (@) Unaccessed.
    push BP
    mov BP,SP
    push [BP+06]
@@ -50436,14 +50454,14 @@ X2760060a:
    mov AL,3B
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
 jmp near L27600625
 L27600625:
    pop BP
 ret far
 
-X27600627:
+_ProgramChange: ;; 27600627 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    xor AX,AX
@@ -50458,12 +50476,12 @@ X27600627:
    mov AL,12
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
    pop BP
 ret far
 
-X27600647:
+_ResetRealTime: ;; 27600647 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    xor AX,AX
@@ -50477,12 +50495,12 @@ X27600647:
    mov AL,0A
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
    pop BP
 ret far
 
-X27600662:
+_SequencePlaying: ;; 27600662 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    xor AX,AX
@@ -50496,14 +50514,14 @@ X27600662:
    mov AL,0E
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
 jmp near L2760067d
 L2760067d:
    pop BP
 ret far
 
-A2760067f:
+_SetLoopMode: ;; 2760067f
    push BP
    mov BP,SP
    xor AX,AX
@@ -50516,12 +50534,12 @@ A2760067f:
    mov AL,1D
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
    pop BP
 ret far
 
-X2760069a:
+_SetRealTime: ;; 2760069a ;; (@) Unaccessed.
    push BP
    mov BP,SP
    xor AX,AX
@@ -50534,14 +50552,14 @@ X2760069a:
    mov AL,09
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
 jmp near L276006b5
 L276006b5:
    pop BP
 ret far
 
-X276006b7:
+_StartResource: ;; 276006b7 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    push [BP+06]
@@ -50553,22 +50571,22 @@ X276006b7:
    mov AL,14
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
-   mov AX,[CCD4]
+   mov AX,[offset _WORX_AX]
 jmp near L276006d5
 L276006d5:
    pop BP
 ret far
 
-A276006d7:
+_StartWorx: ;; 276006d7
    push BP
    mov BP,SP
-   call far A20c14b45
+   call far _CORE_STARTWORX
    pop BP
 ret far
 
-X276006e1:
+_StopNote: ;; 276006e1 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    xor AX,AX
@@ -50586,12 +50604,12 @@ X276006e1:
    mov AL,11
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
    pop BP
 ret far
 
-A27600707:
+_StopSequence: ;; 27600707
    push BP
    mov BP,SP
    xor AX,AX
@@ -50605,12 +50623,12 @@ A27600707:
    mov AL,0D
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
    pop BP
 ret far
 
-X27600722:
+_StopVOC: ;; 27600722 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    xor AX,AX
@@ -50624,12 +50642,12 @@ X27600722:
    mov AL,07
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
    pop BP
 ret far
 
-X2760073d:
+_StopPWM: ;; 2760073d ;; (@) Unaccessed.
    push BP
    mov BP,SP
    xor AX,AX
@@ -50643,12 +50661,12 @@ X2760073d:
    mov AL,15
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
    pop BP
 ret far
 
-X27600758:
+_TimerDone: ;; 27600758 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    xor AX,AX
@@ -50662,14 +50680,14 @@ X27600758:
    mov AL,0B
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
 jmp near L27600773
 L27600773:
    pop BP
 ret far
 
-A27600775:
+_VOCPlaying: ;; 27600775
    push BP
    mov BP,SP
    xor AX,AX
@@ -50683,14 +50701,14 @@ A27600775:
    mov AL,08
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
 jmp near L27600790
 L27600790:
    pop BP
 ret far
 
-X27600792:
+_PWMPlaying: ;; 27600792 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    xor AX,AX
@@ -50704,18 +50722,18 @@ X27600792:
    mov AL,1C
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
 jmp near L276007ad
 L276007ad:
    pop BP
 ret far
 
-X276007af:
+_CloseWorxDriver: ;; 276007af ;; (@) Unaccessed.
    push BP
    mov BP,SP
    push CS
-   call near offset A276002c4
+   call near offset _DSPClose
    xor AX,AX
    push AX
    xor AX,AX
@@ -50727,18 +50745,18 @@ X276007af:
    mov AL,25
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
    pop BP
 ret far
 
-X276007ce:
+_StartPoly: ;; 276007ce ;; (@) Unaccessed.
    push BP
    mov BP,SP
    push SI
    mov SI,FFFF
    push CS
-   call near offset A276002df
+   call near offset _DSPReset
    mov SI,AX
    or SI,SI
    jle L276007f3
@@ -50752,7 +50770,7 @@ X276007ce:
    mov AL,32
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
 L276007f3:
    mov AX,SI
@@ -50762,7 +50780,7 @@ L276007f7:
    pop BP
 ret far
 
-X276007fa:
+_ClosePoly: ;; 276007fa ;; (@) Unaccessed.
    push BP
    mov BP,SP
    xor AX,AX
@@ -50776,14 +50794,14 @@ X276007fa:
    mov AL,34
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
    push CS
-   call near offset A276002c4
+   call near offset _DSPClose
    pop BP
 ret far
 
-X27600819:
+_PlaySMPBlock: ;; 27600819 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    push [BP+06]
@@ -50795,7 +50813,7 @@ X27600819:
    mov AL,33
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
    xor AX,AX
    push AX
@@ -50811,7 +50829,7 @@ X27600819:
    mov AL,35
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
    xor AX,AX
 jmp near L27600855
@@ -50819,7 +50837,7 @@ L27600855:
    pop BP
 ret far
 
-X27600857:
+_PolyCellStatus: ;; 27600857 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    xor AX,AX
@@ -50833,7 +50851,7 @@ X27600857:
    mov AL,36
    push AX
    push CS
-   call near offset A27600000
+   call near offset _WORX_CALL
    add SP,+0A
 jmp near L27600873
 L27600873:
@@ -50842,7 +50860,7 @@ ret far
 
 ;; === Compiler Library Modules ===
 Segment 27e7 ;; IOERROR
-A27e70005:
+__IOERROR: ;; 27e70005
    push BP
    mov BP,SP
    push SI
@@ -50854,8 +50872,8 @@ A27e70005:
 L27e70015:
    mov SI,0057
 L27e70018:
-   mov [29E0],SI
-   mov AL,[SI+29E2]
+   mov [offset __doserrno],SI
+   mov AL,[SI+offset __dosErrorToSV]
    cbw
    xchg SI,AX
 jmp near L27e70031
@@ -50863,10 +50881,10 @@ L27e70024:
    neg SI
    cmp SI,+23
    ja L27e70015
-   mov word ptr [29E0],FFFF
+   mov word ptr [offset __doserrno],FFFF
 L27e70031:
    mov AX,SI
-   mov [offset Y2a17007f],AX
+   mov [offset _errno],AX
    mov AX,FFFF
 jmp near L27e7003b
 L27e7003b:
@@ -50878,46 +50896,46 @@ Segment 27eb ;; EXIT, SETARGV, SETENVP
 A27eb0000:
 ret far
 
-A27eb0001:
+_exit: ;; 27eb0001
    push BP
    mov BP,SP
 jmp near L27eb0012
 L27eb0006:
-   mov BX,[2A48]
+   mov BX,[offset __atexitcnt]
    shl BX,1
    shl BX,1
-   call far [BX+CCE2]
+   call far [BX+offset __atexittbl]
 L27eb0012:
-   mov AX,[2A48]
-   dec word ptr [2A48]
+   mov AX,[offset __atexitcnt]
+   dec word ptr [offset __atexitcnt]
    or AX,AX
    jnz L27eb0006
-   call far [2A3C]
-   call far [2A40]
-   call far [2A44]
+   call far [offset __exitbuf]
+   call far [offset __exitfopen]
+   call far [offset __exitopen]
    push [BP+06]
-   call far A076a010d
+   call far __exit
    pop CX
    pop BP
 ret far
 
 Segment 27ee ;; ATEXIT
-X27ee0004:
+_atexit: ;; 27ee0004 ;; (@) Unaccessed.
    push BP
    mov BP,SP
-   cmp word ptr [2A48],+20
+   cmp word ptr [offset __atexitcnt],+20
    jnz L27ee0013
    mov AX,0001
 jmp near L27ee0031
 L27ee0013:
    mov DX,[BP+08]
    mov AX,[BP+06]
-   mov BX,[2A48]
+   mov BX,[offset __atexitcnt]
    shl BX,1
    shl BX,1
-   mov [BX+CCE4],DX
-   mov [BX+CCE2],AX
-   inc word ptr [2A48]
+   mov [BX+offset __atexittbl+02],DX
+   mov [BX+offset __atexittbl],AX
+   inc word ptr [offset __atexitcnt]
    xor AX,AX
 jmp near L27ee0031
 L27ee0031:
@@ -50925,35 +50943,36 @@ L27ee0031:
 ret far
 
 Segment 27f1 ;; FMALLOC
-A27f10003:
+;; (@) Unnamed far routines accessed by near calls: A27f10080 A27f10130 A27f1019e
+_malloc: ;; 27f10003
    push BP
    mov BP,SP
    mov AX,[BP+06]
    xor DX,DX
    push DX
    push AX
-   call far A27f10204
+   call far _farmalloc
    mov SP,BP
 jmp near L27f10016
 L27f10016:
    pop BP
 ret far
 
-A27f10018:
+__pull_free_block: ;; 27f10018
    push BP
    mov BP,SP
    sub SP,+04
    les BX,[BP+06]
    mov DX,[ES:BX+0E]
    mov AX,[ES:BX+0C]
-   mov [2A54],DX
-   mov [2A52],AX
+   mov [offset __rover+02],DX
+   mov [offset __rover],AX
    mov CX,[BP+08]
    mov BX,[BP+06]
-   call far A076a036f
+   call far PCMP@
    jnz L27f1004b
-   mov word ptr [2A54],0000
-   mov word ptr [2A52],0000
+   mov word ptr [offset __rover+02],0000
+   mov word ptr [offset __rover],0000
 jmp near L27f1007c
 L27f1004b:
    les BX,[BP+06]
@@ -50962,11 +50981,11 @@ L27f1004b:
    mov [BP-04],BX
    mov DX,[BP-02]
    mov AX,[BP-04]
-   les BX,[2A52]
+   les BX,[offset __rover]
    mov [ES:BX+0A],DX
    mov [ES:BX+08],AX
-   mov DX,[2A54]
-   mov AX,[2A52]
+   mov DX,[offset __rover+02]
+   mov AX,[offset __rover]
    les BX,[BP-04]
    mov [ES:BX+0E],DX
    mov [ES:BX+0C],AX
@@ -50989,7 +51008,7 @@ A27f10080:
    mov BX,[ES:BX]
    mov DX,[BP+08]
    mov AX,[BP+06]
-   call far A076a0314
+   call far PADD@
    mov [BP-02],DX
    mov [BP-04],AX
    mov DX,[BP+0C]
@@ -51006,20 +51025,20 @@ A27f10080:
    mov [ES:BX+04],AX
    mov CX,[BP+08]
    mov BX,[BP+06]
-   mov DX,[2A50]
-   mov AX,[2A4E]
-   call far A076a036f
+   mov DX,[offset __last+02]
+   mov AX,[offset __last]
+   call far PCMP@
    jnz L27f100f9
    les BX,[BP-04]
-   mov [2A50],ES
-   mov [2A4E],BX
+   mov [offset __last+02],ES
+   mov [offset __last],BX
 jmp near L27f10121
 L27f100f9:
    mov DX,[BP-02]
    mov AX,[BP-04]
    mov CX,[BP+0C]
    mov BX,[BP+0A]
-   call far A076a0314
+   call far PADD@
    mov [BP+08],DX
    mov [BP+06],AX
    mov DX,[BP-02]
@@ -51043,7 +51062,7 @@ A27f10130:
    sub SP,+04
    push [BP+08]
    push [BP+06]
-   call far A282200da
+   call far __sbrk
    pop CX
    pop CX
    mov [BP-02],DX
@@ -51056,8 +51075,8 @@ A27f10130:
    xor AX,AX
 jmp near L27f1019a
 L27f1015b:
-   mov DX,[2A50]
-   mov AX,[2A4E]
+   mov DX,[offset __last+02]
+   mov AX,[offset __last]
    les BX,[BP-04]
    mov [ES:BX+06],DX
    mov [ES:BX+04],AX
@@ -51069,10 +51088,10 @@ L27f1015b:
    mov [ES:BX+02],DX
    mov [ES:BX],AX
    les BX,[BP-04]
-   mov [2A50],ES
-   mov [2A4E],BX
-   mov DX,[2A50]
-   mov AX,[2A4E]
+   mov [offset __last+02],ES
+   mov [offset __last],BX
+   mov DX,[offset __last+02]
+   mov AX,[offset __last]
    add AX,0008
 jmp near L27f1019a
 L27f1019a:
@@ -51086,7 +51105,7 @@ A27f1019e:
    sub SP,+04
    push [BP+08]
    push [BP+06]
-   call far A282200da
+   call far __sbrk
    pop CX
    pop CX
    mov [BP-02],DX
@@ -51100,11 +51119,11 @@ A27f1019e:
 jmp near L27f10200
 L27f101c9:
    les BX,[BP-04]
-   mov [2A4C],ES
-   mov [2A4A],BX
+   mov [offset __first+02],ES
+   mov [offset __first],BX
    les BX,[BP-04]
-   mov [2A50],ES
-   mov [2A4E],BX
+   mov [offset __last+02],ES
+   mov [offset __last],BX
    mov DX,[BP+08]
    mov AX,[BP+06]
    add AX,0001
@@ -51121,7 +51140,7 @@ L27f10200:
    pop BP
 ret far
 
-A27f10204:
+_farmalloc: ;; 27f10204
    push BP
    mov BP,SP
    sub SP,+04
@@ -51142,9 +51161,9 @@ L27f10219:
    mov [BP+06],AX
    xor CX,CX
    xor BX,BX
-   mov DX,[2A4C]
-   mov AX,[2A4A]
-   call far A076a036f
+   mov DX,[offset __first+02]
+   mov AX,[offset __first]
+   call far PCMP@
    jnz L27f10253
    push [BP+08]
    push [BP+06]
@@ -51154,13 +51173,13 @@ L27f10219:
    pop CX
 jmp near L27f1030f
 L27f10253:
-   mov DX,[2A54]
-   mov AX,[2A52]
+   mov DX,[offset __rover+02]
+   mov AX,[offset __rover]
    mov [BP-02],DX
    mov [BP-04],AX
    xor CX,CX
    xor BX,BX
-   call far A076a036f
+   call far PCMP@
    jnz L27f1026e
 jmp near L27f10301
 L27f1026e:
@@ -51198,7 +51217,7 @@ L27f102b9:
    push [BP-02]
    push [BP-04]
    push CS
-   call near offset A27f10018
+   call near offset __pull_free_block
    pop CX
    pop CX
    les BX,[BP-04]
@@ -51213,11 +51232,11 @@ L27f102dc:
    les BX,[ES:BX+0C]
    mov [BP-02],ES
    mov [BP-04],BX
-   mov CX,[2A54]
-   mov BX,[2A52]
+   mov CX,[offset __rover+02]
+   mov BX,[offset __rover]
    mov DX,[BP-02]
    mov AX,[BP-04]
-   call far A076a036f
+   call far PCMP@
    jz L27f10301
 jmp near L27f1026e
 L27f10301:
@@ -51234,6 +51253,7 @@ L27f1030f:
 ret far
 
 Segment 2822 ;; FBRK, PADD, PCMP
+;; (@) Unnamed near calls: B28220003
 B28220003:
    push BP
    mov BP,SP
@@ -51241,33 +51261,33 @@ B28220003:
    push DI
    mov SI,[BP+06]
    inc SI
-   sub SI,[offset Y2a17007b]
+   sub SI,[offset __psp]
    mov AX,SI
    add AX,003F
    mov CL,06
    shr AX,CL
    mov SI,AX
-   cmp SI,[2A56]
+   cmp SI,[offset Y2a172a56]
    jnz L28220031
    les BX,[BP+04]
-   mov [offset Y2a17008b+2],ES
-   mov [offset Y2a17008b],BX
+   mov [offset __brklvl+02],ES
+   mov [offset __brklvl],BX
    mov AX,0001
 jmp near L2822008d
 L28220031:
    mov CL,06
    shl SI,CL
-   mov DI,[offset Y2a17008f+2]
+   mov DI,[offset __heaptop+02]
    mov AX,SI
-   add AX,[offset Y2a17007b]
+   add AX,[offset __psp]
    cmp AX,DI
    jbe L28220049
    mov SI,DI
-   sub SI,[offset Y2a17007b]
+   sub SI,[offset __psp]
 L28220049:
    push SI
-   push [offset Y2a17007b]
-   call far A28370005
+   push [offset __psp]
+   call far _setblock
    pop CX
    pop CX
    mov DI,AX
@@ -51276,22 +51296,22 @@ L28220049:
    mov AX,SI
    mov CL,06
    shr AX,CL
-   mov [2A56],AX
+   mov [offset Y2a172a56],AX
    les BX,[BP+04]
-   mov [offset Y2a17008b+2],ES
-   mov [offset Y2a17008b],BX
+   mov [offset __brklvl+02],ES
+   mov [offset __brklvl],BX
    mov AX,0001
 jmp near L2822008d
 X28220075:
 jmp near L2822008d
 L28220077:
-   mov AX,[offset Y2a17007b]
+   mov AX,[offset __psp]
    add AX,DI
    xor DX,DX
    mov DX,AX
    xor AX,AX
-   mov [offset Y2a17008f+2],DX
-   mov [offset Y2a17008f],AX
+   mov [offset __heaptop+02],DX
+   mov [offset __heaptop],AX
    xor AX,AX
 jmp near L2822008d
 L2822008d:
@@ -51300,20 +51320,20 @@ L2822008d:
    pop BP
 ret near 0004
 
-A28220093:
+__brk: ;; 28220093
    push BP
    mov BP,SP
-   mov CX,[offset Y2a170087+2]
-   mov BX,[offset Y2a170087]
+   mov CX,[offset __heapbase+02]
+   mov BX,[offset __heapbase]
    mov DX,[BP+08]
    mov AX,[BP+06]
-   call far A076a036f
+   call far PCMP@
    jb L282200cd
-   mov CX,[offset Y2a17008f+2]
-   mov BX,[offset Y2a17008f]
+   mov CX,[offset __heaptop+02]
+   mov BX,[offset __heaptop]
    mov DX,[BP+08]
    mov AX,[BP+06]
-   call far A076a036f
+   call far PCMP@
    ja L282200cd
    push [BP+08]
    push [BP+06]
@@ -51332,35 +51352,35 @@ L282200d8:
    pop BP
 ret far
 
-A282200da:
+__sbrk: ;; 282200da
    push BP
    mov BP,SP
    sub SP,+08
-   mov DX,[offset Y2a17008b+2]
-   mov AX,[offset Y2a17008b]
+   mov DX,[offset __brklvl+02]
+   mov AX,[offset __brklvl]
    mov CX,[BP+08]
    mov BX,[BP+06]
-   call far A076a0314
+   call far PADD@
    mov [BP-06],DX
    mov [BP-08],AX
-   mov CX,[offset Y2a170087+2]
-   mov BX,[offset Y2a170087]
+   mov CX,[offset __heapbase+02]
+   mov BX,[offset __heapbase]
    mov DX,[BP-06]
    mov AX,[BP-08]
-   call far A076a036f
+   call far PCMP@
    jb L28220122
-   mov CX,[offset Y2a17008f+2]
-   mov BX,[offset Y2a17008f]
+   mov CX,[offset __heaptop+02]
+   mov BX,[offset __heaptop]
    mov DX,[BP-06]
    mov AX,[BP-08]
-   call far A076a036f
+   call far PCMP@
    jbe L2822012a
 L28220122:
    mov DX,FFFF
    mov AX,FFFF
 jmp near L28220151
 L2822012a:
-   les BX,[offset Y2a17008b]
+   les BX,[offset __brklvl]
    mov [BP-02],ES
    mov [BP-04],BX
    push [BP-06]
@@ -51381,7 +51401,7 @@ L28220151:
 ret far
 
 Segment 2837 ;; SETBLOCK, CTYPE
-A28370005:
+_setblock: ;; 28370005
    push BP
    mov BP,SP
    mov AH,4A
@@ -51394,7 +51414,7 @@ jmp near L28370023
 L28370019:
    push BX
    push AX
-   call far A27e70005
+   call far __IOERROR
    pop AX
 jmp near L28370023
 L28370023:
@@ -51402,6 +51422,7 @@ L28370023:
 ret far
 
 Segment 2839 ;; OPEN
+;; (@) Unnamed near calls: B28390005 B28390024
 B28390005:
    push BP
    mov BP,SP
@@ -51415,7 +51436,7 @@ B28390005:
 jmp near L28390020
 L28390018:
    push AX
-   call far A27e70005
+   call far __IOERROR
 jmp near L28390020
 L28390020:
    pop BP
@@ -51434,7 +51455,7 @@ L28390034:
    pop BP
 ret near 0002
 
-A28390038:
+_open: ;; 28390038
    push BP
    mov BP,SP
    sub SP,+04
@@ -51443,7 +51464,7 @@ A28390038:
    mov DI,[BP+0A]
    test DI,C000
    jnz L28390051
-   mov AX,[2B82]
+   mov AX,[offset __fmode]
    and AX,C000
    or DI,AX
 L28390051:
@@ -51451,20 +51472,20 @@ L28390051:
    jnz L2839005a
 jmp near L283900f9
 L2839005a:
-   mov AX,[2B84]
+   mov AX,[offset __notUmask]
    and [BP+0C],AX
    mov AX,[BP+0C]
    test AX,0180
    jnz L28390071
    mov AX,0001
    push AX
-   call far A27e70005
+   call far __IOERROR
 L28390071:
    xor AX,AX
    push AX
    push [BP+08]
    push [BP+06]
-   call far A28b70009
+   call far __chmod
    add SP,+06
    mov [BP-04],AX
    cmp AX,FFFF
@@ -51483,7 +51504,7 @@ L2839009d:
    jz L283900b1
    mov AX,0050
    push AX
-   call far A27e70005
+   call far __IOERROR
 jmp near L2839019f
 X283900af:
 jmp near L283900b3
@@ -51505,7 +51526,7 @@ L283900b3:
 jmp near L2839019f
 L283900d2:
    push SI
-   call far A285e0000
+   call far __close
    pop CX
 jmp near L283900fe
 X283900db:
@@ -51529,7 +51550,7 @@ L283900fe:
    push DI
    push [BP+08]
    push [BP+06]
-   call far A28530005
+   call far __open
    add SP,+06
    mov SI,AX
    mov AX,SI
@@ -51538,7 +51559,7 @@ L283900fe:
    xor AX,AX
    push AX
    push SI
-   call far A28580002
+   call far _ioctl
    pop CX
    pop CX
    mov [BP-02],AX
@@ -51556,7 +51577,7 @@ L283900fe:
    mov AX,0001
    push AX
    push SI
-   call far A28580002
+   call far _ioctl
    add SP,+08
 L2839014c:
 jmp near L28390158
@@ -51576,7 +51597,7 @@ L28390158:
    push AX
    push [BP+08]
    push [BP+06]
-   call far A28b70009
+   call far __chmod
    add SP,+08
 L2839017a:
    or SI,SI
@@ -51593,7 +51614,7 @@ L2839018b:
    or AX,DX
    mov BX,SI
    shl BX,1
-   mov [BX+2B5A],AX
+   mov [BX+offset __openfd],AX
 L2839019b:
    mov AX,SI
 jmp near L2839019f
@@ -51605,7 +51626,7 @@ L2839019f:
 ret far
 
 Segment 2853 ;; OPENA, FILES2, FMODE
-A28530005:
+__open: ;; 28530005
    push BP
    mov BP,SP
    push SI
@@ -51633,12 +51654,12 @@ L2853001e:
    or AX,8000
    mov BX,SI
    shl BX,1
-   mov [BX+2B5A],AX
+   mov [BX+offset __openfd],AX
    mov AX,SI
 jmp near L2853004f
 L28530047:
    push AX
-   call far A27e70005
+   call far __IOERROR
 jmp near L2853004f
 L2853004f:
    pop SI
@@ -51646,7 +51667,7 @@ L2853004f:
 ret far
 
 Segment 2858 ;; IOCTL
-A28580002:
+_ioctl: ;; 28580002
    push BP
    mov BP,SP
    push DS
@@ -51666,14 +51687,14 @@ L28580023:
 jmp near L2858002d
 L28580025:
    push AX
-   call far A27e70005
+   call far __IOERROR
 jmp near L2858002d
 L2858002d:
    pop BP
 ret far
 
 Segment 285a ;; CLOSE
-A285a000f:
+_close: ;; 285a000f
    push BP
    mov BP,SP
    push SI
@@ -51685,14 +51706,14 @@ A285a000f:
 L285a001f:
    mov AX,0006
    push AX
-   call far A27e70005
+   call far __IOERROR
 jmp near L285a003d
 L285a002a:
    mov BX,SI
    shl BX,1
-   mov word ptr [BX+2B5A],FFFF
+   mov word ptr [BX+offset __openfd],FFFF
    push SI
-   call far A285e0000
+   call far __close
    pop CX
 jmp near L285a003d
 L285a003d:
@@ -51701,7 +51722,7 @@ L285a003d:
 ret far
 
 Segment 285e ;; CLOSEA
-A285e0000:
+__close: ;; 285e0000
    push BP
    mov BP,SP
    push SI
@@ -51711,12 +51732,12 @@ A285e0000:
    int 21
    jb L285e001b
    shl BX,1
-   mov word ptr [BX+2B5A],FFFF
+   mov word ptr [BX+offset __openfd],FFFF
    xor AX,AX
 jmp near L285e0023
 L285e001b:
    push AX
-   call far A27e70005
+   call far __IOERROR
 jmp near L285e0023
 L285e0023:
    pop SI
@@ -51724,7 +51745,7 @@ L285e0023:
 ret far
 
 Segment 2860 ;; READ
-A28600006:
+_read: ;; 28600006
    push BP
    mov BP,SP
    sub SP,+04
@@ -51736,7 +51757,7 @@ A28600006:
    jb L28600024
    mov BX,[BP+06]
    shl BX,1
-   test word ptr [BX+2B5A],0200
+   test word ptr [BX+offset __openfd],0200
    jz L28600029
 L28600024:
    xor AX,AX
@@ -51746,7 +51767,7 @@ L28600029:
    push [BP+0A]
    push [BP+08]
    push [BP+06]
-   call far A286c000b
+   call far __read
    add SP,+08
    mov [BP-04],AX
    mov AX,[BP-04]
@@ -51755,7 +51776,7 @@ L28600029:
    jb L28600056
    mov BX,[BP+06]
    shl BX,1
-   test word ptr [BX+2B5A],8000
+   test word ptr [BX+offset __openfd],8000
    jz L2860005c
 L28600056:
    mov AX,[BP-04]
@@ -51787,7 +51808,7 @@ L28600076:
    push SS
    push AX
    push [BP+06]
-   call far A286c000b
+   call far __read
    add SP,+08
    pop BX
    pop ES
@@ -51809,11 +51830,11 @@ L2860009d:
    push AX
    push CX
    push [BP+06]
-   call far A2889000d
+   call far _lseek
    add SP,+08
    mov BX,[BP+06]
    shl BX,1
-   or word ptr [BX+2B5A],0200
+   or word ptr [BX+offset __openfd],0200
    pop BX
 L286000bf:
    mov AX,DI
@@ -51827,7 +51848,7 @@ L286000c5:
 ret far
 
 Segment 286c ;; READA
-A286c000b:
+__read: ;; 286c000b
    push BP
    mov BP,SP
    push DS
@@ -51841,14 +51862,14 @@ A286c000b:
 jmp near L286c0029
 L286c0021:
    push AX
-   call far A27e70005
+   call far __IOERROR
 jmp near L286c0029
 L286c0029:
    pop BP
 ret far
 
 Segment 286e ;; WRITE
-A286e000b:
+_write: ;; 286e000b
    push BP
    mov BP,SP
    sub SP,008E
@@ -51863,49 +51884,49 @@ jmp near L286e016b
 L286e0022:
    mov BX,[BP+06]
    shl BX,1
-   test word ptr [BX+2B5A],8000
+   test word ptr [BX+offset __openfd],8000
    jz L286e0046
    push [BP+0C]
    push [BP+0A]
    push [BP+08]
    push [BP+06]
-   call far A28850001
+   call far __write
    add SP,+08
 jmp near L286e016b
 L286e0046:
    mov BX,[BP+06]
    shl BX,1
-   and word ptr [BX+2B5A],FDFF
+   and word ptr [BX+offset __openfd],FDFF
    les BX,[BP+08]
-   mov [BP+FF7C],ES
-   mov [BP+FF7A],BX
+   mov [BP-0084],ES
+   mov [BP-0086],BX
    mov AX,[BP+0C]
-   mov [BP+FF76],AX
+   mov [BP-008a],AX
    mov BX,SS
    mov ES,BX
-   lea BX,[BP+FF7E]
-   mov [BP+FF74],ES
-   mov [BP+FF72],BX
+   lea BX,[BP-0082]
+   mov [BP-008c],ES
+   mov [BP-008e],BX
 jmp near L286e0117
 L286e0076:
-   dec word ptr [BP+FF76]
-   les BX,[BP+FF7A]
-   inc word ptr [BP+FF7A]
+   dec word ptr [BP-008a]
+   les BX,[BP-0086]
+   inc word ptr [BP-0086]
    mov AL,[ES:BX]
-   mov [BP+FF79],AL
+   mov [BP-0087],AL
    cmp AL,0A
    jnz L286e0099
-   les BX,[BP+FF72]
+   les BX,[BP-008e]
    mov byte ptr [ES:BX],0D
-   inc word ptr [BP+FF72]
+   inc word ptr [BP-008e]
 L286e0099:
-   mov AL,[BP+FF79]
-   les BX,[BP+FF72]
+   mov AL,[BP-0087]
+   les BX,[BP-008e]
    mov [ES:BX],AL
-   inc word ptr [BP+FF72]
-   mov AX,[BP+FF72]
+   inc word ptr [BP-008e]
+   mov AX,[BP-008e]
    mov CX,SS
-   lea BX,[BP+FF7E]
+   lea BX,[BP-0082]
    xor DX,DX
    sub AX,BX
    sbb DX,+00
@@ -51915,19 +51936,19 @@ L286e0099:
    cmp AX,0080
    jb L286e0117
 L286e00c4:
-   mov AX,[BP+FF72]
+   mov AX,[BP-008e]
    mov CX,SS
-   lea BX,[BP+FF7E]
+   lea BX,[BP-0082]
    xor DX,DX
    sub AX,BX
    sbb DX,+00
    mov SI,AX
    push SI
    push SS
-   lea AX,[BP+FF7E]
+   lea AX,[BP-0082]
    push AX
    push [BP+06]
-   call far A28850001
+   call far __write
    add SP,+08
    mov DI,AX
    mov AX,DI
@@ -51939,7 +51960,7 @@ L286e00c4:
 jmp near L286e0105
 L286e00fa:
    mov AX,[BP+0C]
-   sub AX,[BP+FF76]
+   sub AX,[BP-008a]
    add AX,DI
    sub AX,SI
 L286e0105:
@@ -51947,17 +51968,17 @@ jmp near L286e016b
 L286e0107:
    mov BX,SS
    mov ES,BX
-   lea BX,[BP+FF7E]
-   mov [BP+FF74],ES
-   mov [BP+FF72],BX
+   lea BX,[BP-0082]
+   mov [BP-008c],ES
+   mov [BP-008e],BX
 L286e0117:
-   cmp word ptr [BP+FF76],+00
+   cmp word ptr [BP-008a],+00
    jz L286e0121
 jmp near L286e0076
 L286e0121:
-   mov AX,[BP+FF72]
+   mov AX,[BP-008e]
    mov CX,SS
-   lea BX,[BP+FF7E]
+   lea BX,[BP-0082]
    xor DX,DX
    sub AX,BX
    sbb DX,+00
@@ -51967,10 +51988,10 @@ L286e0121:
    jbe L286e0166
    push SI
    push SS
-   lea AX,[BP+FF7E]
+   lea AX,[BP-0082]
    push AX
    push [BP+06]
-   call far A28850001
+   call far __write
    add SP,+08
    mov DI,AX
    mov AX,DI
@@ -51997,12 +52018,12 @@ L286e016b:
 ret far
 
 Segment 2885 ;; WRITEA
-A28850001:
+__write: ;; 28850001
    push BP
    mov BP,SP
    mov BX,[BP+06]
    shl BX,1
-   test word ptr [BX+2B5A],0800
+   test word ptr [BX+offset __openfd],0800
    jz L28850023
    mov AX,0002
    push AX
@@ -52010,7 +52031,7 @@ A28850001:
    push AX
    push AX
    push [BP+06]
-   call far A2889000d
+   call far _lseek
    mov SP,BP
 L28850023:
    push DS
@@ -52024,24 +52045,24 @@ L28850023:
    push AX
    mov BX,[BP+06]
    shl BX,1
-   or word ptr [BX+2B5A],1000
+   or word ptr [BX+offset __openfd],1000
    pop AX
 jmp near L2885004b
 L28850043:
    push AX
-   call far A27e70005
+   call far __IOERROR
 jmp near L2885004b
 L2885004b:
    pop BP
 ret far
 
 Segment 2889 ;; LSEEK
-A2889000d:
+_lseek: ;; 2889000d
    push BP
    mov BP,SP
    mov BX,[BP+06]
    shl BX,1
-   and word ptr [BX+2B5A],FDFF
+   and word ptr [BX+offset __openfd],FDFF
    mov AH,42
    mov AL,[BP+0C]
    mov BX,[BP+06]
@@ -52052,7 +52073,7 @@ A2889000d:
 jmp near L28890038
 L2889002f:
    push AX
-   call far A27e70005
+   call far __IOERROR
    cwd
 jmp near L28890038
 L28890038:
@@ -52060,7 +52081,7 @@ L28890038:
 ret far
 
 Segment 288c ;; LTOA, LXMUL
-A288c000a:
+__LONGTOA: ;; 288c000a
    push BP
    mov BP,SP
    sub SP,+22
@@ -52135,7 +52156,7 @@ L288c0086:
    pop BP
 ret far 000E
 
-A288c008e:
+_itoa: ;; 288c008e
    push BP
    mov BP,SP
    cmp word ptr [BP+0C],+0A
@@ -52157,13 +52178,13 @@ L288c00a2:
    mov AL,61
    push AX
    push CS
-   call near offset A288c000a
+   call near offset __LONGTOA
 jmp near L288c00b9
 L288c00b9:
    pop BP
 ret far
 
-X288c00bb:
+_ultoa: ;; 288c00bb ;; (@) Unaccessed.
    push BP
    mov BP,SP
    push [BP+08]
@@ -52176,13 +52197,13 @@ X288c00bb:
    mov AL,61
    push AX
    push CS
-   call near offset A288c000a
+   call near offset __LONGTOA
 jmp near L288c00d9
 L288c00d9:
    pop BP
 ret far
 
-A288c00db:
+_ltoa: ;; 288c00db
    push BP
    mov BP,SP
    push [BP+08]
@@ -52201,14 +52222,14 @@ L288c00fa:
    mov AL,61
    push AX
    push CS
-   call near offset A288c000a
+   call near offset __LONGTOA
 jmp near L288c0104
 L288c0104:
    pop BP
 ret far
 
 Segment 289c ;; UNLINK
-A289c0006:
+_unlink: ;; 289c0006
    push BP
    mov BP,SP
    push DS
@@ -52221,14 +52242,14 @@ A289c0006:
 jmp near L289c0020
 L289c0018:
    push AX
-   call far A27e70005
+   call far __IOERROR
 jmp near L289c0020
 L289c0020:
    pop BP
 ret far
 
 Segment 289e ;; STRCAT
-A289e0002:
+_strcat: ;; 289e0002
    push BP
    mov BP,SP
    push SI
@@ -52272,7 +52293,7 @@ L289e0040:
 ret far
 
 Segment 28a2 ;; STRLEN
-A28a20004:
+_strlen: ;; 28a20004
    push BP
    mov BP,SP
    push SI
@@ -52293,7 +52314,7 @@ L28a2001b:
 ret far
 
 Segment 28a3 ;; STRCMP
-A28a3000f:
+_strcmp: ;; 28a3000f
    push BP
    mov BP,SP
    push SI
@@ -52323,7 +52344,7 @@ L28a3003d:
 ret far
 
 Segment 28a7 ;; STRCPY
-A28a70001:
+_strcpy: ;; 28a70001
    push BP
    mov BP,SP
    push SI
@@ -52351,7 +52372,7 @@ L28a70026:
 ret far
 
 Segment 28a9 ;; MEMCPY
-A28a9000a:
+_memcpy: ;; 28a9000a
    push BP
    mov BP,SP
    push SI
@@ -52377,7 +52398,7 @@ L28a9002c:
 ret far
 
 Segment 28ac ;; MEMSET
-A28ac0000:
+_setmem: ;; 28ac0000
    push BP
    mov BP,SP
    push SI
@@ -52403,7 +52424,7 @@ L28ac0022:
    pop BP
 ret far
 
-A28ac0026:
+_memset: ;; 28ac0026
    push BP
    mov BP,SP
    push [BP+0A]
@@ -52411,7 +52432,7 @@ A28ac0026:
    push [BP+08]
    push [BP+06]
    push CS
-   call near offset A28ac0000
+   call near offset _setmem
    mov SP,BP
    mov DX,[BP+08]
    mov AX,[BP+06]
@@ -52421,7 +52442,7 @@ L28ac0043:
 ret far
 
 Segment 28b0 ;; MOVMEM
-A28b00005:
+_movmem: ;; 28b00005
    push BP
    mov BP,SP
    push SI
@@ -52431,7 +52452,7 @@ A28b00005:
    mov BX,[BP+0A]
    mov DX,[BP+08]
    mov AX,[BP+06]
-   call far A076a036f
+   call far PCMP@
    jnb L28b00024
    std
    mov AX,0001
@@ -52472,7 +52493,7 @@ L28b00053:
    pop BP
 ret far
 
-A28b00059:
+_memmove: ;; 28b00059
    push BP
    mov BP,SP
    push [BP+0E]
@@ -52481,7 +52502,7 @@ A28b00059:
    push [BP+0C]
    push [BP+0A]
    push CS
-   call near offset A28b00005
+   call near offset _movmem
    mov SP,BP
    mov DX,[BP+08]
    mov AX,[BP+06]
@@ -52489,7 +52510,7 @@ A28b00059:
 ret far
 
 Segment 28b7 ;; CHMODA, CVTFAK, REALCVT
-A28b70009:
+__chmod: ;; 28b70009
    push BP
    mov BP,SP
    push DS
@@ -52504,13 +52525,14 @@ A28b70009:
 jmp near L28b70028
 L28b70020:
    push AX
-   call far A27e70005
+   call far __IOERROR
 jmp near L28b70028
 L28b70028:
    pop BP
 ret far
 
 Segment 28b9 ;; VPRINTER
+;; (@) Unnamed near calls: B28b9000a B28b90049 B28b90056 B28b9005f
 B28b9000a:
    push BP
    mov BP,SP
@@ -52539,7 +52561,7 @@ L28b90031:
    pop BP
 ret near 0002
 
-A28b90035:
+__VPRINTER: ;; 28b90035
    push BP
    mov BP,SP
    sub SP,0096
@@ -52592,9 +52614,9 @@ L28b90086:
    push ES
    cld
    lea DI,[BP-52]
-   mov [BP+FF6C],DI
+   mov [BP-0094],DI
 L28b9008f:
-   mov DI,[BP+FF6C]
+   mov DI,[BP-0094]
 L28b90093:
    les SI,[BP+0A]
 L28b90096:
@@ -52613,17 +52635,17 @@ jmp near L28b90096
 L28b900ae:
 jmp near L28b90545
 L28b900b1:
-   mov [BP+FF78],SI
+   mov [BP-0088],SI
    ES:lodsb
    cmp AL,25
    jz L28b900a0
-   mov [BP+FF6C],DI
+   mov [BP-0094],DI
    xor CX,CX
-   mov [BP+FF76],CX
-   mov word ptr [BP+FF6A],0020
-   mov [BP+FF75],CL
-   mov word ptr [BP+FF70],FFFF
-   mov word ptr [BP+FF72],FFFF
+   mov [BP-008a],CX
+   mov word ptr [BP-0096],0020
+   mov [BP-008b],CL
+   mov word ptr [BP-0090],FFFF
+   mov word ptr [BP-008e],FFFF
 jmp near L28b900df
 L28b900dd:
    ES:lodsb
@@ -52634,7 +52656,7 @@ L28b900df:
    sub BL,20
    cmp BL,60
    jnb L28b90134
-   mov BL,[BX+2BCF]
+   mov BL,[BX+offset Y2a172bd0-01]
    mov AX,BX
    cmp AX,0017
    jbe L28b900fb
@@ -52651,35 +52673,35 @@ jmp near L28b9052f
 L28b90137:
    cmp CH,00
    ja L28b90134
-   or word ptr [BP+FF6A],+01
+   or word ptr [BP-0096],+01
 jmp near L28b900dd
 L28b90143:
    cmp CH,00
    ja L28b90134
-   or word ptr [BP+FF6A],+02
+   or word ptr [BP-0096],+02
 jmp near L28b900dd
 L28b9014f:
    cmp CH,00
    ja L28b90134
-   cmp byte ptr [BP+FF75],2B
+   cmp byte ptr [BP-008b],2B
    jz L28b9015f
-   mov [BP+FF75],DL
+   mov [BP-008b],DL
 L28b9015f:
 jmp near L28b900dd
 L28b90162:
-   and word ptr [BP+FF6A],-21
+   and word ptr [BP-0096],-21
    mov CH,05
 jmp near L28b900dd
 L28b9016c:
-   or word ptr [BP+FF6A],+20
+   or word ptr [BP-0096],+20
    mov CH,05
 jmp near L28b900dd
 L28b90176:
    cmp CH,00
    ja L28b901c2
-   test word ptr [BP+FF6A],0002
+   test word ptr [BP-0096],0002
    jnz L28b901a7
-   or word ptr [BP+FF6A],+08
+   or word ptr [BP-0096],+08
    mov CH,01
 jmp near L28b900dd
 L28b9018d:
@@ -52692,14 +52714,14 @@ L28b90190:
    pop ES
    cmp CH,02
    jnb L28b901aa
-   mov [BP+FF70],AX
+   mov [BP-0090],AX
    mov CH,03
 L28b901a7:
 jmp near L28b900dd
 L28b901aa:
    cmp CH,04
    jnz L28b9018d
-   mov [BP+FF72],AX
+   mov [BP-008e],AX
    inc CH
 jmp near L28b900dd
 L28b901b8:
@@ -52714,7 +52736,7 @@ L28b901c2:
    cmp CH,02
    ja L28b901e6
    mov CH,02
-   xchg AX,[BP+FF70]
+   xchg AX,[BP-0090]
    or AX,AX
    jl L28b901a7
    shl AX,1
@@ -52722,12 +52744,12 @@ L28b901c2:
    shl AX,1
    shl AX,1
    add AX,DX
-   add [BP+FF70],AX
+   add [BP-0090],AX
 jmp near L28b900dd
 L28b901e6:
    cmp CH,04
    jnz L28b9018d
-   xchg AX,[BP+FF72]
+   xchg AX,[BP-008e]
    or AX,AX
    jl L28b901a7
    shl AX,1
@@ -52735,20 +52757,20 @@ L28b901e6:
    shl AX,1
    shl AX,1
    add AX,DX
-   add [BP+FF72],AX
+   add [BP-008e],AX
 jmp near L28b900dd
 L28b90204:
-   or word ptr [BP+FF6A],+10
+   or word ptr [BP-0096],+10
    mov CH,05
 jmp near L28b900dd
 L28b9020e:
-   or word ptr [BP+FF6A],0100
-   and word ptr [BP+FF6A],-11
+   or word ptr [BP-0096],0100
+   and word ptr [BP-0096],-11
    mov CH,05
 jmp near L28b900dd
 L28b9021e:
-   and word ptr [BP+FF6A],-11
-   or word ptr [BP+FF6A],0080
+   and word ptr [BP-0096],-11
+   or word ptr [BP-0096],0080
    mov CH,05
 jmp near L28b900dd
 L28b9022e:
@@ -52762,18 +52784,18 @@ L28b90236:
    mov BL,E9
    add BL,DL
 L28b9023c:
-   mov byte ptr [BP+FF75],00
+   mov byte ptr [BP-008b],00
 L28b90241:
-   mov byte ptr [BP+FF6F],00
-   mov [BP+FF6E],DL
+   mov byte ptr [BP-0091],00
+   mov [BP-0092],DL
    les DI,[BP+06]
    mov AX,[ES:DI]
    xor DX,DX
 jmp near L28b90266
 L28b90254:
    mov BH,0A
-   mov byte ptr [BP+FF6F],01
-   mov [BP+FF6E],DL
+   mov byte ptr [BP-0091],01
+   mov [BP-0092],DL
    les DI,[BP+06]
    mov AX,[ES:DI]
    cwd
@@ -52781,26 +52803,26 @@ L28b90266:
    inc DI
    inc DI
    mov [BP+0A],SI
-   test word ptr [BP+FF6A],0010
+   test word ptr [BP-0096],0010
    jz L28b90278
    mov DX,[ES:DI]
    inc DI
    inc DI
 L28b90278:
    mov [BP+06],DI
-   lea DI,[BP+FF7B]
+   lea DI,[BP-0085]
    or AX,AX
    jnz L28b902b6
    or DX,DX
    jnz L28b902b6
-   cmp word ptr [BP+FF72],+00
+   cmp word ptr [BP-008e],+00
    jnz L28b902bb
-   mov DI,[BP+FF6C]
-   mov CX,[BP+FF70]
+   mov DI,[BP-0094]
+   mov CX,[BP-0090]
    jcxz L28b902b3
    cmp CX,-01
    jz L28b902b3
-   mov AX,[BP+FF6A]
+   mov AX,[BP-0096]
    and AX,0008
    jz L28b902aa
    mov DL,30
@@ -52814,7 +52836,7 @@ L28b902ac:
 L28b902b3:
 jmp near L28b90093
 L28b902b6:
-   or word ptr [BP+FF6A],+04
+   or word ptr [BP-0096],+04
 L28b902bb:
    push DX
    push AX
@@ -52823,28 +52845,28 @@ L28b902bb:
    mov AL,BH
    cbw
    push AX
-   mov AL,[BP+FF6F]
+   mov AL,[BP-0091]
    push AX
    push BX
-   call far A288c000a
+   call far __LONGTOA
    push SS
    pop ES
-   mov DX,[BP+FF72]
+   mov DX,[BP-008e]
    or DX,DX
    jg L28b902db
 jmp near L28b903fa
 L28b902db:
 jmp near L28b9040a
 L28b902de:
-   mov [BP+FF6E],DL
+   mov [BP-0092],DL
    mov [BP+0A],SI
-   lea DI,[BP+FF7A]
+   lea DI,[BP-0086]
    les BX,[BP+06]
    push [ES:BX]
    inc BX
    inc BX
    mov [BP+06],BX
-   test word ptr [BP+FF6A],0020
+   test word ptr [BP-0096],0020
    jz L28b9030c
    push [ES:BX]
    inc BX
@@ -52860,12 +52882,12 @@ L28b9030c:
    pop ES
    call near B28b9000a
    mov byte ptr [SS:DI],00
-   mov byte ptr [BP+FF6F],00
-   and word ptr [BP+FF6A],-05
-   lea CX,[BP+FF7A]
+   mov byte ptr [BP-0091],00
+   and word ptr [BP-0096],-05
+   lea CX,[BP-0086]
    sub DI,CX
    xchg CX,DI
-   mov DX,[BP+FF72]
+   mov DX,[BP-008e]
    cmp DX,CX
    jg L28b90331
    mov DX,CX
@@ -52873,22 +52895,22 @@ L28b90331:
 jmp near L28b903fa
 L28b90334:
    mov [BP+0A],SI
-   mov [BP+FF6E],DL
+   mov [BP-0092],DL
    les DI,[BP+06]
    mov AX,[ES:DI]
    add word ptr [BP+06],+02
    push SS
    pop ES
-   lea DI,[BP+FF7B]
+   lea DI,[BP-0085]
    xor AH,AH
    mov [ES:DI],AX
    mov CX,0001
 jmp near L28b90434
 L28b90356:
    mov [BP+0A],SI
-   mov [BP+FF6E],DL
+   mov [BP-0092],DL
    les DI,[BP+06]
-   test word ptr [BP+FF6A],0020
+   test word ptr [BP-0096],0020
    jnz L28b90375
    mov DI,[ES:DI]
    add word ptr [BP+06],+02
@@ -52908,16 +52930,16 @@ L28b90380:
    mov DI,offset Y2a172bb8
 L28b90387:
    call near B28b90049
-   cmp CX,[BP+FF72]
+   cmp CX,[BP-008e]
    jbe L28b90394
-   mov CX,[BP+FF72]
+   mov CX,[BP-008e]
 L28b90394:
 jmp near L28b90434
 L28b90397:
    mov [BP+0A],SI
-   mov [BP+FF6E],DL
+   mov [BP-0092],DL
    les DI,[BP+06]
-   mov CX,[BP+FF72]
+   mov CX,[BP-008e]
    or CX,CX
    jge L28b903ac
    mov CX,0006
@@ -52926,13 +52948,13 @@ L28b903ac:
    push DI
    push CX
    push SS
-   lea BX,[BP+FF7B]
+   lea BX,[BP-0085]
    push BX
    push DX
    mov AX,0001
-   and AX,[BP+FF6A]
+   and AX,[BP-0096]
    push AX
-   mov AX,[BP+FF6A]
+   mov AX,[BP-0096]
    test AX,0080
    jz L28b903d1
    mov AX,0002
@@ -52949,49 +52971,49 @@ L28b903e0:
    mov AX,0006
 L28b903e8:
    push AX
-   call far A076a03cc
+   call far __REALCVT
    mov AX,[BP-02]
    add [BP+06],AX
    push SS
    pop ES
-   lea DI,[BP+FF7B]
+   lea DI,[BP-0085]
 L28b903fa:
-   test word ptr [BP+FF6A],0008
+   test word ptr [BP-0096],0008
    jz L28b90415
-   mov DX,[BP+FF70]
+   mov DX,[BP-0090]
    or DX,DX
    jle L28b90415
 L28b9040a:
    call near B28b90049
    sub DX,CX
    jle L28b90415
-   mov [BP+FF76],DX
+   mov [BP-008a],DX
 L28b90415:
-   mov AL,[BP+FF75]
+   mov AL,[BP-008b]
    or AL,AL
    jz L28b90431
    cmp byte ptr [ES:DI],2D
    jz L28b90431
-   sub word ptr [BP+FF76],+01
-   adc word ptr [BP+FF76],+00
+   sub word ptr [BP-008a],+01
+   adc word ptr [BP-008a],+00
    dec DI
    mov [ES:DI],AL
 L28b90431:
    call near B28b90049
 L28b90434:
    mov SI,DI
-   mov DI,[BP+FF6C]
-   mov BX,[BP+FF70]
+   mov DI,[BP-0094]
+   mov BX,[BP-0090]
    mov AX,0005
-   and AX,[BP+FF6A]
+   and AX,[BP-0096]
    cmp AX,0005
    jnz L28b90460
-   mov AH,[BP+FF6E]
+   mov AH,[BP-0092]
    cmp AH,6F
    jnz L28b90463
-   cmp word ptr [BP+FF76],+00
+   cmp word ptr [BP-008a],+00
    jg L28b90460
-   mov word ptr [BP+FF76],0001
+   mov word ptr [BP-008a],0001
 L28b90460:
 jmp near L28b90481
 X28b90462:
@@ -53002,15 +53024,15 @@ L28b90463:
    cmp AH,58
    jnz L28b90481
 L28b9046d:
-   or word ptr [BP+FF6A],+40
+   or word ptr [BP-0096],+40
    dec BX
    dec BX
-   sub word ptr [BP+FF76],+02
+   sub word ptr [BP-008a],+02
    jge L28b90481
-   mov word ptr [BP+FF76],0000
+   mov word ptr [BP-008a],0000
 L28b90481:
-   add CX,[BP+FF76]
-   test word ptr [BP+FF6A],0002
+   add CX,[BP-008a]
+   test word ptr [BP-0096],0002
    jnz L28b90499
 jmp near L28b90495
 L28b9048f:
@@ -53021,14 +53043,14 @@ L28b90495:
    cmp BX,CX
    jg L28b9048f
 L28b90499:
-   test word ptr [BP+FF6A],0040
+   test word ptr [BP-0096],0040
    jz L28b904ad
    mov AL,30
    call near B28b90056
-   mov AL,[BP+FF6E]
+   mov AL,[BP-0092]
    call near B28b90056
 L28b904ad:
-   mov DX,[BP+FF76]
+   mov DX,[BP-008a]
    or DX,DX
    jle L28b904dc
    sub CX,DX
@@ -53079,7 +53101,7 @@ jmp near L28b90093
 L28b90500:
    mov [BP+0A],SI
    les DI,[BP+06]
-   test word ptr [BP+FF6A],0020
+   test word ptr [BP-0096],0020
    jnz L28b90519
    mov DI,[ES:DI]
    add word ptr [BP+06],+02
@@ -53096,9 +53118,9 @@ L28b90520:
    mov [ES:DI],AX
 jmp near L28b9008f
 L28b9052f:
-   mov SI,[BP+FF78]
+   mov SI,[BP-0088]
    mov ES,[BP+0C]
-   mov DI,[BP+FF6C]
+   mov DI,[BP-0094]
    mov AL,25
 L28b9053c:
    call near B28b90056
@@ -53121,19 +53143,19 @@ L28b90554:
 ret far 0010
 
 Segment 290e ;; CORELEFT
-A290e000c:
-   call far A290f0004
+_coreleft: ;; 290e000c
+   call far _farcoreleft
 jmp near L290e0013
 L290e0013:
 ret far
 
 Segment 290f ;; FCORELFT
-A290f0004:
-   mov DX,[offset Y2a17008f+2]
-   mov AX,[offset Y2a17008f]
-   mov CX,[offset Y2a17008b+2]
-   mov BX,[offset Y2a17008b]
-   call far A076a05b3
+_farcoreleft: ;; 290f0004
+   mov DX,[offset __heaptop+02]
+   mov AX,[offset __heaptop]
+   mov CX,[offset __brklvl+02]
+   mov BX,[offset __brklvl]
+   call far PSBP@
    add AX,FFF8
    adc DX,-01
 jmp near L290f0020
@@ -53141,12 +53163,13 @@ L290f0020:
 ret far
 
 Segment 2911 ;; FFREE
-A29110001:
+;; (@) Unnamed far routines accessed by near calls: A29110013 A291100b2 A2911012a A2911020f
+_free: ;; 29110001
    push BP
    mov BP,SP
    push [BP+08]
    push [BP+06]
-   call far A291102db
+   call far _farfree
    mov SP,BP
    pop BP
 ret far
@@ -53157,17 +53180,17 @@ A29110013:
    sub SP,+04
    xor CX,CX
    xor BX,BX
-   mov DX,[2A54]
-   mov AX,[2A52]
-   call far A076a036f
+   mov DX,[offset __rover+02]
+   mov AX,[offset __rover]
+   call far PCMP@
    jz L29110081
-   les BX,[2A52]
+   les BX,[offset __rover]
    les BX,[ES:BX+0C]
    mov [BP-02],ES
    mov [BP-04],BX
    mov DX,[BP+08]
    mov AX,[BP+06]
-   les BX,[2A52]
+   les BX,[offset __rover]
    mov [ES:BX+0E],DX
    mov [ES:BX+0C],AX
    mov DX,[BP+08]
@@ -53180,16 +53203,16 @@ A29110013:
    les BX,[BP+06]
    mov [ES:BX+0E],DX
    mov [ES:BX+0C],AX
-   mov DX,[2A54]
-   mov AX,[2A52]
+   mov DX,[offset __rover+02]
+   mov AX,[offset __rover]
    les BX,[BP+06]
    mov [ES:BX+0A],DX
    mov [ES:BX+08],AX
 jmp near L291100ae
 L29110081:
    les BX,[BP+06]
-   mov [2A54],ES
-   mov [2A52],BX
+   mov [offset __rover+02],ES
+   mov [offset __rover],BX
    mov DX,[BP+08]
    mov AX,[BP+06]
    les BX,[BP+06]
@@ -53217,13 +53240,13 @@ A291100b2:
    adc [ES:BX+02],DX
    mov CX,[BP+0C]
    mov BX,[BP+0A]
-   mov DX,[2A50]
-   mov AX,[2A4E]
-   call far A076a036f
+   mov DX,[offset __last+02]
+   mov AX,[offset __last]
+   call far PCMP@
    jnz L291100ed
    les BX,[BP+06]
-   mov [2A50],ES
-   mov [2A4E],BX
+   mov [offset __last+02],ES
+   mov [offset __last],BX
 jmp near L29110119
 L291100ed:
    les BX,[BP+0A]
@@ -53231,7 +53254,7 @@ L291100ed:
    mov BX,[ES:BX]
    mov DX,[BP+0C]
    mov AX,[BP+0A]
-   call far A076a0314
+   call far PADD@
    mov [BP-02],DX
    mov [BP-04],AX
    mov DX,[BP+08]
@@ -53242,7 +53265,7 @@ L291100ed:
 L29110119:
    push [BP+0C]
    push [BP+0A]
-   call far A27f10018
+   call far __pull_free_block
    pop CX
    pop CX
    mov SP,BP
@@ -53253,27 +53276,27 @@ A2911012a:
    push BP
    mov BP,SP
    sub SP,+04
-   mov CX,[2A50]
-   mov BX,[2A4E]
-   mov DX,[2A4C]
-   mov AX,[2A4A]
-   call far A076a036f
+   mov CX,[offset __last+02]
+   mov BX,[offset __last]
+   mov DX,[offset __first+02]
+   mov AX,[offset __first]
+   call far PCMP@
    jnz L29110172
-   push [2A4C]
-   push [2A4A]
-   call far A28220093
+   push [offset __first+02]
+   push [offset __first]
+   call far __brk
    pop CX
    pop CX
-   mov word ptr [2A50],0000
-   mov word ptr [2A4E],0000
+   mov word ptr [offset __last+02],0000
+   mov word ptr [offset __last],0000
    xor BX,BX
    mov ES,BX
    xor BX,BX
-   mov [2A4C],ES
-   mov [2A4A],BX
+   mov [offset __first+02],ES
+   mov [offset __first],BX
 jmp near L2911020b
 L29110172:
-   les BX,[2A4E]
+   les BX,[offset __last]
    les BX,[ES:BX+04]
    mov [BP-02],ES
    mov [BP-04],BX
@@ -53286,44 +53309,44 @@ L29110172:
    jnz L291101f1
    push [BP-02]
    push [BP-04]
-   call far A27f10018
+   call far __pull_free_block
    pop CX
    pop CX
-   mov CX,[2A4C]
-   mov BX,[2A4A]
+   mov CX,[offset __first+02]
+   mov BX,[offset __first]
    mov DX,[BP-02]
    mov AX,[BP-04]
-   call far A076a036f
+   call far PCMP@
    jnz L291101d3
-   mov word ptr [2A50],0000
-   mov word ptr [2A4E],0000
+   mov word ptr [offset __last+02],0000
+   mov word ptr [offset __last],0000
    xor BX,BX
    mov ES,BX
    xor BX,BX
-   mov [2A4C],ES
-   mov [2A4A],BX
+   mov [offset __first+02],ES
+   mov [offset __first],BX
 jmp near L291101e2
 L291101d3:
    les BX,[BP-04]
    les BX,[ES:BX+04]
-   mov [2A50],ES
-   mov [2A4E],BX
+   mov [offset __last+02],ES
+   mov [offset __last],BX
 L291101e2:
    push [BP-02]
    push [BP-04]
-   call far A28220093
+   call far __brk
    pop CX
    pop CX
 jmp near L2911020b
 L291101f1:
-   push [2A50]
-   push [2A4E]
-   call far A28220093
+   push [offset __last+02]
+   push [offset __last]
+   call far __brk
    pop CX
    pop CX
    les BX,[BP-04]
-   mov [2A50],ES
-   mov [2A4E],BX
+   mov [offset __last+02],ES
+   mov [offset __last],BX
 L2911020b:
    mov SP,BP
    pop BP
@@ -53341,7 +53364,7 @@ A2911020f:
    mov BX,[ES:BX]
    mov DX,[BP+08]
    mov AX,[BP+06]
-   call far A076a0314
+   call far PADD@
    mov [BP-06],DX
    mov [BP-08],AX
    les BX,[BP+06]
@@ -53355,11 +53378,11 @@ A2911020f:
    and DX,0000
    or DX,AX
    jnz L291102a3
-   mov CX,[2A4C]
-   mov BX,[2A4A]
+   mov CX,[offset __first+02]
+   mov BX,[offset __first]
    mov DX,[BP+08]
    mov AX,[BP+06]
-   call far A076a036f
+   call far PCMP@
    jz L291102a3
    les BX,[BP+06]
    mov DX,[ES:BX+02]
@@ -53403,7 +53426,7 @@ L291102d7:
    pop BP
 ret far
 
-A291102db:
+_farfree: ;; 291102db
    push BP
    mov BP,SP
    mov AX,[BP+06]
@@ -53415,14 +53438,14 @@ L291102e8:
    mov AX,[BP+06]
    mov CX,FFFF
    mov BX,FFF8
-   call far A076a0314
+   call far PADD@
    mov [BP+08],DX
    mov [BP+06],AX
    mov DX,[BP+08]
    mov AX,[BP+06]
-   cmp DX,[2A50]
+   cmp DX,[offset __last+02]
    jnz L29110317
-   cmp AX,[2A4E]
+   cmp AX,[offset __last]
    jnz L29110317
    push CS
    call near offset A2911012a
@@ -53438,6 +53461,7 @@ L29110323:
 ret far
 
 Segment 2943 ;; CREATA
+;; (@) Unnamed near calls: B29430005
 B29430005:
    push BP
    mov BP,SP
@@ -53453,19 +53477,19 @@ B29430005:
    mov AX,[BP+04]
    mov BX,SI
    shl BX,1
-   mov [BX+2B5A],AX
+   mov [BX+offset __openfd],AX
    mov AX,SI
 jmp near L29430031
 L29430029:
    push AX
-   call far A27e70005
+   call far __IOERROR
 jmp near L29430031
 L29430031:
    pop SI
    pop BP
 ret near 000A
 
-A29430036:
+__creat: ;; 29430036
    push BP
    mov BP,SP
    push [BP+08]
@@ -53481,7 +53505,7 @@ L2943004e:
    pop BP
 ret far
 
-X29430050:
+_creattemp: ;; 29430050 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    push [BP+08]
@@ -53489,7 +53513,7 @@ X29430050:
    push [BP+0A]
    mov AL,5A
    push AX
-   mov AX,[2B82]
+   mov AX,[offset __fmode]
    or AX,0004
    push AX
    call near B29430005
@@ -53498,7 +53522,7 @@ L2943006b:
    pop BP
 ret far
 
-X2943006d:
+_creatnew: ;; 2943006d ;; (@) Unaccessed.
    push BP
    mov BP,SP
    push [BP+08]
@@ -53506,7 +53530,7 @@ X2943006d:
    push [BP+0A]
    mov AL,5B
    push AX
-   mov AX,[2B82]
+   mov AX,[offset __fmode]
    or AX,0004
    push AX
    call near B29430005
@@ -53516,7 +53540,7 @@ L29430088:
 ret far
 
 Segment 294b ;; FLENGTH
-A294b000a:
+_filelength: ;; 294b000a
    push BP
    mov BP,SP
    sub SP,+04
@@ -53545,7 +53569,7 @@ A294b000a:
 jmp near L294b004b
 L294b0042:
    push AX
-   call far A27e70005
+   call far __IOERROR
    cwd
 jmp near L294b004b
 L294b004b:
@@ -53554,81 +53578,81 @@ L294b004b:
 ret far
 
 Segment 294f ;; CRTINIT, CLRSCR
-A294f000f:
+_clrscr: ;; 294f000f
    mov AL,06
    push AX
-   push [2C30]
-   push [2C31]
-   push [2C32]
-   push [2C33]
+   push [offset __video]
+   push [offset __video+01]
+   push [offset __video+02]
+   push [offset __video+03]
    mov AL,00
    push AX
-   call far A29bc0032
-   mov DL,[2C30]
-   mov DH,[2C31]
+   call far __SCROLL
+   mov DL,[offset __video]
+   mov DH,[offset __video+01]
    mov AH,02
    mov BH,00
-   call far A076a0414
+   call far __VideoInt
 ret far
 
 Segment 2952 ;; COLOR
-A2952000c:
+_textcolor: ;; 2952000c
    push BP
    mov BP,SP
-   mov AL,[2C34]
+   mov AL,[offset __video+04]
    and AL,70
    mov DL,[BP+06]
    and DL,8F
    or AL,DL
-   mov [2C34],AL
+   mov [offset __video+04],AL
    pop BP
 ret far
 
-A29520021:
+_textbackground: ;; 29520021
    push BP
    mov BP,SP
-   mov AL,[2C34]
+   mov AL,[offset __video+04]
    and AL,8F
    mov DL,[BP+06]
    mov CL,04
    shl DL,CL
    and DL,7F
    or AL,DL
-   mov [2C34],AL
+   mov [offset __video+04],AL
    pop BP
 ret far
 
-X2952003a:
+_textattr: ;; 2952003a ;; (@) Unaccessed.
    push BP
    mov BP,SP
    mov AL,[BP+06]
-   mov [2C34],AL
+   mov [offset __video+04],AL
    pop BP
 ret far
 
-X29520045:
-   or byte ptr [2C34],08
+_highvideo: ;; 29520045 ;; (@) Unaccessed.
+   or byte ptr [offset __video+04],08
 ret far
 
-X2952004b:
-   and byte ptr [2C34],F7
+_lowvideo: ;; 2952004b ;; (@) Unaccessed.
+   and byte ptr [offset __video+04],F7
 ret far
 
-X29520051:
-   mov AL,[2C35]
-   mov [2C34],AL
+_normvideo: ;; 29520051 ;; (@) Unaccessed.
+   mov AL,[offset __video+05]
+   mov [offset __video+04],AL
 ret far
 
 Segment 2957 ;; CPRINTF
-A29570008:
+__CPUTN: ;; 29570008
    push BP
    mov BP,SP
    sub SP,+08
    mov byte ptr [BP-03],00
-   call far A2a0d0000
+   call far __wherexy
    mov AH,00
    mov [BP-08],AX
-   call far A2a0d0000
+   call far __wherexy
    mov CL,08
    shr AX,CL
    mov AH,00
@@ -53650,12 +53674,12 @@ Y2957004c:	dw L2957005a,L2957006b,L29570089,L29570084,L29570089,L29570089,L29570
 L2957005a:
    mov AH,0E
    mov AL,07
-   call far A076a0414
+   call far __VideoInt
    mov AL,[BP-03]
    mov AH,00
 jmp near L29570149
 L2957006b:
-   mov AL,[2C30]
+   mov AL,[offset __video]
    mov AH,00
    cmp AX,[BP-08]
    jge L29570078
@@ -53663,7 +53687,7 @@ L2957006b:
 L29570078:
 jmp near L295700e9
 L2957007a:
-   mov AL,[2C30]
+   mov AL,[offset __video]
    mov AH,00
    mov [BP-08],AX
 jmp near L295700e9
@@ -53671,11 +53695,11 @@ L29570084:
    inc word ptr [BP-06]
 jmp near L295700e9
 L29570089:
-   cmp byte ptr [2C39],00
+   cmp byte ptr [offset __video+09],00
    jnz L295700c2
-   cmp word ptr [2C3F],+00
+   cmp word ptr [offset _directvideo],+00
    jz L295700c2
-   mov AH,[2C34]
+   mov AH,[offset __video+04]
    mov AL,[BP-03]
    mov [BP-02],AX
    mov AX,[BP-08]
@@ -53684,7 +53708,7 @@ L29570089:
    mov AX,[BP-06]
    inc AX
    push AX
-   call far A2a02000f
+   call far __VPTR
    push DX
    push AX
    push SS
@@ -53692,46 +53716,46 @@ L29570089:
    push AX
    mov AX,0001
    push AX
-   call far A2a020034
+   call far __VRAM
 jmp near L295700e4
 L295700c2:
    mov DL,[BP-08]
    mov DH,[BP-06]
    mov AH,02
    mov BH,00
-   call far A076a0414
-   mov BL,[2C34]
+   call far __VideoInt
+   mov BL,[offset __video+04]
    mov AL,[BP-03]
    mov AH,09
    mov BH,00
    mov CX,0001
-   call far A076a0414
+   call far __VideoInt
 L295700e4:
    inc word ptr [BP-08]
 jmp near L295700e9
 L295700e9:
-   mov AL,[2C32]
+   mov AL,[offset __video+02]
    mov AH,00
    cmp AX,[BP-08]
    jge L295700fe
-   mov AL,[2C30]
+   mov AL,[offset __video]
    mov AH,00
    mov [BP-08],AX
    inc word ptr [BP-06]
 L295700fe:
-   mov AL,[2C33]
+   mov AL,[offset __video+03]
    mov AH,00
    cmp AX,[BP-06]
    jge L29570126
    mov AL,06
    push AX
-   push [2C30]
-   push [2C31]
-   push [2C32]
-   push [2C33]
+   push [offset __video]
+   push [offset __video+01]
+   push [offset __video+02]
+   push [offset __video+03]
    mov AL,01
    push AX
-   call far A29bc0032
+   call far __SCROLL
    dec word ptr [BP-06]
 L29570126:
    mov AX,[BP+0A]
@@ -53744,7 +53768,7 @@ L29570133:
    mov DH,[BP-06]
    mov AH,02
    mov BH,00
-   call far A076a0414
+   call far __VideoInt
    mov AL,[BP-03]
    mov AH,00
 jmp near L29570149
@@ -53753,11 +53777,11 @@ L29570149:
    pop BP
 ret far 000A
 
-X2957014f:
+_cprintf: ;; 2957014f ;; (@) Unaccessed.
    push BP
    mov BP,SP
    push CS
-   mov AX,offset A29570008
+   mov AX,offset __CPUTN
    push AX
    xor AX,AX
    push AX
@@ -53767,35 +53791,35 @@ X2957014f:
    push SS
    lea AX,[BP+0A]
    push AX
-   call far A28b90035
+   call far __VPRINTER
 jmp near L2957016d
 L2957016d:
    pop BP
 ret far
 
 Segment 296d ;; CPUTS
-A296d000f:
+_cputs: ;; 296d000f
    push BP
    mov BP,SP
    push [BP+08]
    push [BP+06]
    push [BP+08]
    push [BP+06]
-   call far A28a20004
+   call far _strlen
    pop CX
    pop CX
    push AX
    xor AX,AX
    push AX
    push AX
-   call far A29570008
+   call far __CPUTN
 jmp near L296d0031
 L296d0031:
    pop BP
 ret far
 
 Segment 2970 ;; ATOL
-A29700003:
+_atol: ;; 29700003
    push BP
    mov BP,SP
    push SI
@@ -53808,7 +53832,7 @@ A29700003:
    cwd
    mov CX,000A
    mov BH,00
-   mov DI,2A59
+   mov DI,offset __ctype+01
 L29700019:
    mov BL,[ES:SI]
    inc SI
@@ -53867,13 +53891,13 @@ L29700076:
    pop BP
 ret far
 
-X2970007a:
+_atoi: ;; 2970007a ;; (@) Unaccessed.
    push BP
    mov BP,SP
    push [BP+08]
    push [BP+06]
    push CS
-   call near offset A29700003
+   call near offset _atol
    mov SP,BP
 jmp near L2970008b
 L2970008b:
@@ -53883,9 +53907,10 @@ ret far
 Y2970008d:	db 00,00,00
 
 Segment 2979 ;; DELAY
-Y29790000:	word
+;; (@) Unnamed near calls: B2979005d
+Y29790000:	word	;; DelayT
 
-A29790002:
+_delay: ;; 29790002
    dec SP
    dec SP
    push BP
@@ -53973,7 +53998,7 @@ L29790092:
    push DX
    mov AX,0037
    push AX
-   call far A29790002
+   call far _delay
    pop AX
    pop DX
    pop BX
@@ -53989,7 +54014,7 @@ L297900b3:
 ret near
 
 Segment 2984 ;; GETVECT
-A29840008:
+_getvect: ;; 29840008
    push BP
    mov BP,SP
    mov AH,35
@@ -54002,7 +54027,7 @@ L29840018:
    pop BP
 ret far
 
-A2984001a:
+_setvect: ;; 2984001a
    push BP
    mov BP,SP
    mov AH,25
@@ -54015,31 +54040,31 @@ A2984001a:
 ret far
 
 Segment 2986 ;; GOTOXY
-A2986000b:
+_gotoxy: ;; 2986000b
    push BP
    mov BP,SP
    sub SP,+02
    mov AL,[BP+08]
    add AL,FF
    mov [BP-02],AL
-   mov AL,[2C31]
+   mov AL,[offset __video+01]
    add [BP-02],AL
    mov AL,[BP+06]
    add AL,FF
    mov [BP-01],AL
-   mov AL,[2C30]
+   mov AL,[offset __video]
    add [BP-01],AL
    mov AL,[BP-02]
-   cmp AL,[2C31]
+   cmp AL,[offset __video+01]
    jb L29860051
    mov AL,[BP-02]
-   cmp AL,[2C33]
+   cmp AL,[offset __video+03]
    ja L29860051
    mov AL,[BP-01]
-   cmp AL,[2C30]
+   cmp AL,[offset __video]
    jb L29860051
    mov AL,[BP-01]
-   cmp AL,[2C32]
+   cmp AL,[offset __video+02]
    jbe L29860053
 L29860051:
 jmp near L29860062
@@ -54048,14 +54073,14 @@ L29860053:
    mov DH,[BP-02]
    mov AH,02
    mov BH,00
-   call far A076a0414
+   call far __VideoInt
 L29860062:
    mov SP,BP
    pop BP
 ret far
 
 Segment 298c ;; GPTEXT
-A298c0006:
+_gettext: ;; 298c0006
    push BP
    mov BP,SP
    push SI
@@ -54064,7 +54089,7 @@ A298c0006:
    push [BP+08]
    push [BP+0A]
    push [BP+0C]
-   call far A29d60195
+   call far __VALIDATEXY
    or AX,AX
    jnz L298c0024
    xor AX,AX
@@ -54080,11 +54105,11 @@ L298c0030:
    push [BP+0E]
    push [BP+06]
    push SI
-   call far A2a02000f
+   call far __VPTR
    push DX
    push AX
    push DI
-   call far A29d60158
+   call far __SCREENIO
    mov AX,DI
    shl AX,1
    add [BP+0E],AX
@@ -54100,7 +54125,7 @@ L298c0059:
    pop BP
 ret far
 
-A298c005d:
+_puttext: ;; 298c005d
    push BP
    mov BP,SP
    push SI
@@ -54113,13 +54138,13 @@ jmp near L298c008d
 L298c006e:
    push [BP+06]
    push SI
-   call far A2a02000f
+   call far __VPTR
    push DX
    push AX
    push [BP+10]
    push [BP+0E]
    push DI
-   call far A29d60158
+   call far __SCREENIO
    mov AX,DI
    shl AX,1
    add [BP+0E],AX
@@ -54136,14 +54161,14 @@ L298c0097:
 ret far
 
 Segment 2995 ;; INT86
-X2995000b:
+_int86: ;; 2995000b ;; (@) Unaccessed.
    push BP
    mov BP,SP
    sub SP,+08
    push SS
    lea AX,[BP-08]
    push AX
-   call far A29f3000f
+   call far _segread
    pop CX
    pop CX
    push SS
@@ -54154,7 +54179,7 @@ X2995000b:
    push [BP+0A]
    push [BP+08]
    push [BP+06]
-   call far A2995003f
+   call far _int86x
    add SP,+0E
 jmp near L2995003b
 L2995003b:
@@ -54162,7 +54187,7 @@ L2995003b:
    pop BP
 ret far
 
-A2995003f:
+_int86x: ;; 2995003f
    push BP
    mov BP,SP
    sub SP,+0E
@@ -54221,7 +54246,7 @@ L2995007d:
    jz L299500d4
    push AX
    push AX
-   call far A27e70005
+   call far __IOERROR
    pop AX
 L299500d4:
 jmp near L299500d6
@@ -54233,7 +54258,8 @@ L299500d6:
 ret far
 
 Segment 29a2 ;; INTR, LDIV, LRSH
-A29a2000c:
+;; (@) Unnamed far routines accessed by near calls: A29a20053
+_intr: ;; 29a2000c
    push BP
    mov BP,SP
    sub SP,+12
@@ -54310,7 +54336,7 @@ L29a2005d:
 ret far
 
 Segment 29ad ;; MOVETEXT
-A29ad0001:
+_movetext: ;; 29ad0001
    push BP
    mov BP,SP
    sub SP,+06
@@ -54321,7 +54347,7 @@ A29ad0001:
    push SI
    push [BP+0A]
    push [BP+0C]
-   call far A29d60195
+   call far __VALIDATEXY
    or AX,AX
    jz L29ad0041
    push [BP+0E]
@@ -54334,7 +54360,7 @@ A29ad0001:
    sub AX,SI
    add AX,[BP+10]
    push AX
-   call far A29d60195
+   call far __VALIDATEXY
    or AX,AX
    jnz L29ad0045
 L29ad0041:
@@ -54360,19 +54386,19 @@ L29ad006b:
    sub AX,SI
    add AX,[BP+10]
    push AX
-   call far A2a02000f
+   call far __VPTR
    push DX
    push AX
    push [BP+06]
    push DI
-   call far A2a02000f
+   call far __VPTR
    push DX
    push AX
    mov AX,[BP+0A]
    sub AX,[BP+06]
    inc AX
    push AX
-   call far A29d60158
+   call far __SCREENIO
    add DI,[BP-02]
 L29ad0098:
    mov AX,[BP-04]
@@ -54389,7 +54415,7 @@ L29ad00a7:
 ret far
 
 Segment 29b7 ;; OUTPORT
-A29b7000d:
+_outport: ;; 29b7000d
    push BP
    mov BP,SP
    mov DX,[BP+06]
@@ -54398,7 +54424,7 @@ A29b7000d:
    pop BP
 ret far
 
-X29b70019:
+_outportb: ;; 29b70019 ;; (@) Unaccessed.
    push BP
    mov BP,SP
    mov DX,[BP+06]
@@ -54408,37 +54434,38 @@ X29b70019:
 ret far
 
 Segment 29b9 ;; PSBP, RAND
-A29b90005:
+_srand: ;; 29b90005
    push BP
    mov BP,SP
    mov AX,[BP+06]
    xor DX,DX
-   mov [2C4A],DX
-   mov [2C48],AX
+   mov [offset Y2a172c48+02],DX
+   mov [offset Y2a172c48],AX
    pop BP
 ret far
 
-A29b90016:
-   mov DX,[2C4A]
-   mov AX,[2C48]
+_rand: ;; 29b90016
+   mov DX,[offset Y2a172c48+02]
+   mov AX,[offset Y2a172c48]
    mov CX,015A
    mov BX,4E35
-   call far A076a0390
+   call far LXMUL@
    add AX,0001
    adc DX,+00
-   mov [2C4A],DX
-   mov [2C48],AX
-   mov AX,[2C4A]
+   mov [offset Y2a172c48+02],DX
+   mov [offset Y2a172c48],AX
+   mov AX,[offset Y2a172c48+02]
    and AX,7FFF
 jmp near L29b9003d
 L29b9003d:
 ret far
 
 Segment 29bc ;; SCOPY, SCROLL
+;; (@) Unnamed near calls: B29bc000e
 B29bc000e:
    push BP
    mov BP,SP
-   mov CH,[2C34]
+   mov CH,[offset __video+04]
    mov CL,20
 jmp near L29bc0026
 L29bc0019:
@@ -54453,15 +54480,15 @@ L29bc0026:
    pop BP
 ret near 0008
 
-A29bc0032:
+__SCROLL: ;; 29bc0032
    push BP
    mov BP,SP
    sub SP,00A0
-   cmp byte ptr [2C39],00
+   cmp byte ptr [offset __video+09],00
    jz L29bc0043
 jmp near L29bc018d
 L29bc0043:
-   cmp word ptr [2C3F],+00
+   cmp word ptr [offset _directvideo],+00
    jnz L29bc004d
 jmp near L29bc018d
 L29bc004d:
@@ -54496,10 +54523,10 @@ L29bc006b:
    mov AL,[BP+0E]
    mov AH,00
    push AX
-   call far A29ad0001
+   call far _movetext
    add SP,+0C
    push SS
-   lea AX,[BP+FF60]
+   lea AX,[BP-00a0]
    push AX
    mov AL,[BP+08]
    mov AH,00
@@ -54513,10 +54540,10 @@ L29bc006b:
    mov AL,[BP+0E]
    mov AH,00
    push AX
-   call far A298c0006
+   call far _gettext
    add SP,+0C
    push SS
-   lea AX,[BP+FF60]
+   lea AX,[BP-00a0]
    push AX
    mov AL,[BP+0E]
    mov AH,00
@@ -54526,7 +54553,7 @@ L29bc006b:
    push AX
    call near B29bc000e
    push SS
-   lea AX,[BP+FF60]
+   lea AX,[BP-00a0]
    push AX
    mov AL,[BP+08]
    mov AH,00
@@ -54540,7 +54567,7 @@ L29bc006b:
    mov AL,[BP+0E]
    mov AH,00
    push AX
-   call far A298c005d
+   call far _puttext
    add SP,+0C
 jmp near L29bc018b
 L29bc00fc:
@@ -54564,10 +54591,10 @@ L29bc00fc:
    mov AL,[BP+0E]
    mov AH,00
    push AX
-   call far A29ad0001
+   call far _movetext
    add SP,+0C
    push SS
-   lea AX,[BP+FF60]
+   lea AX,[BP-00a0]
    push AX
    mov AL,[BP+0C]
    mov AH,00
@@ -54581,10 +54608,10 @@ L29bc00fc:
    mov AL,[BP+0E]
    mov AH,00
    push AX
-   call far A298c0006
+   call far _gettext
    add SP,+0C
    push SS
-   lea AX,[BP+FF60]
+   lea AX,[BP-00a0]
    push AX
    mov AL,[BP+0E]
    mov AH,00
@@ -54594,7 +54621,7 @@ L29bc00fc:
    push AX
    call near B29bc000e
    push SS
-   lea AX,[BP+FF60]
+   lea AX,[BP-00a0]
    push AX
    mov AL,[BP+0C]
    mov AH,00
@@ -54608,25 +54635,26 @@ L29bc00fc:
    mov AL,[BP+0E]
    mov AH,00
    push AX
-   call far A298c005d
+   call far _puttext
    add SP,+0C
 L29bc018b:
 jmp near L29bc01a8
 L29bc018d:
-   mov BH,[2C34]
+   mov BH,[offset __video+04]
    mov AH,[BP+10]
    mov AL,[BP+06]
    mov CH,[BP+0C]
    mov CL,[BP+0E]
    mov DH,[BP+08]
    mov DL,[BP+0A]
-   call far A076a0414
+   call far __VideoInt
 L29bc01a8:
    mov SP,BP
    pop BP
 ret far 000C
 
 Segment 29d6 ;; SCREEN
+;; (@) Unnamed near calls: B29d6000e B29d6004e B29d60086
 B29d6000e:
    push BP
    mov BP,SP
@@ -54635,7 +54663,7 @@ B29d6000e:
    mov SI,[BP+04]
    shr SI,1
    mov AX,SI
-   mov DL,[2C38]
+   mov DL,[offset __video+08]
    mov DH,00
    mov BX,DX
    xor DX,DX
@@ -54643,7 +54671,7 @@ B29d6000e:
    mov [BP-02],AL
    mov AL,[BP-02]
    mov AH,00
-   mov DL,[2C38]
+   mov DL,[offset __video+08]
    mov DH,00
    mul DX
    mov DX,SI
@@ -54668,13 +54696,13 @@ B29d6004e:
    jz L29d6006e
    mov BH,00
    mov AH,02
-   call far A076a0414
+   call far __VideoInt
    les BX,[BP+04]
    mov [ES:BX],DX
 L29d6006e:
    inc DL
    mov AL,DL
-   cmp AL,[2C38]
+   cmp AL,[offset __video+08]
    jb L29d6007c
    inc DH
    mov DL,00
@@ -54690,12 +54718,12 @@ B29d60086:
    sub SP,+0A
    push SI
    push DI
-   call far A2a0d0000
+   call far __wherexy
    mov DI,AX
    mov AX,DI
    mov [BP-06],AX
    mov AX,[BP+0C]
-   cmp AX,[2C3D]
+   cmp AX,[offset __video+0d]
    jnz L29d600a8
    mov AX,0001
 jmp near L29d600aa
@@ -54711,7 +54739,7 @@ L29d600aa:
    mov [BP-0A],AX
 L29d600bd:
    mov AX,[BP+08]
-   cmp AX,[2C3D]
+   cmp AX,[offset __video+0d]
    jnz L29d600cb
    mov AX,0001
 jmp near L29d600cd
@@ -54739,7 +54767,7 @@ L29d600e2:
    call near B29d6004e
    mov BH,00
    mov AH,08
-   call far A076a0414
+   call far __VideoInt
    mov SI,AX
 jmp near L29d6010c
 L29d60102:
@@ -54761,7 +54789,7 @@ L29d6010c:
    mov CX,0001
    mov BH,00
    mov AH,09
-   call far A076a0414
+   call far __VideoInt
 jmp near L29d6013b
 L29d60131:
    les BX,[BP+0A]
@@ -54775,26 +54803,26 @@ L29d6013b:
    mov DX,DI
    mov BH,00
    mov AH,02
-   call far A076a0414
+   call far __VideoInt
    pop DI
    pop SI
    mov SP,BP
    pop BP
 ret near 000A
 
-A29d60158:
+__SCREENIO: ;; 29d60158
    push BP
    mov BP,SP
-   cmp byte ptr [2C39],00
+   cmp byte ptr [offset __video+09],00
    jnz L29d6017f
-   cmp word ptr [2C3F],+00
+   cmp word ptr [offset _directvideo],+00
    jz L29d6017f
    push [BP+0E]
    push [BP+0C]
    push [BP+0A]
    push [BP+08]
    push [BP+06]
-   call far A2a020034
+   call far __VRAM
 jmp near L29d60191
 L29d6017f:
    push [BP+0E]
@@ -54807,13 +54835,13 @@ L29d60191:
    pop BP
 ret far 000A
 
-A29d60195:
+__VALIDATEXY: ;; 29d60195
    push BP
    mov BP,SP
-   mov AL,[2C38]
+   mov AL,[offset __video+08]
    mov AH,00
    mov CX,AX
-   mov AL,[2C37]
+   mov AL,[offset __video+07]
    mov AH,00
    mov DX,AX
    mov AX,[BP+0C]
@@ -54845,7 +54873,7 @@ L29d601db:
 ret far 0008
 
 Segment 29f3 ;; SEGREAD
-A29f3000f:
+_segread: ;; 29f3000f
    push BP
    mov BP,SP
    push SI
@@ -54861,7 +54889,7 @@ A29f3000f:
 ret far
 
 Segment 29f5 ;; SOUND
-A29f5000c:
+_sound: ;; 29f5000c
    push BP
    mov BP,SP
    mov BX,[BP+06]
@@ -54887,27 +54915,27 @@ L29f50036:
    pop BP
 ret far
 
-A29f50038:
+_nosound: ;; 29f50038
    in AL,61
    and AL,FC
    out 61,AL
 ret far
 
 Segment 29f8 ;; STRDUP
-A29f8000f:
+_strdup: ;; 29f8000f
    push BP
    mov BP,SP
    sub SP,+04
    push SI
    push [BP+08]
    push [BP+06]
-   call far A28a20004
+   call far _strlen
    pop CX
    pop CX
    mov SI,AX
    inc SI
    push SI
-   call far A27f10003
+   call far _malloc
    pop CX
    mov [BP-02],DX
    mov [BP-04],AX
@@ -54918,7 +54946,7 @@ A29f8000f:
    push [BP+06]
    push [BP-02]
    push [BP-04]
-   call far A28a9000a
+   call far _memcpy
    add SP,+0A
 L29f8004c:
    mov DX,[BP-02]
@@ -54931,7 +54959,7 @@ L29f80054:
 ret far
 
 Segment 29fd ;; STRUPR
-A29fd0009:
+_strupr: ;; 29fd0009
    push BP
    mov BP,SP
    push SI
@@ -54958,7 +54986,7 @@ L29fd0021:
 ret far
 
 Segment 29ff ;; TOUPPER
-A29ff000e:
+_toupper: ;; 29ff000e
    push BP
    mov BP,SP
    cmp word ptr [BP+06],-01
@@ -54969,7 +54997,7 @@ L29ff001c:
    mov AL,[BP+06]
    mov AH,00
    mov BX,AX
-   test byte ptr [BX+2A59],08
+   test byte ptr [BX+offset __ctype+01],08
    jz L29ff0036
    mov AL,[BP+06]
    mov AH,00
@@ -54986,32 +55014,32 @@ L29ff003d:
 ret far
 
 Segment 2a02 ;; VRAM
-A2a02000f:
+__VPTR: ;; 2a02000f
    push BP
    mov BP,SP
    mov AX,[BP+06]
    dec AX
-   mov DL,[2C38]
+   mov DL,[offset __video+08]
    mov DH,00
    mul DX
-   add AX,[2C3B]
+   add AX,[offset __video+0b]
    mov DX,[BP+08]
    dec DX
    add AX,DX
    shl AX,1
-   mov DX,[2C3D]
+   mov DX,[offset __video+0d]
 jmp near L2a020030
 L2a020030:
    pop BP
 ret far 0004
 
-A2a020034:
+__VRAM: ;; 2a020034
    push BP
    mov BP,SP
    sub SP,+02
    push SI
    push DI
-   mov AL,[2C3A]
+   mov AL,[offset __video+0a]
    mov AH,00
    mov [BP-02],AX
    push DS
@@ -55090,20 +55118,20 @@ L2a0200a8:
 ret far 000A
 
 Segment 2a0d ;; WHEREXY
-A2a0d0000:
+__wherexy: ;; 2a0d0000
    mov AH,03
    mov BH,00
-   call far A076a0414
+   call far __VideoInt
    mov AX,DX
 jmp near L2a0d000d
 L2a0d000d:
 ret far
 
-X2a0d000e:
+_wherex: ;; 2a0d000e ;; (@) Unaccessed.
    push CS
-   call near offset A2a0d0000
+   call near offset __wherexy
    mov AH,00
-   mov DL,[2C30]
+   mov DL,[offset __video]
    mov DH,00
    sub AX,DX
    inc AX
@@ -55111,13 +55139,13 @@ jmp near L2a0d001f
 L2a0d001f:
 ret far
 
-X2a0d0020:
+_wherey: ;; 2a0d0020 ;; (@) Unaccessed.
    push CS
-   call near offset A2a0d0000
+   call near offset __wherexy
    mov CL,08
    shr AX,CL
    mov AH,00
-   mov DL,[2C31]
+   mov DL,[offset __video+01]
    mov DH,00
    sub AX,DX
    inc AX
@@ -55126,7 +55154,7 @@ L2a0d0035:
 ret far
 
 Segment 2a10 ;; WINDOW
-A2a100006:
+_window: ;; 2a100006
    push BP
    mov BP,SP
    dec word ptr [BP+06]
@@ -55135,13 +55163,13 @@ A2a100006:
    dec word ptr [BP+0C]
    cmp word ptr [BP+06],+00
    jl L2a100045
-   mov AL,[2C38]
+   mov AL,[offset __video+08]
    mov AH,00
    cmp AX,[BP+0A]
    jle L2a100045
    cmp word ptr [BP+08],+00
    jl L2a100045
-   mov AL,[2C37]
+   mov AL,[offset __video+07]
    mov AH,00
    cmp AX,[BP+0C]
    jle L2a100045
@@ -55155,18 +55183,18 @@ L2a100045:
 jmp near L2a10006e
 L2a100047:
    mov AL,[BP+06]
-   mov [2C30],AL
+   mov [offset __video],AL
    mov AL,[BP+0A]
-   mov [2C32],AL
+   mov [offset __video+02],AL
    mov AL,[BP+08]
-   mov [2C31],AL
+   mov [offset __video+01],AL
    mov AL,[BP+0C]
-   mov [2C33],AL
+   mov [offset __video+03],AL
    mov DL,[BP+06]
    mov DH,[BP+08]
    mov AH,02
    mov BH,00
-   call far A076a0414
+   call far __VideoInt
 L2a10006e:
    pop BP
 ret far
@@ -55178,27 +55206,29 @@ Y2a170000:	dword
 Y2a170004:	db "Turbo-C - Copyright (c) 1988 Borland Intl.",00
 Y2a17002f:	db "Divide error\r\n"
 Y2a17003d:	db "Abnormal program termination\r\n"
-Y2a17005b:	dword
-Y2a17005f:	dword
-Y2a170063:	dword
-Y2a170067:	dword
-Y2a17006b:	word
-Y2a17006d:	dword
-Y2a170071:	dword
-Y2a170075:	word
-Y2a170077:	word
-Y2a170079:	word
-Y2a17007b:	word
-Y2a17007d:	byte
-X2a17007e:	byte
-Y2a17007f:	word
-Y2a170081:	word
-Y2a170083:	dword
-Y2a170087:	dword
-Y2a17008b:	dword
-Y2a17008f:	dword
-X2a170093:	byte
-Y2a170094:	db 00,01,02,03,04,05,06,07,08,09,0a,0b,0c,0d,0e,0f
+__Int0Vector:	dword	;; 2a17005b
+__Int4Vector:	dword	;; 2a17005f
+__Int5Vector:	dword	;; 2a170063
+__Int6Vector:	dword	;; 2a170067
+__argc:		word	;; 2a17006b
+__argv:		dword	;; 2a17006d
+_environ:	dword	;; 2a170071
+__envLng:	word	;; 2a170075
+__envseg:	word	;; 2a170077
+__envSize:	word	;; 2a170079
+__psp:		word	;; 2a17007b
+__version:	;; 2a17007d
+__osmajor:	byte	;; 2a17007d
+__osminor:	byte	;; 2a17007e	;; (@) Unaccessed. Aliased through __version.
+_errno:		word	;; 2a17007f
+__8087:		word	;; 2a170081
+__StartTime:	dword	;; 2a170083
+__heapbase:	dword	;; 2a170087
+__brklvl:	dword	;; 2a17008b
+__heaptop:	dword	;; 2a17008f
+X2a170093:	byte	;; 2a170093	;; (@) Unaccessed; alignment padding?
+_egatab:	;; 2a170094 ;; 00-0f match _vgapal entries 00-0f.
+		db 00,01,02,03,04,05,06,07,08,09,0a,0b,0c,0d,0e,0f
 		db 00,08,08,07,07,07,0f,0f,00,04,0c,0c,08,08,02,06
 		db 06,0c,02,02,02,06,06,0e,02,02,02,02,06,0e,0a,0a
 		db 0a,0e,0e,0a,0a,0a,0e,0e,00,00,00,04,04,05,00,00
@@ -55214,7 +55244,8 @@ Y2a170094:	db 00,01,02,03,04,05,06,07,08,09,0a,0b,0c,0d,0e,0f
 		db 0b,07,07,0b,0b,0b,0f,0f,09,09,09,05,0d,0d,09,09
 		db 09,05,0d,0d,09,09,09,05,05,0d,09,09,09,09,05,0d
 		db 0b,0b,03,03,0d,0d,0b,0b,0d,0f,0d,0d,0d,0f,0f,00
-Y2a170194:	db 00,00,00, 00,00,2a, 00,2a,00, 00,2a,2a, 2a,00,00, 2a,00,2a, 2a,15,00, 2a,2a,2a
+_vgapal:	;; 2a170194 ;; Format: RR,GG,BB
+		db 00,00,00, 00,00,2a, 00,2a,00, 00,2a,2a, 2a,00,00, 2a,00,2a, 2a,15,00, 2a,2a,2a
 		db 15,15,15, 15,15,3f, 15,3f,15, 15,3f,3f, 3f,15,15, 3f,15,3f, 3f,3f,15, 3f,3f,3f
 		db 07,07,07, 0e,0e,0e, 1b,1b,1b, 20,20,20, 25,25,25, 2f,2f,2f, 34,34,34, 39,39,39
 		db 19,0a,00, 25,0a,00, 32,0a,00, 3f,0a,00, 00,15,00, 0c,15,00, 19,15,00, 25,15,00
@@ -55246,22 +55277,22 @@ Y2a170194:	db 00,00,00, 00,00,2a, 00,2a,00, 00,2a,2a, 2a,00,00, 2a,00,2a, 2a,15,
 		db 32,15,3f, 3f,15,3f, 00,1f,3f, 0c,1f,3f, 19,1f,3f, 25,1f,3f, 32,1f,3f, 3f,1f,3f
 		db 00,2a,3f, 0c,2a,3f, 19,2a,3f, 25,2a,3f, 32,2a,3f, 3f,2a,3f, 0c,34,3f, 19,34,3f
 		db 25,34,3f, 32,34,3f, 3f,34,3f, 0c,3f,3f, 19,3f,3f, 25,3f,3f, 32,3f,3f, 3f,3f,3f
-Y2a170494:	dw 03c8
-Y2a170496:	dw 03c7
-Y2a170498:	dw 03c9
-X2a17049a:	dw 03da
-Y2a17049c:	dw 0008
+_DacWrite:	dw 03c8	;; 2a170494
+_DacRead:	dw 03c7	;; 2a170496
+_DacData:	dw 03c9	;; 2a170498
+_input_status_1:	dw 03da	;; 2a17049a	;; (@) Unaccessed.
+_vbi_mask:	dw 0008	;; 2a17049c
 Y2a17049e:	db "\r\nVideo mode: C)ga E)ga V)ga? ",00
-X2a1704bd:	byte
+X2a1704bd:	byte	;; (@) Unaccessed; alignment padding?
 Y2a1704be:	db " ",00
-Y2a1704c0:	dword
-Y2a1704c4:	dword
-Y2a1704c8:	word
-Y2a1704ca:	word
-Y2a1704cc:	word
-Y2a1704ce:	word
-Y2a1704d0:	word
-Y2a1704d2:	word
+_systime:	dword	;; 2a1704c0
+_macptr:	dword	;; 2a1704c4
+Y2a1704c8:	word	;; 2a1704c8	;; CtrlTime	;; Local to _checkctrl0
+Y2a1704ca:	word	;; 2a1704ca	;; ExDx1	;; Local to _recmac
+Y2a1704cc:	word	;; 2a1704cc	;; ExDy1	;; Local to _recmac
+Y2a1704ce:	word	;; 2a1704ce	;; ExFire1	;; Local to _recmac
+Y2a1704d0:	word	;; 2a1704d0	;; ExFire2	;; Local to _recmac
+Y2a1704d2:	word	;; 2a1704d2	;; ExGameOut	;; Local to _recmac
 Y2a1704d4:	db "\r\n",00
 Y2a1704d7:	db "\r\nJoystick calibration:  Press ESCAPE to abort.\r\n",00
 Y2a170509:	db "  Center joystick and press button: ",00
@@ -55271,9 +55302,9 @@ Y2a17059f:	db "  Calibration failed - try again (y/N)? ",00
 Y2a1705c8:	db "\r\n",00
 Y2a1705cb:	db "\r\nGame controller:  K)eyboard,  J)oystick?  ",00
 Y2a1705f8:	db "\r\n",00,00
-Y2a1705fc:	ds 0040
-Y2a17063c:	word
-Y2a17063e:	word
+_path:		ds 0040	;; 2a1705fc
+_nosnd:		word	;; 2a17063c
+_cfgdemo:	word	;; 2a17063e
 Y2a170640:	db "\r\n\r\nDetecting your hardward...\r\n",00
 Y2a170661:	db "\r\nIf your system locks, reboot and type:\r\n",00
 Y2a17068c:	db "   ",00
@@ -55331,7 +55362,7 @@ Y2a170bd9:	db "     VGA 256-color graphics\r\n",00
 Y2a170bf7:	db "\r\n",00
 Y2a170bfa:	db " Note: If you have a slow old computer, CGA\r\n",00
 Y2a170c28:	db "       graphics are recommended.\r\n",00
-X2a170c4b:	byte
+X2a170c4b:	byte	;; (@) Unaccessed; alignment padding?
 Y2a170c4c:	db "\screen",00
 Y2a170c54:	db ".RAW",00
 Y2a170c59:	db "\screen",00
@@ -55339,25 +55370,27 @@ Y2a170c61:	db ".MAP",00
 Y2a170c66:	db " ",00
 Y2a170c68:	db " ",00
 Y2a170c6a:	db "\r\n",00
-X2a170c6d:	byte
-Y2a170c6e:	dw 0001
-Y2a170c70:	dw 0001
-Y2a170c72:	word
-Y2a170c74:	dd Y0040006c
-Y2a170c78:	word
-Y2a170c7a:	word
-Y2a170c7c:	word
-Y2a170c7e:	dword
-Y2a170c82:	dword
-Y2a170c86:	dw 0280
-Y2a170c88:	dw 0001
-Y2a170c8a:	dw 0001
-Y2a170c8c:	dw ffff
-Y2a170c8e:	dword
-Y2a170c92:	dword
-Y2a170c96:	dword
-Y2a170c9a:	db "Creative Voice File",1a,1a,00,0a,01,29,11,01,5d,2d,00,aa,00
-Y2a170cba:	dw 0040,0043,0047,004c,0050,0055,005a,005f,0065,006b,0072,0079,0000,0000,0000,0000
+X2a170c6d:	byte	;; 2a170c6d	;; (@) Unaccessed; alignment padding?
+_soundoff:	dw 0001	;; 2a170c6e
+_soundf:	dw 0001	;; 2a170c70
+_makesound:	word	;; 2a170c72
+_myclock:	dd Y0040006c	;; 2a170c74
+_SetDSP:	word	;; 2a170c78
+_SetWORX:	word	;; 2a170c7a
+_vocuse:	word	;; 2a170c7c
+_freq:		dword	;; 2a170c7e
+_dur:		dword	;; 2a170c82
+_headersize:	dw 0280	;; 2a170c86
+_vocflag:	dw 0001	;; 2a170c88
+_musicflag:	dw 0001	;; 2a170c8a
+_vocfilehandle:	dw ffff	;; 2a170c8c
+_song:		dword	;; 2a170c8e
+_oldint8:	dword	;; 2a170c92
+_worxint8:	dword	;; 2a170c96
+_vochdr:	;; 2a170c9a
+		db "Creative Voice File",1a,1a,00,0a,01,29,11,01,5d,2d,00,aa,00
+_notetable:	;; 2a170cba
+		dw 0040,0043,0047,004c,0050,0055,005a,005f,0065,006b,0072,0079,0000,0000,0000,0000
 		dw 0080,0087,008f,0098,00a1,00aa,00b5,00bf,00cb,00d7,00e4,00f2,0000,0000,0000,0000
 		dw 0100,010f,011f,0130,0142,0155,016a,017f,0196,01ae,01c8,01e3,0000,0000,0000,0000
 		dw 0200,021e,023e,0260,0285,02ab,02d4,02ff,032c,035d,0390,03c7,0000,0000,0000,0000
@@ -55366,20 +55399,20 @@ Y2a170cba:	dw 0040,0043,0047,004c,0050,0055,005a,005f,0065,006b,0072,0079,0000,0
 		dw 1000,10f3,11f5,1306,1428,155b,16a0,17f9,1965,1ae8,1c82,1e34,0000,0000,0000,0000
 		dw 2000,21e7,23eb,260d,2851,2ab7,2d41,2ff2,32cb,35d1,3904,3d1e,0000,0000,0000,0000
 		dw 4000,43ce,47d6,4c1b,50a2,556e,5a82,5fe4,6597,6ba2,7208,78d0,0000,0000,0000,0000
-Y2a170dda:	db "AUDIO.EPC",00
-Y2a170de4:	dw 0001
-Y2a170de6:	dw 0001
-Y2a170de8:	dw 0001
-Y2a170dea:	dw 0001
-Y2a170dec:	dw 0001
-Y2a170dee:	dw 0001
-Y2a170df0:	dw 0001
-Y2a170df2:	dw 0000,0001,0002,0001
-Y2a170dfa:	dw 0001,0002,0001,0000,ffff,fffe,ffff,0000
-Y2a170e0a:	dw 0000,0001,0002,0003,0002,0001,0009,0009
-Y2a170e1a:	dw 0004,0004,0004,0004,0004,0004,ffff,ffff
-Y2a170e2a:	dw 0000,0001,0002,0003,0002,0001
-Y2a170e36:	dw 0000,0001,0002,0001
+Y2a170dda:	db "AUDIO.EPC",00 ;; 2a170dda
+_first_nokey:	dw 0001	;; 2a170de4
+_first_opendoor:	dw 0001	;; 2a170de6
+_first_apple:	dw 0001	;; 2a170de8
+_first_knife:	dw 0001	;; 2a170dea
+_first_key:	dw 0001	;; 2a170dec
+_first_openmapdoor:	dw 0001	;; 2a170dee
+_first_nogem:	dw 0001	;; 2a170df0
+Y2a170df2:	dw 0000,0001,0002,0001				;; 2a170df2 ;; FlySeq0
+Y2a170dfa:	dw 0001,0002,0001,0000,ffff,fffe,ffff,0000	;; 2a170dfa ;; FlySeq1
+Y2a170e0a:	dw 0000,0001,0002,0003,0002,0001,0009,0009	;; 2a170e0a ;; FloatSeq
+Y2a170e1a:	dw 0004,0004,0004,0004,0004,0004,ffff,ffff	;; 2a170e1a ;; PhoenixSeq
+Y2a170e2a:	dw 0000,0001,0002,0003,0002,0001		;; 2a170e2a ;; DemonSeq
+Y2a170e36:	dw 0000,0001,0002,0001				;; 2a170e36 ;; FatSoSeq
 Y2a170e3e:	db "PLAYER",00
 Y2a170e45:	db "APPLE",00
 Y2a170e4b:	db "KNIFE",00
@@ -55456,39 +55489,62 @@ Y2a17104c:	db "THE GATE OPENS",00
 Y2a17105b:	db "YOU NEED A GEM TO PASS",00
 Y2a171072:	db "THE DOOR OPENS",00
 Y2a171081:	db "THE DOOR IS LOCKED",00
-Y2a171094:	dw 0001
-Y2a171096:	dw 0001
-Y2a171098:	dw 0001
-Y2a17109a:	dw 0001
-Y2a17109c:	dw 0026,000c,000d,000b,000e,000f,0012,0014,0023,0024,0025
-Y2a1710b2:	dw 0001,0000,0000,0000,0001,0001,0000,0001,0000,0000,0000
-Y2a1710c8:	dd Y2a171230,Y2a171236,Y2a17124d,Y2a17125f,Y2a17126f,Y2a171275,Y2a17127f,Y2a17128f
-		dd Y2a171914,Y2a171297,Y2a1712ab
-Y2a1710f4:	dw 0001,0001,0001,0001,ffff,ffff,ffff,ffff,0001,0001,0001
-Y2a17110a:	dw 0020,001f,001e,001d,001c,001d,001e,001f,0020
-Y2a17111c:	dw 0000,0001,0000,0002
-Y2a171124:	dw 0003,0005,0004,0006
-Y2a17112c:	dw 0007,0007,0008,0008
-Y2a171134:	dw 0004,0006,0008,000a,000c,000e
-Y2a171140:	dw 0000,0008,0000,0008
-Y2a171148:	dw 0001,0002,0003,0002
-Y2a171150:	dw 0008,0008,0000,0000,0000,0000,0000,0000,0000,0000,0008
-Y2a171166:	dw 0000,0000,0001,0002,0003,0004,0004,0003,0002,0001,0000
-Y2a17117c:	dw 0000,0000,0000,0000,0001,0001,0001,0001
+_first_switch:	dw 0001	;; 2a171094
+_first_elev:	dw 0001	;; 2a171096
+_first_hitknight:	dw 0001	;; 2a171098
+_first_touchgem:	dw 0001	;; 2a17109a
+_inv_shape:	;; 2a17109c
+		dw 0026,000c,000d,000b,000e,000f,0012,0014,0023,0024,0025
+_inv_xfm:	;; 2a1710b2
+		dw 0001,0000,0000,0000,0001,0001,0000,0001,0000,0000,0000
+_inv_getmsg:	;; 2a1710c8
+		dd Y2a171230,Y2a171236,Y2a17124d,Y2a17125f,Y2a17126f,Y2a171275,Y2a17127f,Y2a17128f
+		dd _xblademsg,Y2a171297,Y2a1712ab
+_inv_first:	;; 2a1710f4
+		dw 0001,0001,0001,0001,ffff,ffff,ffff,ffff,0001,0001,0001
+Y2a17110a:	;; 2a17110a ;; Expl2Seq
+		dw 0020,001f,001e,001d,001c,001d,001e,001f,0020
+Y2a17111c:	;; 2a17111c ;; SnakeSeq0
+		dw 0000,0001,0000,0002
+Y2a171124:	;; 2a171124 ;; SnakeSeq1
+		dw 0003,0005,0004,0006
+Y2a17112c:	;; 2a17112c ;; SnakeSeq2
+		dw 0007,0007,0008,0008
+Y2a171134:	;; 2a171134 ;; BollSeq
+		dw 0004,0006,0008,000a,000c,000e
+Y2a171140:	;; 2a171140 ;; BatSeq0
+		dw 0000,0008,0000,0008
+Y2a171148:	;; 2a171148 ;; BatSeq1
+		dw 0001,0002,0003,0002
+Y2a171150:	;; 2a171150 ;; KnightSeq0
+		dw 0008,0008,0000,0000,0000,0000,0000,0000,0000,0000,0008
+Y2a171166:	;; 2a171166 ;; KnightSeq1
+		dw 0000,0000,0001,0002,0003,0004,0004,0003,0002,0001,0000
+Y2a17117c:	;; 2a17117c ;; BeeSwarmSeq
+		dw 0000,0000,0000,0000,0001,0001,0001,0001
 		dw 0002,0002,0002,0002,0003,0003,0003,0003
 		dw 0003,0003,0003,0003,0003,0002,0002,0002
 		dw 0002,0001,0001,0001,0001,0000,0000,0000
-Y2a1711bc:	dw 0004,0005,0006,0007
-Y2a1711c4:	dw 0000,0001,0002,0003
-Y2a1711cc:	dw 0003,0004,0005,0006,0007,0006,0005,0004
-Y2a1711dc:	dw 0000,0001,0002,0001
-Y2a1711e4:	dw 0009,000a,000b,000c,000d,000e,000d,000c,000b,000a
-Y2a1711f8:	dw 0000,0001,0002,0001
-Y2a171200:	dw 0003,0002,0001,0001,0000,ffff,ffff,fffe
+Y2a1711bc:	;; 2a1711bc ;; CrocSeq0
+		dw 0004,0005,0006,0007
+Y2a1711c4:	;; 2a1711c4 ;; CrocSeq1
+		dw 0000,0001,0002,0003
+Y2a1711cc:	;; 2a1711cc ;; SkullSeq0
+		dw 0003,0004,0005,0006,0007,0006,0005,0004
+Y2a1711dc:	;; 2a1711dc ;; SkullSeq1
+		dw 0000,0001,0002,0001
+Y2a1711e4:	;; 2a1711e4 ;; JellyFishSeq
+		dw 0009,000a,000b,000c,000d,000e,000d,000c,000b,000a 2a17110a ;;
+Y2a1711f8:	;; 2a1711f8 ;; BadFishSeq
+		dw 0000,0001,0002,0001
+Y2a171200:	;; 2a171200 ;; FireBulletSeq
+		dw 0003,0002,0001,0001,0000,ffff,ffff,fffe
 		dw fffe,fffd,fffd,fffe,fffe,ffff,ffff,0000
 		dw 0001,0001,0002,0003
-Y2a171228:	dw 0010,0014
-Y2a17122c:	dw 0004,0003
+Y2a171228:	;; 2a171228 ;; MapSeq0
+		dw 0010,0014
+Y2a17122c:	;; 2a17122c ;; MapSeq1
+		dw 0004,0003
 Y2a171230:	db "FOOF!",00
 Y2a171236:	db "USE KEYS TO OPEN DOORS",00
 Y2a17124d:	db "YOU FOUND A KNIFE",00
@@ -55503,29 +55559,39 @@ Y2a1712c3:	db "Press UP/DOWN to toggle switch",00
 Y2a1712e2:	db "USE GEMS TO OPEN DOORS ON THE MAP",00
 Y2a171304:	db "YOUR FEEBLE ATTEMPT FAILS.",00
 Y2a17131f:	db "Press UP/DOWN to use elevator",00,00
-Y2a17133e:	dw 0008,0008,0008,0008,0009,000a,000b,000c,0026,0026,0026,0026,0026,000b,000a,0009
-Y2a17135e:	dw ffff,fffe,ffff,0000
-Y2a171366:	dw 0013,0013,0013,0013
+_blinkshtab:	;; 2a17133e
+		dw 0008,0008,0008,0008,0009,000a,000b,000c,0026,0026,0026,0026,0026,000b,000a,0009
+_pooftab:	;; 2a17135e
+		dw ffff,fffe,ffff,0000
+_fidgetseq:	;; 2a171366
+		dw 0013,0013,0013,0013
 		dw 0013,0010,0012,0010
 		dw 0013,0010,0012,0010
 		dw 0012,0012,0012,0012
-Y2a171386:	db 18,18,19,1a,1a,19,19
-Y2a17138d:	db 04,00,00,06,04,04,00
-Y2a171394:	db 48,49,48,49,48,48,49,48,49,49,48,48,48,49,49,49,4a,4a,4a,4a,4a
-Y2a1713a9:	dw 0000,0001,0002,0001
-Y2a1713b1:	dw 0000,0001,0002,0003,0002,0001
-X2a1713bd:	byte
-Y2a1713be:	dw 1000
-Y2a1713c0:	word
-Y2a1713c2:	word
-Y2a1713c4:	word
-Y2a1713c6:	word
-Y2a1713c8:	db 00,00,00,00,00,00,00,17,00,1c,00,00,00,18,1c,00
+Y2a171386:	;; 2a171386 ;; PlayerSeq0
+		db 18,18,19,1a,1a,19,19
+Y2a17138d:	;; 2a17138d ;; PlayerSeq1
+		db 04,00,00,06,04,04,00
+Y2a171394:	;; 2a171394 ;; PlayerSeq2
+		db 48,49,48,49,48,48,49,48,49,49,48,48,48,49,49,49,4a,4a,4a,4a,4a
+Y2a1713a9:	;; 2a1713a9 ;; FishSeq
+		dw 0000,0001,0002,0001
+Y2a1713b1:	;; 2a1713b1 ;; BirdSeq
+		dw 0000,0001,0002,0003,0002,0001
+X2a1713bd:	byte	;; 2a1713bd	;; (@) Unaccessed; alignment padding?
+__stklen:	dw 1000	;; 2a1713be
+_debug:		word	;; 2a1713c0
+_swrite:	word	;; 2a1713c2
+_designflag:	word	;; 2a1713c4
+_turtle:	word	;; 2a1713c6
+_mirrortab:	;; 2a1713c8
+		db 00,00,00,00,00,00,00,17,00,1c,00,00,00,18,1c,00
 		db 00,00,00,00,30,00,00,00,00,00,05,30,00,17,18,12
 		db 10,00,03,00,0c,00,08,00,29,00,20,08,18,0a,00,23
 		db 00,30
-Y2a1713fa:	word
-Y2a1713fc:	db "1234567890-="
+Y2a1713fa:	word	;; 2a1713fa ;; Moves ;; Local to loadsavewin().
+Y2a1713fc:	;; 2a1713fc ;; QwertyTab ;; Local to noisemaker().
+		db "1234567890-="
 		db "QWERTYUIOP[]"
 		db "ASDFGHJKL;'"
 		db "ZXCVBNM,./"
@@ -55587,11 +55653,10 @@ Y2a171600:	db ".",00
 Y2a171602:	db "m.",00
 Y2a171605:	db "INVENTORY",00
 Y2a17160f:	db "CONTROLS",00
-Y2a171618:	db '7', "REALLY QUIT?\r"
-		db '4', "YES\r"
-		db '2', "NO\r"
-		db 00
-Y2a171630:	db "YN",00
+Y2a171618:	;; 2a171618 ;; QuitMenu1
+		db "7REALLY QUIT?\r4YES\r2NO\r",00
+Y2a171630:	;; 2a171630 ;; QuitMenu2
+		db "YN",00
 Y2a171633:	db "temp",00
 Y2a171638:	db " Yikes!  An error has occured.  Please report this code:  ",00
 Y2a171673:	db "-",00
@@ -55604,9 +55669,9 @@ Y2a1716f4:	db "            Run this game without any TSR's in memory\r\n",00
 Y2a17172c:	db "            Buy more memory (640K is required)\r\n",00
 Y2a17175d:	db "            Turn off the digital Sound Blaster effects -- they eat up RAM\r\n",00
 Y2a1717a9:	db " The problem may be due to not enough free RAM or disk space.",00
-X2a1717e7:	byte
-Y2a1717e8:	word
-Y2a1717ea:	word
+X2a1717e7:	byte	;; 2a1717e7	;; (@) Unaccessed; alignment padding?
+Y2a1717e8:	word	;; 2a1717e8	;; Local to _initinfo
+Y2a1717ea:	word	;; 2a1717ea	;; ObjX ;; Local to _objdesign
 Y2a1717ec:	db "kind:            ",00
 Y2a1717fe:	db "stat:            ",00
 Y2a171810:	db "  xd:            ",00
@@ -55624,25 +55689,26 @@ Y2a17188a:	db "Load:",00
 Y2a171890:	db "Dis Y:",00
 Y2a171897:	db "New board?",00
 Y2a1718a2:	db "Save:",00
-Y2a1718a8:	word
-Y2a1718aa:	db "JILL1",00
-Y2a1718b0:	db "jill1.sha",00
-Y2a1718ba:	db "jill1.vcl",00
-Y2a1718c4:	db "jill1.cfg",00
-Y2a1718ce:	db "jill.dma",00
-Y2a1718d7:	db "map.jn1",00
-Y2a1718df:	db "intro.jn1",00
-Y2a1718e9:	db "funky.ddt",00
-Y2a1718f3:	db "The knight slices Jill in half",00
-Y2a171912:	word
-Y2a171914:	db "YOU FIND A SPINNING BLADE",00
-Y2a17192e:	db "BLADE  ",00
-Y2a171936:	db "jn1save",00
-Y2a17193e:	db " Epic MegaGames, 10406 Holbrook Drive, Potomac MD 20854",00
-Y2a171976:	dw 0018
-Y2a171978:	dw 007f
-Y2a17197a:	dw 0001
-Y2a17197c:	db '7', "PICK A CHOICE:\r"
+_xdemoflag:	word	;; 2a1718a8
+_pgmname:	db "JILL1",00		;; 2a1718aa
+_xshafile:	db "jill1.sha",00	;; 2a1718b0
+_xvocfile:	db "jill1.vcl",00	;; 2a1718ba
+_cfgfname:	db "jill1.cfg",00	;; 2a1718c4
+_dmafile:	db "jill.dma",00	;; 2a1718ce
+_mapboard:	db "map.jn1",00		;; 2a1718d7
+_introboard:	db "intro.jn1",00	;; 2a1718df
+_xintrosong:	db "funky.ddt",00	;; 2a1718e9
+_xknightmsg:	db "The knight slices Jill in half",00	;; 2a1718f3
+_xmsgdelay:	word	;; 2a171912
+_xblademsg:	db "YOU FIND A SPINNING BLADE",00	;; 2a171914
+_xbladename:	db "BLADE  ",00		;; 2a17192e
+_savepfx:	db "jn1save",00		;; 2a171936
+_erroraddr:	db " Epic MegaGames, 10406 Holbrook Drive, Potomac MD 20854",00	;; 2a17193e
+_facetable:	dw 0018	;; 2a171976
+_xstartlevel:	dw 007f	;; 2a171978
+_xbordercol:	dw 0001	;; 2a17197a
+_menu1:		;; 2a17197c
+		db '7', "PICK A CHOICE:\r"
 		db '2', "PLAY\r"
 		db '2', "RESTORE\r"
 		db '5', "STORY\r"
@@ -55654,12 +55720,30 @@ Y2a17197c:	db '7', "PICK A CHOICE:\r"
 		db '6', "EPIC'S BBS\r"
 		db '4', "QUIT\r"
 		db 00
-Y2a1719ed:	db "PRSIOCDNEQ",05,10,00
-Y2a1719fa:	dw 000a
-Y2a1719fc:	dd Y2a17272d,Y2a172737,Y2a172738,Y2a172739,Y2a17273a,Y2a17273b,Y2a17273c,Y2a17273d,Y2a17273e,Y2a17273f
-Y2a171a24:	db 64,00,00,00,00,00,00,00,00,00
-Y2a171a2e:	dd Y2a172740,Y2a17274c,Y2a17274d,Y2a17274e,Y2a17274f,Y2a172750,Y2a172751,Y2a172752,Y2a172753,Y2a172754
-Y2a171a56:	db 03,10,19,19, 0f,dc,dc,dc, 08,dc, 19,07, 0f,dc,dc,dc, 08,dc,"  ", 0f,dc,dc,dc, 08,dc, 18
+_menu2:		db "PRSIOCDNEQ",05,10,00	;; 2a1719ed
+_menuc:		dw 000a				;; 2a1719fa
+_demoboard:	;; 2a1719fc
+		dd Y2a17272d,Y2a172737,Y2a172738,Y2a172739,Y2a17273a,Y2a17273b,Y2a17273c,Y2a17273d,Y2a17273e,Y2a17273f
+_demolvl:	;; 2a171a24
+		db 64,00,00,00,00,00,00,00,00,00
+_demoname:	;; 2a171a2e
+		dd Y2a172740,Y2a17274c,Y2a17274d,Y2a17274e,Y2a17274f,Y2a172750,Y2a172751,Y2a172752,Y2a172753,Y2a172754
+
+;; The format is determined by the uncrunch routine in the UNCRUNCH segment and is as follows:
+;;	Initialize Attr = 0, Beg = ExP
+;;	Do the following for InP (with lead byte Ch = *InP):
+;;	00-0f (00+Fg): Set Attr[0-3] = Fg
+;;	10-17 (10+Bg): Set Attr[4-6] = Bg
+;;	18: Carriage return: ExP = Beg += 0x50 words;
+;;	19 J: Copy *ExP++ = Attr:' ' J+1 times
+;;	1a J Ch: Copy *ExP++ = Attr:Ch J+1 times
+;;	1b: Flip Attr[7]: blink on/off
+;;	20-ff (Ch): Copy *ExP++ = Attr:Ch
+;;	b3 │, b4 ┤, b9: ╣, ba ║, bb ╗, bc ╝, bf ┐
+;;	c0 └, c1 ┴, c2 ┬, c3 ├, c4 ─, c5 ┼, c8 ╚, c9 ╔, ca ╩, cb ╦, cc ╠, cd ═, ce ╬
+;;	d9 ┘, da ┌, db █, dc ▄, dd ȳ, de Ȳ, df ▀
+_JILLB:		;; 2a171a56
+		db 03,10,19,19, 0f,dc,dc,dc, 08,dc, 19,07, 0f,dc,dc,dc, 08,dc,"  ", 0f,dc,dc,dc, 08,dc, 18
 		db 19,19,0f, db, 07,db,db, 03,db, 19,04, 00,db,"  ", 0f,db, 07,db,db, 03,db,"  ", 0f,db, 07,db,db, 03,db, 18
 		db "  ", 0b,"A", 0a,"n ", 0b,"E", 0a,"p", 0b,"i", 0a,"c ", 0e,"M", 0c,"e", 0e,"g", 0c,"a", 0e,"G", 0c,"a", 0e,"m", 0c,"e", 0e,"s"
 		db 19,06, 0f,db, 07,db,db, 03,db,"  ", 0f,dc,dc,dc, 08,dc,"  ", 0f,db, 07,db,db, 03,db,"  ", 0f,db, 07,db,db, 03,db
@@ -55714,7 +55798,8 @@ Y2a171a56:	db 03,10,19,19, 0f,dc,dc,dc, 08,dc, 19,07, 0f,dc,dc,dc, 08,dc,"  ", 0
 		db 0d,"i", 09,"n ", 0f,"C", 0b,"o", 0f,"m", 0b,"p", 0f,"u", 0b,"t", 0f,"e", 0b,"r "
 		db 0d,"E", 09,"n", 0d,"t", 09,"e", 0d,"r", 09,"t", 0d,"a", 09,"i", 0d,"n", 09,"m", 0d,"e", 09,"n", 0d,"t", 18
 		db 00
-Y2a171f3b:	db 0c,10,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+_JILLE:		;; 2a171f3b
+		db 0c,10,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
 		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
 		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
 		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
@@ -55769,14 +55854,16 @@ Y2a171f3b:	db 0c,10,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16
 		db 19,29, df, 14,dc, 10,df, 19,02, 0f,"Tim Sweeney ", 07,"(author of Jill)", 18
 		db 18
 		db 00
-Y2a172661:	word
-Y2a172663:	dw 04e4
-Y2a172665:	db "Tim Sweeney",00
-Y2a172671:	db "Epic MegaGames",00
-Y2a172680:	db "Move Jill",00
-Y2a17268a:	db "Jill of the Jungle",00
-Y2a17269d:	dd Y2a172755,Y2a172768,Y2a172786,Y2a1727a3
-Y2a1726ad:	dd Y2a1727c0,Y2a1727dd,Y2a1727ff,Y2a17281e,Y2a172833,Y2a172835,Y2a172837,Y2a172854
+_e_len:		word	;; 2a172661
+_b_len:		dw 04e4	;; 2a172663
+_v_producer:	db "Tim Sweeney",00		;; 2a172665
+_v_publisher:	db "Epic MegaGames",00		;; 2a172671
+_v_movename:	db "Move Jill",00		;; 2a172680
+_v_title:	db "Jill of the Jungle",00	;; 2a17268a
+_fidgetmsg:	;; 2a17269d
+		dd Y2a172755,Y2a172768,Y2a172786,Y2a1727a3
+_leveltxt:	;; 2a1726ad
+		dd Y2a1727c0,Y2a1727dd,Y2a1727ff,Y2a17281e,Y2a172833,Y2a172835,Y2a172837,Y2a172854
 		dd Y2a17286e,Y2a17288e,Y2a1728ac,Y2a1728d4,Y2a1728f6,Y2a172920,Y2a172940,Y2a172959
 		dd Y2a17298a,Y2a17298c,Y2a172990,Y2a172994,Y2a172998,Y2a1729ba,Y2a1729be,Y2a1729c2
 		dd Y2a1729c6,Y2a1729ca,Y2a1729ce,Y2a1729d2,Y2a1729d6,Y2a1729da,Y2a1729de,Y2a1729df
@@ -55836,23 +55923,24 @@ Y2a1729d6:	db "28\r",00
 Y2a1729da:	db "29\r",00
 Y2a1729de:	db "",00
 Y2a1729df:	db "",00
-Y2a1729e0:	word
-Y2a1729e2:	db 00,13,02,02,04,05,06,08,08,08,14,15,05,13,ff,16
+__doserrno:	word	;; 2a1729e0
+__dosErrorToSV:	;; 2a1729e2
+		db 00,13,02,02,04,05,06,08,08,08,14,15,05,13,ff,16
 		db 05,11,02,ff,ff,ff,ff,ff,ff,ff,ff,ff,ff,ff,ff,ff
 		db 05,05,ff,ff,ff,ff,ff,ff,ff,ff,ff,ff,ff,ff,ff,ff
 		db ff,ff,0f,ff,23,02,ff,0f,ff,ff,ff,ff,13,ff,ff,02
 		db 02,05,0f,02,ff,ff,ff,13,ff,ff,ff,ff,ff,ff,ff,ff
 		db 23,ff,ff,ff,ff,23,ff,13,ff,00
-Y2a172a3c:	dd A27eb0000
-Y2a172a40:	dd A27eb0000
-Y2a172a44:	dd A27eb0000
-Y2a172a48:	word
-Y2a172a4a:	dword
-Y2a172a4e:	dword
-Y2a172a52:	dword
-Y2a172a56:	word
-Y2a172a58:	;; The actual table is at 2a172a59.
-		db 00
+__exitbuf:	dd A27eb0000	;; 2a172a3c
+__exitfopen:	dd A27eb0000	;; 2a172a40
+__exitopen:	dd A27eb0000	;; 2a172a44
+__atexitcnt:	word	;; 2a172a48
+__first:	dword	;; 2a172a4a
+__last:		dword	;; 2a172a4e
+__rover:	dword	;; 2a172a52
+Y2a172a56:	word	;; 2a172a56	;; PspN ;; Local to B28220003();
+__ctype:	;; 2a172a58 ;; The actual table is at 2a172a59.
+		db 00	;; __ctype[-1]
 		db 20,20,20,20,20,20,20,20,20,21,21,21,21,21,20,20
 		db 20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20
 		db 01,40,40,40,40,40,40,40,40,40,40,40,40,40,40,40
@@ -55869,133 +55957,139 @@ Y2a172a58:	;; The actual table is at 2a172a59.
 		db 00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00
 		db 00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00
 		db 00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00
-X2a172b59:	byte
-Y2a172b5a:	dw 2001,2002,2002,a004,a002,ffff,ffff,ffff
+X2a172b59:	byte	;; 2a172b59	;; (@) Not directly accssed; alignment padding?
+__openfd:	;; 2a172b5a
+		dw 2001,2002,2002,a004,a002,ffff,ffff,ffff
 		dw ffff,ffff,ffff,ffff,ffff,ffff,ffff,ffff
 		dw ffff,ffff,ffff,ffff
-Y2a172b82:	dw 4000
-Y2a172b84:	dw ffff
+__fmode:	dw 4000	;; 2a172b82
+__notUmask:	dw ffff	;; 2a172b84
 Y2a172b86:	db "print scanf : floating point formats not linked\r\n",00
 Y2a172bb8:	db "(null)",00
 Y2a172bbf:	db "0123456789ABCDEF",00
-Y2a172bd0:	db 14,14,01,14,15,14,14,14,14,02,00,14,03,04,14,09
+Y2a172bd0:	;; CTypeTab ;; Local to __VPRINTER
+		db 14,14,01,14,15,14,14,14,14,02,00,14,03,04,14,09
 		db 05,05,05,05,05,05,05,05,05,14,14,14,14,14,14,14
 		db 14,14,14,14,0f,17,0f,08,14,14,14,07,14,16,14,14
 		db 14,14,14,14,14,14,14,0d,14,14,14,14,14,14,14,14
 		db 14,14,10,0a,0f,0f,0f,08,0a,14,14,06,14,12,0b,0e
 		db 14,14,11,14,0c,14,14,0d,14,14,14,14,14,14,14,00
-Y2a172c30:	ds 000b
+__video:	;; 2a172c30
+		ds 000b
 		ds 2*0002
-Y2a172c3f:	dw 0001
+_directvideo:	dw 0001	;; 2a172c3f
 Y2a172c41:	db "COMPAQ",00
-Y2a172c48:	dd 00000001
-Y2a172c4c:	dw offset A076a019f
-Y2a172c4e:	dw offset A076a019f
-Y2a172c50:	dw offset A076a0423
-Y2a172c52:	dd A076a03a9
-Y2a172c56:	dd A076a03ae,A076a03ae,A076a03ae
+Y2a172c48:	dd 00000001		;; 2a172c48	;; RandSeed.
+Y2a172c4c:	dw offset A076a019f	;; 2a172c4c	;; CheckFP0()	;; Local to __turboCrt/__cvtfak.
+Y2a172c4e:	dw offset A076a019f	;; 2a172c4e	;; CheckFP1()	;; Local to __exit().
+Y2a172c50:	dw offset __c0crtinit	;; 2a172c50	;; InitCRT()	;; Local to __turboCrt/__cvtfak.
+__RealCvtVector:	dd A076a03a9	;; 2a172c52
+__ScanTodVector:	dd A076a03ae,A076a03ae,A076a03ae	;; 2a172c56	;; (@) Unaccessed.
 
 ;; BSS Area
-Y2a172c62:	ds 2*0080
-Y2a172d62:	word
-Y2a172d64:	ds 0100
-Y2a172e64:	ds 0050
-Y2a172eb4:	ds 2*0040
-Y2a172f34:	ds 4*0080
-Y2a173134:	ds 2*0040
-Y2a1731b4:	ds 2*0040
-Y2a173234:	ds 4*0040
-Y2a173334:	dword
-Y2a173338:	ds 2*0004*0100
-Y2a173b38:	ds 0010
-Y2a173b48:	word
-Y2a173b4a:	word
-Y2a173b4c:	byte
-Y2a173b4d:	word
-Y2a173b4f:	word
-Y2a173b51:	word
-Y2a173b53:	byte
-Y2a173b54:	word
-Y2a173b56:	word
-Y2a173b58:	word
-Y2a173b5a:	dword
-Y2a173b5e:	dword
-Y2a173b62:	dword
-Y2a173b66:	byte
-Y2a173b67:	byte
-Y2a173b68:	ds 2*0100
-Y2a173d68:	byte
-Y2a173d69:	byte
-Y2a173d6a:	byte
-Y2a173d6b:	byte
-Y2a173d6c:	byte
-X2a173d6d:	byte
-Y2a173d6e:	word
-Y2a173d70:	word
-Y2a173d72:	word
-Y2a173d74:	word
-Y2a173d76:	word
-Y2a173d78:	word
-Y2a173d7a:	word
-Y2a173d7c:	word
-Y2a173d7e:	word
-Y2a173d80:	word
-Y2a173d82:	word
-Y2a173d84:	word
-Y2a173d86:	word
-Y2a173d88:	word
-Y2a173d8a:	word
-Y2a173d8c:	word
-Y2a173d8e:	word
-Y2a173d90:	word
-Y2a173d92:	ds 0100
-Y2a173e92:	word
-Y2a173e94:	word
-Y2a173e96:	word
-Y2a173e98:	word
-Y2a173e9a:	word
-Y2a173e9c:	word
-Y2a173e9e:	word
-Y2a173ea0:	word
-Y2a173ea2:	word
-Y2a173ea4:	word
-Y2a173ea6:	ds 0020
-Y2a173ec6:	word
-Y2a173ec8:	word
-Y2a173eca:	word
-Y2a173ecc:	word
-Y2a173ece:	word
-Y2a173ed0:	word
-Y2a173ed2:	ds 0016
-X2a173ee8:	ds 0040
-Y2a173f28:	dword
-Y2a173f2c:	dword
-Y2a173f30:	word
-Y2a173f32:	word
-Y2a173f34:	ds 2*0032
-Y2a173f98:	ds 2*0032
-Y2a173ffc:	ds 0032
-Y2a17402e:	ds 2*0032
-Y2a174092:	dword
-Y2a174096:	ds 4*0080
-Y2a174296:	ds 2*0028
-Y2a1742e6:	ds 4*0032
-Y2a1743ae:	word
-Y2a1743b0:	word
-Y2a1743b2:	word
-Y2a1743b4:	ds 4*0028
-Y2a174454:	word
-Y2a174456:	word
-Y2a174458:	word
-Y2a17445a:	word
-Y2a17445c:	word
-X2a17445e:	word
-Y2a174460:	word
-Y2a174462:	word
-Y2a174464:	word
-Y2a174466:	word
-Y2a174468:	ds 2*0080*0040
-Y2a178468:	word		;; 00
+Y2a172c62:	;; 2a172c62	;; (@) Beginning of the BSS segment.
+;; Object Shape Table (externally stored in _shafile).
+_shlen:		ds 2*0080	;; 2a172c62
+_shafile:	word		;; 2a172d62
+_colortab:	ds 0100		;; 2a172d64
+_shm_fname:	ds 0050		;; 2a172e64
+_shm_want:	ds 2*0040	;; 2a172eb4
+_shoffset:	ds 4*0080	;; 2a172f34
+_shm_flags:	ds 2*0040	;; 2a173134
+_shm_tbllen:	ds 2*0040	;; 2a1731b4
+_shm_tbladdr:	ds 4*0040	;; 2a173234
+_LOST:		dword		;; 2a173334
+_cmtab:		ds 2*0004*0100	;; 2a173338
+_mainvp:	ds 0010		;; 2a173b38
+_origmode:	word		;; 2a173b48
+_pagemode:	word		;; 2a173b4a
+_pixvalue:	byte		;; 2a173b4c
+_pagelen:	word		;; 2a173b4d
+_drawofs:	word		;; 2a173b4f
+_showofs:	word		;; 2a173b51
+_x_ourmode:	byte		;; 2a173b53
+_pageshow:	word		;; 2a173b54
+_pagedraw:	word		;; 2a173b56
+_pixelsperbyte:	word		;; 2a173b58
+_oldint9:	dword		;; 2a173b5a
+_bhead:		dword		;; 2a173b5e
+_btail:		dword		;; 2a173b62
+_k_ctrl:	byte		;; 2a173b66
+_k_alt:		byte		;; 2a173b67
+_keydown:	ds 2*0100	;; 2a173b68
+_bioscall:	byte		;; 2a173d68
+_k_shift:	byte		;; 2a173d69
+_k_numlock:	byte		;; 2a173d6a
+_k_rshift:	byte		;; 2a173d6b
+_k_lshift:	byte		;; 2a173d6c
+X2a173d6d:	byte		;; 2a173d6d	;; (@) Unaccessed; alignment padding?
+_curhi:		word		;; 2a173d6e
+_curlo:		word		;; 2a173d70
+_curback:	word		;; 2a173d72
+_cursorchar:	word		;; 2a173d74
+Y2a173d76:	word		;; 2a173d76	;; ExTicks	;; Local to _getmac().
+Y2a173d78:	word		;; 2a173d78	;; NextTicks	;; Local to _getmac().
+_dx1:		word		;; 2a173d7a
+_dy1:		word		;; 2a173d7c
+_fire1:		word		;; 2a173d7e
+_flow1:		word		;; 2a173d80
+_fire2:		word		;; 2a173d82
+_joyxc:		word		;; 2a173d84
+_joyyc:		word		;; 2a173d86
+_joyyd:		word		;; 2a173d88
+_key:		word		;; 2a173d8a
+_dx1old:	word		;; 2a173d8c
+_dy1old:	word		;; 2a173d8e
+_joyxl:		word		;; 2a173d90
+_keybuf:	ds 0100		;; 2a173d92
+_joyxr:		word		;; 2a173e92
+_dx1hold:	word		;; 2a173e94
+_dy1hold:	word		;; 2a173e96
+_joyyu:		word		;; 2a173e98
+_mactime:	word		;; 2a173e9a
+_maclen:	word		;; 2a173e9c
+_joyflag:	word		;; 2a173e9e
+_macofs:	word		;; 2a173ea0
+_fire1off:	word		;; 2a173ea2
+_fire2off:	word		;; 2a173ea4
+_macfname:	ds 0020		;; 2a173ea6
+_macrecord:	word		;; 2a173ec6
+_joyxsense:	word		;; 2a173ec8
+_joyysense:	word		;; 2a173eca
+_macplay:	word		;; 2a173ecc
+_macabort:	word		;; 2a173ece
+_macaborted:	word		;; 2a173ed0
+_cf:		ds 0016		;; 2a173ed2
+X2a173ee8:	ds 0040		;; 2a173ee8	;; (@) Unaccessed. Padding space in _cf.
+_SOUNDS:	dword		;; 2a173f28
+_memvoc:	dword		;; 2a173f2c
+_oldpri:	word		;; 2a173f30
+_vocpri:	word		;; 2a173f32	;; (@) Unaccessed.
+_vocused:	ds 2*0032	;; 2a173f34
+_vocrate:	ds 2*0032	;; 2a173f98
+_vocnum:	ds 0032		;; 2a173ffc
+_voclen:	ds 2*0032	;; 2a17402e
+_textmsg:	dword		;; 2a174092
+_soundmac:	ds 4*0080	;; 2a174096
+_textlen:	ds 2*0028	;; 2a174296
+_vocposn:	ds 4*0032	;; 2a1742e6
+_oldfreq:	word		;; 2a1743ae
+_clockrate:	word		;; 2a1743b0
+_soundlen:	word		;; 2a1743b2
+_textposn:	ds 4*0028	;; 2a1743b4
+_soundptr:	word		;; 2a174454
+_textmsglen:	word		;; 2a174456
+_clockcount:	word		;; 2a174458
+_soundcount:	word		;; 2a17445a
+_notepriority:	word		;; 2a17445c
+_samppriority:	word		;; 2a17445e	;; (@) Unaccessed.
+_lastwater:	word		;; 2a174460
+_fidgetnum:	word		;; 2a174462
+_oldx0:		word		;; 2a174464
+_oldy0:		word		;; 2a174466
+_bd:		ds 2*0080*0040	;; 2a174468
+_pl:		;; 2a178468
+		word		;; 00
 		word		;; 02
 		word		;; 04
 		ds 2*0010	;; 06
@@ -56003,72 +56097,73 @@ Y2a178468:	word		;; 00
 		word		;; 2a
 		dword		;; 2c
 		ds 0016		;; 30
-Y2a1784ae:	ds 8*0258
-Y2a17976e:	ds 1f*0102
-Y2a17b6ac:	ds 000c*000a
-Y2a17b724:	ds 003c
-Y2a17b760:	ds 0010
-Y2a17b770:	dword
-Y2a17b774:	word
-Y2a17b776:	word
-Y2a17b778:	ds 2*0045
-Y2a17b802:	ds 2*0045
-Y2a17b88c:	ds 4*000a
-Y2a17b8b4:	dword
-Y2a17b8b8:	ds 0058
-Y2a17b910:	ds 4*0045
-Y2a17ba24:	ds 0020
-Y2a17ba44:	dword
-Y2a17ba48:	ds 0010
-Y2a17ba58:	word
-Y2a17ba5a:	word
-Y2a17ba5c:	word
-Y2a17ba5e:	ds 4*0045
-Y2a17bb72:	word
-Y2a17bb74:	word
-Y2a17bb76:	ds 0006*000c
-Y2a17bbbe:	ds 0040
-Y2a17bbfe:	ds 0020
-Y2a17bc1e:	word
-Y2a17bc20:	ds 0020
-Y2a17bc40:	ds 2*0045
-Y2a17bcca:	ds 2*0045
-Y2a17bd54:	ds 0058
-Y2a17bdac:	word
-Y2a17bdae:	ds 2*00c0
-Y2a17bf2e:	ds 0003*0100
-Y2a17c22e:	ds 2*0006
-Y2a17c23a:	word
-Y2a17c23c:	word
-Y2a17c23e:	ds 2*0045
-Y2a17c2c8:	word
-Y2a17c2ca:	word
-Y2a17c2cc:	word
-Y2a17c2ce:	word
-Y2a17c2d0:	word
-Y2a17c2d2:	word
-Y2a17c2d4:	ds 0080*0014
-Y2a17ccd4:	word
-Y2a17ccd6:	word
-Y2a17ccd8:	word
-Y2a17ccda:	word
-Y2a17ccdc:	word
-Y2a17ccde:	dword
-Y2a17cce2:	ds 4*0020
-Y2a17cd62:	word
-X2a17cd64:	ds 000c
+_info:		ds 8*0258	;; 2a1784ae
+_objs:		ds 001f*0102	;; 2a17976e
+_hiname:	ds 000c*000a	;; 2a17b6ac
+_botmsg:	ds 003c		;; 2a17b724
+_botvp:		ds 0010		;; 2a17b760
+_cmdvp:		dword		;; 2a17b770
+_botcol:	word		;; 2a17b774
+_bottime:	word		;; 2a17b776
+_kindxl:	ds 2*0045	;; 2a17b778
+_kindyl:	ds 2*0045	;; 2a17b802
+_hiscore:	ds 4*000a	;; 2a17b88c
+_gamevp:	dword		;; 2a17b8b4
+_ourwin:	ds 0058		;; 2a17b8b8
+_kindmsg:	ds 4*0045	;; 2a17b910
+_oursong:	ds 0020		;; 2a17ba24
+_statvp:	dword		;; 2a17ba44
+_tempvp:	ds 0010		;; 2a17ba48
+_demonum:	word		;; 2a17ba58
+_scrnxs:	word		;; 2a17ba5a
+_scrnys:	word		;; 2a17ba5c
+_kindname:	ds 4*0045	;; 2a17ba5e
+_scrollxd:	word		;; 2a17bb72
+_scrollyd:	word		;; 2a17bb74
+_savename:	ds 0006*000c	;; 2a17bb76
+_tempname:	ds 0040		;; 2a17bbbe
+_curlevel:	ds 0020		;; 2a17bbfe
+_numobjs:	word		;; 2a17bc1e
+_newlevel:	ds 0020		;; 2a17bc20
+_kindtable:	ds 2*0045	;; 2a17bc40
+_kindscore:	ds 2*0045	;; 2a17bcca
+_levelwin:	ds 0058		;; 2a17bd54
+_gameover:	word		;; 2a17bdac
+_scrnobjs:	ds 2*00c0	;; 2a17bdae
+_oldvgapal:	ds 0003*0100	;; 2a17bf2e
+_stateinfo:	ds 2*0006	;; 2a17c22e
+_statmodflg:	word		;; 2a17c23a
+_gamecount:	word		;; 2a17c23c
+_kindflags:	ds 2*0045	;; 2a17c23e
+_oldscrollxd:	word		;; 2a17c2c8
+_oldscrollyd:	word		;; 2a17c2ca
+_oldlevelnum:	word		;; 2a17c2cc
+_numscrnobjs:	word		;; 2a17c2ce
+_levelmsgclock:	word		;; 2a17c2d0
+_disy:		word		;; 2a17c2d2
+_updtab:	ds 0080*0014	;; 2a17c2d4
+_WORX_AX:	word		;; 2a17ccd4
+_WORX_BX:	word		;; 2a17ccd6
+_WORX_DX:	word		;; 2a17ccd8
+_WORX_DI:	word		;; 2a17ccda
+_WORX_ES:	word		;; 2a17ccdc
+_RSC_AREA:	dword		;; 2a17ccde
+__atexittbl:	ds 4*0020	;; 2a17cce2
+Y2a17cd62:	word		;; 2a17cd62	;; VideoIntBP	;; Local to __VideoInt().
+Y2a17cd64:	;; 2a17cd64	;; (@) End of the BSS segment.
+X2a17cd64:	ds 000c		;; 2a17cd64	;; (@) Unaccessed.
 
 Segment 36ee ;; Stack Area
-Y36ee0000:	ds 00c0	;; 2a17cd70
-Y36ee00c0:	ds 000c	;; 2a17ce30
-Y36ee00cc:	dword	;; 2a17ce3c
-Y36ee00d0:	dword	;; 2a17ce40
-Y36ee00d4:	word	;; 2a17ce44
-Y36ee00d6:	word	;; 2a17ce46
-Y36ee00d8:	word	;; 2a17ce48
-Y36ee00da:	word	;; 2a17ce4a
-Y36ee00dc:	word	;; 2a17ce4c
-Y36ee00de:	word	;; 2a17ce4e
-Y36ee00e0:	dword	;; 2a17ce50
-Y36ee00e4:	dw ffff	;; 2a17ce54
-Y36ee00e6:	;; 2a17ce56
+emws_limitSP:		ds 00c0	;; 2a17cd70 ;; 36ee0000
+emws_initialSP:		ds 000c	;; 2a17ce30 ;; 36ee00c0
+emws_saveVector:	dword	;; 2a17ce3c ;; 36ee00cc
+emws_nmiVector:		dword	;; 2a17ce40 ;; 36ee00d0
+emws_status:		word	;; 2a17ce44 ;; 36ee00d4
+emws_control:		word	;; 2a17ce46 ;; 36ee00d6
+emws_TOS:		word	;; 2a17ce48 ;; 36ee00d8
+emws_adjust:		word	;; 2a17ce4a ;; 36ee00da
+emws_fixSeg:		word	;; 2a17ce4c ;; 36ee00dc
+emws_BPsafe:		word	;; 2a17ce4e ;; 36ee00de
+emws_stamp:		dword	;; 2a17ce50 ;; 36ee00e0
+emws_version:		dw ffff	;; 2a17ce54 ;; 36ee00e4
+emuTop@:		;; 2a17ce56 ;; 36ee00e6
