@@ -1,5 +1,12 @@
+Segment 0040 ;; DOS Segment.
+Y00400000:
+Y0040001a: word	;; 0040001a	;; Handler queue head.
+Y0040001c: word ;; 0040001c	;; Handler queue tail.
+Y00400063: word	;; 00400063	;; Port number.
+Y0040006c: word	;; 0040006c	;; Clock.
+
 ;; CS:IP = 0000:0000, SS:SP = 2943:00e6
-;; Relocated to 076a (under Linux), 140c (under Windows). 
+;; Relocated to 076a under Linux; previously to 140c under Windows.
 
 ;; === Top-Level Runtime System ===
 Segment 076a ;; C0L:C0L
@@ -60,7 +67,7 @@ L076a0090:
    cmp BP,DI	;;; 076A:0095 3BEF
    jnb L076a009c	;;; 076A:0097 7303
 L076a0099:
-jmp near L076a01af	;;; 076A:0099 E91301
+jmp near A076a01af	;;; 076A:0099 E91301
 L076a009c:
    mov BX,DI	;;; 076A:009C 8BDF
    add BX,DX	;;; 076A:009E 03DA
@@ -102,8 +109,8 @@ L076a009c:
    call far A1a3b307b	;;; 076A:0102 9A7B303B1A
    push AX	;;; 076A:0107 50
    call far A22bc0008	;;; 076A:0108 9A0800BC22
+
 A076a010d:
-L076a010d:
    mov DS,[CS:offset Y076a01c7]	;;; 076A:010D 2E8E1EC701
    call far A076a0172	;;; 076A:0112 9A72016A07
    push CS	;;; 076A:0117 0E
@@ -112,11 +119,12 @@ L076a010d:
    mov AH,4C	;;; 076A:011E B44C
    mov AL,[BP+04]	;;; 076A:0120 8A4604
    int 21	;;; 076A:0123 CD21
-A076a0125:
+
+B076a0125:
    mov CX,000E	;;; 076A:0125 B90E00
    nop	;;; 076A:0128 90
    mov DX,002F	;;; 076A:0129 BA2F00
-jmp near L076a01b6	;;; 076A:012C E98700
+jmp near A076a01b6	;;; 076A:012C E98700
 
 B076a012f:
    push DS	;;; 076A:012F 1E
@@ -139,7 +147,7 @@ B076a012f:
    mov AX,2500	;;; 076A:0164 B80025
    mov DX,CS	;;; 076A:0167 8CCA
    mov DS,DX	;;; 076A:0169 8EDA
-   mov DX,offset A076a0125	;;; 076A:016B BA2501
+   mov DX,offset B076a0125	;;; 076A:016B BA2501
    int 21	;;; 076A:016E CD21
    pop DS	;;; 076A:0170 1F
 ret near	;;; 076A:0171 C3
@@ -179,16 +187,18 @@ B076a01a7:
    mov BX,0002	;;; 076A:01A9 BB0200
    int 21	;;; 076A:01AC CD21
 ret near	;;; 076A:01AE C3
-L076a01af:
+
+A076a01af:
    mov CX,001E	;;; 076A:01AF B91E00
    nop	;;; 076A:01B2 90
    mov DX,003D	;;; 076A:01B3 BA3D00
-L076a01b6:
+
+A076a01b6:
    mov DS,[CS:offset Y076a01c7]	;;; 076A:01B6 2E8E1EC701
    call near B076a01a7	;;; 076A:01BB E8E9FF
    mov AX,0003	;;; 076A:01BE B80300
    push AX	;;; 076A:01C1 50
-   call far L076a010d	;;; 076A:01C2 9A0D016A07
+   call far A076a010d	;;; 076A:01C2 9A0D016A07
 
 Y076a01c7:	word
 Y076a01c9:	byte
@@ -292,7 +302,7 @@ L076a0285:
 L076a0287:
 ret near	;;; 076A:0287 C3
 L076a0288:
-jmp far L076a01af	;;; 076A:0288 EAAF016A07
+jmp far A076a01af	;;; 076A:0288 EAAF016A07
 L076a028d:
    pop CX	;;; 076A:028D 59
    add CX,DX	;;; 076A:028E 03CA
@@ -339,7 +349,7 @@ A076a02d0:
    mov DS,DX	;;; 076A:02EE 8EDA
    or AX,DX	;;; 076A:02F0 0BC2
    jnz L076a02f9	;;; 076A:02F2 7505
-jmp far L076a01af	;;; 076A:02F4 EAAF016A07
+jmp far A076a01af	;;; 076A:02F4 EAAF016A07
 L076a02f9:
    xor AX,AX	;;; 076A:02F9 33C0
    mov CX,FFFF	;;; 076A:02FB B9FFFF
@@ -363,7 +373,6 @@ A076a0314:
    add BX,+01	;;; 076A:031C 83C301
    adc CX,+00	;;; 076A:031F 83D100
 jmp near L076a0351	;;; 076A:0322 EB2D
-
 X076a0324:
    nop	;;; 076A:0324 90
 L076a0325:
@@ -464,7 +473,7 @@ L076a03b1:
    mov DX,27FC	;;; 076A:03C0 BAFC27
    mov AH,40	;;; 076A:03C3 B440
    int 21	;;; 076A:03C5 CD21
-jmp far L076a01af	;;; 076A:03C7 EAAF016A07
+jmp far A076a01af	;;; 076A:03C7 EAAF016A07
 
 A076a03cc:
 jmp far [28BE]	;;; 076A:03CC FF2EBE28
@@ -731,7 +740,7 @@ A076a05c5:
    mov DX,05B3	;;; 076A:05C9 BAB305
    mov AH,09	;;; 076A:05CC B409
    int 21	;;; 076A:05CE CD21
-jmp far L076a010d	;;; 076A:05D0 EA0D016A07
+jmp far A076a010d	;;; 076A:05D0 EA0D016A07
 
 A076a05d5:
    push DI	;;; 076A:05D5 57
@@ -3178,10 +3187,8 @@ L08760b31:
 jmp near L08760b69	;;; 0876:0B3A EB2D
 L08760b3c:
 jmp near [CS:BX+08]	;;; 0876:0B3C 2EFF6708
-
 Y08760b40:	dw 001b,0043,0045,0056
 Y08760b48:	dw L08760b65,L08760b50,L08760b57,L08760b5e
-
 L08760b50:
    mov byte ptr [34BD],00	;;; 0876:0B50 C606BD3400
 jmp near L08760b69	;;; 0876:0B55 EB12
@@ -4668,9 +4675,7 @@ L09560b45:
    mov BX,AX	;;; 0956:0B45 8BD8
    shl BX,1	;;; 0956:0B47 D1E3
 jmp near [CS:BX+offset Y09560b4e]	;;; 0956:0B49 2EFFA74E0B
-
 Y09560b4e:	dw L09560b5c,L09560dfe,L09560c21,L09560dfe,L09560cde,L09560dfe,L09560d88
-
 L09560b5c:
    sar word ptr [BP-0E],1	;;; 0956:0B5C D17EF2
    sar word ptr [BP-0E],1	;;; 0956:0B5F D17EF2
@@ -5076,9 +5081,7 @@ L09560ec2:
    mov BX,AX	;;; 0956:0EC2 8BD8
    shl BX,1	;;; 0956:0EC4 D1E3
 jmp near [CS:BX+offset Y09560ecb]	;;; 0956:0EC6 2EFFA7CB0E
-
 Y09560ecb:	dw L09560ed9,L095610c5,L09560f76,L095610c5,L0956101e,L095610c5,L095610c3
-
 L09560ed9:
    mov AL,[BP+0A]	;;; 0956:0ED9 8A460A
    and AL,03	;;; 0956:0EDC 2403
@@ -5651,16 +5654,11 @@ L0a6202de:
    pop BP	;;; 0A62:02E2 5D
 ret far	;;; 0A62:02E3 CB
 
-Y0a6202e4:
-0A62:02E4              00                                        . 
+Y0a6202e4:	db 00,55,aa,ff
 
-X0a6202e5:
-   push BP	;;; 0A62:02E5 55
-   stosb	;;; 0A62:02E6 AA
-   call near [DI-75]	;;; 0A62:02E7 FF558B
-
-X0a6202ea:
-   in AL,DX	;;; 0A62:02EA EC
+X0a6202e8:
+   push BP	;;; 0A62:02E8 55
+   mov BP,SP	;;; 0A62:02E9 8BEC
    sub SP,+02	;;; 0A62:02EB 83EC02
    push DS	;;; 0A62:02EE 1E
    push SI	;;; 0A62:02EF 56
@@ -5890,7 +5888,6 @@ L0a99013d:
    jnz L0a99014f	;;; 0A99:0144 7509
    mov word ptr [34D0],0100	;;; 0A99:0146 C706D0340001
 jmp near L0a990172	;;; 0A99:014C EB24
-
 X0a99014e:
    nop	;;; 0A99:014E 90
 L0a99014f:
@@ -5900,7 +5897,6 @@ L0a99014f:
    mov word ptr [34D0],0000	;;; 0A99:0155 C706D0340000
    mov byte ptr [BX+34D4],01	;;; 0A99:015B C687D43401
 jmp near L0a990172	;;; 0A99:0160 EB10
-
 X0a990162:
    nop	;;; 0A99:0162 90
 L0a990163:
@@ -5914,7 +5910,6 @@ L0a990172:
    pushf	;;; 0A99:0179 9C
    call far [34C4]	;;; 0A99:017A FF1EC434
 jmp near L0a990185	;;; 0A99:017E EB05
-
 X0a990180:
    nop	;;; 0A99:0180 90
 L0a990181:
@@ -7802,10 +7797,8 @@ L0b8b0390:
 jmp near L0b8b041c	;;; 0B8B:0399 E98000
 L0b8b039c:
 jmp near [CS:BX+10]	;;; 0B8B:039C 2EFF6710
-
 Y0b8b03a0:	dw 0032,0034,0036,0038,00c8,00cb,00cd,00d0
 Y0b8b03b0:	dw L0b8b0405,L0b8b03d7,L0b8b03ee,L0b8b03c0,L0b8b03c0,L0b8b03d7,L0b8b03ee,L0b8b0405
-
 L0b8b03c0:
    cmp word ptr [BP+06],+00	;;; 0B8B:03C0 837E0600
    jz L0b8b03c9	;;; 0B8B:03C4 7403
@@ -10215,7 +10208,7 @@ L0ce00507:
    call far A076a0390	;;; 0CE0:053F 9A90036A07
    mov [3DF0],AX	;;; 0CE0:0544 A3F03D
    mov word ptr [3DF4],segment A0dac000c	;;; 0CE0:0547 C706F43DAC0D
-   mov word ptr [3DF2],offset Adac000c	;;; 0CE0:054D C706F23D0C00
+   mov word ptr [3DF2],offset A0dac000c	;;; 0CE0:054D C706F23D0C00
    push [3DF4]	;;; 0CE0:0553 FF36F43D
    push [3DF2]	;;; 0CE0:0557 FF36F23D
    mov AX,0008	;;; 0CE0:055B B80800
@@ -12579,7 +12572,7 @@ L0dba159c:
    pop BP	;;; 0DBA:159E 5D
 ret far	;;; 0DBA:159F CB
 
-a0dba15a0:
+A0dba15a0:
    push BP	;;; 0DBA:15A0 55
    mov BP,SP	;;; 0DBA:15A1 8BEC
    push SI	;;; 0DBA:15A3 56
@@ -14393,9 +14386,7 @@ L0dba2564:
    mov BX,AX	;;; 0DBA:2564 8BD8
    shl BX,1	;;; 0DBA:2566 D1E3
 jmp near [CS:BX+offset Y0dba256d]	;;; 0DBA:2568 2EFFA76D25
-
 Y0dba256d:	dw L0dba2579,L0dba2675,L0dba2675,L0dba2604,L0dba25f2,L0dba25c8
-
 L0dba2579:
    cmp word ptr [13A8],+00	;;; 0DBA:2579 833EA81300
    jnz L0dba2583	;;; 0DBA:257E 7503
@@ -18954,9 +18945,7 @@ L11b80d21:
    mov BX,AX	;;; 11B8:0D21 8BD8
    shl BX,1	;;; 11B8:0D23 D1E3
 jmp near [CS:BX+offset Y11b80d2a]	;;; 11B8:0D25 2EFFA72A0D
-
 Y11b80d2a:	dw L11b80d36,L11b80d73,L11b80d8b,L11b80e3e,L11b80e83,L11b80e3e
-
 L11b80d36:
    mov AX,SI	;;; 11B8:0D36 8BC6
    mov DX,001F	;;; 11B8:0D38 BA1F00
@@ -20716,9 +20705,7 @@ L11b81cb1:
    mov BX,AX	;;; 11B8:1CB1 8BD8
    shl BX,1	;;; 11B8:1CB3 D1E3
 jmp near [CS:BX+offset Y11b81cba]	;;; 11B8:1CB5 2EFFA7BA1C
-
 Y11b81cba:	dw L11b81cc6,L11b81e4a,L11b81d3f,L11b81e02,L11b81e32,L11b81e1a
-
 L11b81cc6:
    mov AX,SI	;;; 11B8:1CC6 8BC6
    mov DX,001F	;;; 11B8:1CC8 BA1F00
@@ -26930,11 +26917,9 @@ L16ab03b6:
    mov BX,AX	;;; 16AB:03B6 8BD8
    shl BX,1	;;; 16AB:03B8 D1E3
 jmp near [CS:BX+offset Y16ab03bf]	;;; 16AB:03BA 2EFFA7BF03
-
 Y16ab03bf:	dw L16ab03e5,L16ab0482,L16ab0482,L16ab0482,L16ab0400,L16ab0482,L16ab0482,L16ab0482
 		dw L16ab041a,L16ab0482,L16ab0482,L16ab0482,L16ab0434,L16ab0482,L16ab0482,L16ab044e
 		dw L16ab0482,L16ab0482,L16ab0468
-
 L16ab03e5:
    mov BX,DI	;;; 16AB:03E5 8BDF
    mov CL,07	;;; 16AB:03E7 B107
@@ -27659,9 +27644,7 @@ L1731024a:
    mov BX,AX	;;; 1731:024A 8BD8
    shl BX,1	;;; 1731:024C D1E3
 jmp near [CS:BX+offset Y17310253]	;;; 1731:024E 2EFFA75302
-
 Y17310253:	dw L1731025f,L1731078d,L173104b8,L17310594,L173105b5,L1731066e
-
 L1731025f:
    mov AX,SI	;;; 1731:025F 8BC6
    mov DX,001F	;;; 1731:0261 BA1F00
@@ -28343,9 +28326,7 @@ L1731085a:
    mov BX,AX	;;; 1731:085A 8BD8
    shl BX,1	;;; 1731:085C D1E3
 jmp near [CS:BX+offset Y17310863]	;;; 1731:085E 2EFFA76308
-
 Y17310863:	dw L1731086f,L17311acd,L17311387,L17311704,L1731113a,L173111e1
-
 L1731086f:
    mov AX,0001	;;; 1731:086F B80100
    push AX	;;; 1731:0872 50
@@ -28512,7 +28493,6 @@ L173109a0:
    mov word ptr [ES:BX+11],0000	;;; 1731:09E8 26C747110000
    mov word ptr [BP-2C],0001	;;; 1731:09EE C746D40100
 jmp near L17311acd	;;; 1731:09F3 E9D710
-
 X173109f6:
 jmp near L17310ac5	;;; 1731:09F6 E9CC00
 L173109f9:
@@ -32865,10 +32845,8 @@ L1a3b0043:
 jmp near L1a3b0315	;;; 1A3B:004C E9C602
 L1a3b004f:
 jmp near [CS:BX+0C]	;;; 1A3B:004F 2EFF670C
-
 Y1a3b0053:	dw 0000,0017,0036,0037,0038,0039
 		dw L1a3b006b,L1a3b012c,L1a3b0255,L1a3b02bb,L1a3b0189,L1a3b01ef
-
 L1a3b006b:
    mov AX,0008	;;; 1A3B:006B B80800
    push AX	;;; 1A3B:006E 50
@@ -35710,10 +35688,8 @@ L1a3b1996:
 jmp near L1a3b1a46	;;; 1A3B:199F E9A400
 L1a3b19a2:
 jmp near [CS:BX+0A]	;;; 1A3B:19A2 2EFF670A
-
 Y1a3b19a6:	dw 001b,0051,0052,0053,00bb
 		dw L1a3b1a27,L1a3b1a27,L1a3b19e1,L1a3b19ba,L1a3b1a1c
-
 L1a3b19ba:
    mov AX,[34C0]	;;; 1A3B:19BA A1C034
    mov [BP-08],AX	;;; 1A3B:19BD 8946F8
@@ -39312,10 +39288,8 @@ L1d9f03d7:
    mov BX,AX	;;; 1D9F:03D7 8BD8
    shl BX,1	;;; 1D9F:03D9 D1E3
 jmp near [CS:BX+offset Y1d9f03e0]	;;; 1D9F:03DB 2EFFA7E003
-
 Y1d9f03e0:	dw L1d9f0400,L1d9f04f9,L1d9f04f9,L1d9f041c,L1d9f04f9,L1d9f04f9,L1d9f04f9,L1d9f04f9
 		dw L1d9f04f9,L1d9f04f9,L1d9f04e8,L1d9f04f9,L1d9f04f2,L1d9f04f9,L1d9f04b3,L1d9f0439
-
 L1d9f0400:
    mov SI,[B5CA]	;;; 1D9F:0400 8B36CAB5
    push [BP+08]	;;; 1D9F:0404 FF7608
@@ -40224,12 +40198,10 @@ L1d9f0c0f:
 jmp near L1d9f1019	;;; 1D9F:0C18 E9FE03
 L1d9f0c1b:
 jmp near [CS:BX+1C]	;;; 1D9F:0C1B 2EFF671C
-
 Y1d9f0c1f:	dw 0009,000d,0020,0048,0049,004b,004c
 		dw 004e,004f,0053,0056,0059,005a,0060
 		dw L1d9f0d2e,L1d9f0c57,L1d9f0d5a,L1d9f0dcf,L1d9f0d7f,L1d9f0d3c,L1d9f0ed2
 		dw L1d9f0fc9,L1d9f0e8e,L1d9f0ff6,L1d9f0d98,L1d9f0f50,L1d9f0e9c,L1d9f0f12
-
 L1d9f0c57:
    push DS	;;; 1D9F:0C57 1E
    mov AX,B2AC	;;; 1D9F:0C58 B8ACB2
@@ -45961,19 +45933,30 @@ X212d03f1:
    pop BP	;;; 212D:040A 5D
 ret far	;;; 212D:040B CB
 
-Y212d040c:	dword
+X212d040c:	dword
 
 ;; === External Library Modules ===
 Segment 216e ;; SBCRWIO.ASM, VECTOR.ASM, SCANCARD.ASM, MUSDATA.ASM, SBCDATA.ASM, CARDHERE.ASM, DSPRESET.ASM, CMFASM.ASM, CMFDRV.ASM
 A216e0000:
-jmp near L216e110f	;;; 216E:0000 E90C11
+jmp near B216e110f	;;; 216E:0000 E90C11
 
-Y216e0003:	db "FMDRV"
-Y216e0008:	db 00,20,02,00,14,01,00,00,00,00
-Y216e0012:	db 00,00,00,00,00,00
-		db 00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00
-		db 00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00
-		db 00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00
+X216e0003:	db "FMDRV",00
+Y216e0009:	dw 0220
+Y216e000b:	byte
+Y216e000c:	dw 0114
+Y216e000e:	ds 4*0008
+Y216e002e:	word
+Y216e0030:	word
+Y216e0032:	word
+Y216e0034:	word
+Y216e0036:	word
+Y216e0038:	word
+Y216e003a:	word
+Y216e003c:	word
+Y216e003e:	word
+Y216e0040:	word
+Y216e0042:	word
+Y216e0044:	dword
 Y216e0048:	db 21,21,d1,07,a3,a4,46,25,00,00,0a,00,00,00,00,00
 		db 22,22,0f,0f,f6,f6,95,36,00,00,0a,00,00,00,00,00
 		db e1,e1,00,00,44,54,24,34,02,02,07,00,00,00,00,00
@@ -45989,25 +45972,49 @@ Y216e0048:	db 21,21,d1,07,a3,a4,46,25,00,00,0a,00,00,00,00,00
 		db f1,21,01,0d,97,f1,17,18,00,00,08,00,00,00,00,04
 		db 32,16,87,80,a1,7d,10,33,00,00,08,00,00,00,00,04
 		db 01,12,4f,00,71,52,53,7c,00,00,0a,00,00,00,00,04
-Y216e0138:	db 02,03,8d,03,d7,f5,37,18,00,00,04,00,00,00,00,00
-Y216e0148:	ds 0021
-Y216e0169:	db 00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00
-		db 00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00
-		db 00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00
-		db 00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00
-		db 00,00,00,00,00,00,00,00,00,00,00,00,00,63,63,00
-		db 00,00,00,00,00,01,02,08,09,0a,10,11,12,01,11,4f
-		db 00,f1,f2,53,74,00,00,08,10,14,12,15,11,10,08,04
-		db 02,01,06,07,08,08,07,00,00,00,00,00
-Y216e01e5:	dword
-Y216e01e9:	ds 0030
+		db 02,03,8d,03,d7,f5,37,18,00,00,04,00,00,00,00,00
+Y216e0148:	ds 000b
+Y216e0153:	ds 000b
+Y216e015e:	ds 000b
+Y216e0169:	ds 000b
+Y216e0174:	ds 000b
+Y216e017f:	ds 000b
+Y216e018a:	ds 2*000b
+Y216e01a0:	ds 2*000b
+Y216e01b6:	db 63
+Y216e01b7:	db 63
+Y216e01b8:	word
+Y216e01ba:	word
+Y216e01bc:	byte
+Y216e01bd:	db 00,01,02,08,09,0a,10,11,12
+Y216e01c6:	db 01,11,4f,00,f1
+Y216e01cb:	db f2,53,74,00,00
+Y216e01d0:	db 08,10,14,12,15
+Y216e01d5:	db 11,10,08,04,02,01,06,07,08,08,07
+Y216e01e0:	byte
+Y216e01e1:	byte
+Y216e01e2:	byte
+Y216e01e3:	byte
+Y216e01e4:	byte
+Y216e01e5:	byte
+Y216e01e6:	byte
+Y216e01e7:	byte
+X216e01e8:	byte
+Y216e01e9:	ds 0010
+Y216e01f9:	ds 2*0010
 Y216e0219:	db 01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01
-Y216e0229:	dw B216e0d29,B216e0da0,B216e0f8d,B216e0efa,B216e0f90,B216e0f8e,B216e0f8d,B216e100a
-		dw B216e0f10,B216e0f16,B216e0f3c,B216e0f3a,B216e1017,B216e0f8f,B216e0f8d,B216e0f8e
-		dw B216e0f8f,B216e0f8f,B216e0f8f,B216e102d,B216e0f8f,B216e0f8f,B216e0f8f,B216e0f8f
-		dw B216e1038,B216e0f8f,B216e0f8f,B216e103c,B216e116d,B216e1171,B216e1184,B216e11c6
-		dw B216e11ca,B216e11d3,B216e0c39,B216e11b6,B216e0c00,B216e0c98,B216e0cad,B216e11d9
-		dw B216e11e6,B216e11ed,B216e11fb,B216e1487,B216e149d,B216e14a6
+Y216e0229:	dw offset B216e0d29,offset B216e0da0,offset B216e0f8d,offset B216e0efa
+		dw offset B216e0f90,offset B216e0f8e,offset B216e0f8d,offset B216e100a
+Y216e0239:	dw offset B216e0f10,offset B216e0f16,offset B216e0f3c,offset B216e0f3a
+Y216e0241:	dw offset B216e1017,offset B216e0f8f,offset B216e0f8d,offset B216e0f8e
+		dw offset B216e0f8f,offset B216e0f8f,offset B216e0f8f,offset B216e102d
+		dw offset B216e0f8f,offset B216e0f8f,offset B216e0f8f,offset B216e0f8f
+		dw offset B216e1038,offset B216e0f8f,offset B216e0f8f,offset B216e103c
+Y216e0261:	dw offset B216e116d,offset B216e1171,offset B216e1184,offset B216e11c6
+		dw offset B216e11ca,offset B216e11d3,offset B216e0c39,offset B216e11b6
+		dw offset B216e0c00,offset B216e0c98,offset B216e0cad,offset B216e11d9
+		dw offset B216e11e6,offset B216e11ed,offset B216e11fb
+Y216e027f:	dw offset B216e1487,offset B216e149d,offset B216e14a6
 Y216e0285:	db 00,01,02,03,04,05,06,07,08,09,0a,0b,00,01,02,03
 		db 04,05,06,07,08,09,0a,0b,10,11,12,13,14,15,16,17
 		db 18,19,1a,1b,20,21,22,23,24,25,26,27,28,29,2a,2b
@@ -46495,7 +46502,7 @@ B216e0c39:
    mov CX,0009	;;; 216E:0C5F B90900
    mov AL,FF	;;; 216E:0C62 B0FF
    mov DI,0148	;;; 216E:0C64 BF4801
-   repz stosb	;;	;;;6E:0C67 F3AA
+   repz stosb	;;; 216E:0C67 F3AA
    call near B216e0b1f	;;; 216E:0C69 E8B3FE
    mov [0022],AX	;;; 216E:0C6C A32200
    mov [0024],DX	;;; 216E:0C6F 89162400
@@ -46934,7 +46941,7 @@ L216e1026:
    call near B216e0b4f	;;; 216E:1029 E823FB
 ret near	;;; 216E:102C C3
 
-X216e102d:
+B216e102d:
    mov [001A],SI	;;; 216E:102D 89361A00
    call near B216e0b1f	;;; 216E:1031 E8EBFA
    call near B216e0b4f	;;; 216E:1034 E818FB
@@ -47058,7 +47065,8 @@ L216e1101:
    pop ES	;;; 216E:1108 07
    pop DS	;;; 216E:1109 1F
 jmp far [CS:offset Y216e0012]	;;; 216E:110A 2EFF2E1200
-L216e110f:
+
+B216e110f:
    push DS	;;; 216E:110F 1E
    push ES	;;; 216E:1110 06
    push AX	;;; 216E:1111 50
@@ -47318,15 +47326,8 @@ L216e12c5:
    loop L216e12c5	;;; 216E:12D0 E2F3
 ret near	;;; 216E:12D2 C3
 
-Y216e12d3:
-216E:12D3           00 00 00 00 00-00 00 00 00 00 00 00 00      ............. 
-
-216E:12E0  00 00 00 00 00 00 00 00-00 00 00 00 00 00 00 00   ................ 
-216E:12F0  00 00 00 00 00 00 00 00-00 00 00 00 00 00 00 00   ................ 
-216E:1300  00 00 00 00 00 00 00 00-00 00 00 00 00 00 00 00   ................ 
-216E:1310  00 00 00 00 00 00 00 00-00 00 00 00 00 00 00 00   ................ 
-216E:1320  00 00 00 00 00 00 00 00-00 00 00 00 00 00 00 00   ................ 
-216E:1330  00 00 00 00 00 00 00                              ....... 
+Y216e12d3:	ds 0064	;; (@) Stack base.
+Y216e1337:	;; (@) Stack top.
 
 B216e1337:
    push CX	;;; 216E:1337 51
@@ -48153,7 +48154,6 @@ L230a00a4:
    push AX	;;; 230A:00AD 50
    call far A22b8000c	;;; 230A:00AE 9A0C00B822
 jmp near L230a01a6	;;; 230A:00B3 E9F000
-
 X230a00b6:
 jmp near L230a00ba	;;; 230A:00B6 EB02
 L230a00b8:
@@ -48177,7 +48177,6 @@ L230a00d9:
    call far A232f0007	;;; 230A:00DA 9A07002F23
    pop CX	;;; 230A:00DF 59
 jmp near L230a0105	;;; 230A:00E0 EB23
-
 X230a00e2:
 jmp near L230a00fd	;;; 230A:00E2 EB19
 L230a00e4:
@@ -49314,11 +49313,9 @@ L238b00f2:
    mov BX,AX	;;; 238B:00F2 8BD8
    shl BX,1	;;; 238B:00F4 D1E3
 jmp near [CS:BX+offset Y238b00fb]	;;; 238B:00F6 2EFFA7FB00
-
 Y238b00fb:	dw L238b0146,L238b012e,L238b0187,L238b013a,L238b01af,L238b01b9,L238b01fb,L238b0205
 		dw L238b0215,L238b016d,L238b024b,L238b0225,L238b0229,L238b022d,L238b02d5,L238b038e
 		dw L238b032b,L238b034d,L238b04f7,L238b0526,L238b0526,L238b0526,L238b0159,L238b0163
-
 L238b012b:
 jmp near L238b0526	;;; 238B:012B E9F803
 L238b012e:
@@ -50319,9 +50316,7 @@ L24280034:
    mov BX,AX	;;; 2428:004A 8BD8
    shl BX,1	;;; 2428:004C D1E3
 jmp near [CS:BX+offset Y24280053]	;;; 2428:004E 2EFFA75300
-
 Y24280053:	dw L24280061,L24280072,L24280090,L2428008b,L24280090,L24280090,L24280081
-
 L24280061:
    mov AH,0E	;;; 2428:0061 B40E
    mov AL,07	;;; 2428:0063 B007
@@ -50587,7 +50582,7 @@ A244c0002:
    mov AX,[CS:offset Y244c0000]	;;; 244C:000E 2EA10000
    or AX,AX	;;; 244C:0012 0BC0
    jnz L244c0039	;;; 244C:0014 7523
-   Mov AX,0040	;;; 244C:0016 B84000
+   mov AX,0040	;;; 244C:0016 B84000
    mov ES,AX	;;; 244C:0019 8EC0
    mov BX,[ES:006C]	;;; 244C:001B 268B1E6C00
    call near B244c005d	;;; 244C:0020 E83A00
@@ -51748,12 +51743,13 @@ L24d40070:
    pop BP	;;; 24D4:0070 5D
 ret far	;;; 24D4:0071 CB
 
-Y24d40072:	ds 000e
+X24d40072:	ds 2*0007
 
-Segment 24dc ;; Data area
+Segment 24dc ;; Data And BSS Areas
+;; Data Area
 A24dc0000:
-Y24dc0000:	dword
-Y24dc0004:	db "Turbo-C - Copyright (c) 1988 Borland Intl.",00
+X24dc0000:	dword
+X24dc0004:	db "Turbo-C - Copyright (c) 1988 Borland Intl.",00
 Y24dc002f:	db "Divide error\r\n"
 Y24dc003d:	db "Abnormal program termination\r\n"
 Y24dc005b:	dword
@@ -51768,13 +51764,14 @@ Y24dc0077:	word
 Y24dc0079:	word
 Y24dc007b:	word
 Y24dc007d:	word
+X24dc007e:	byte
 Y24dc007f:	word
 Y24dc0081:	word
 Y24dc0083:	dword
 Y24dc0087:	dword
 Y24dc008b:	dword
 Y24dc008f:	dword
-Y24dc0093:	byte
+X24dc0093:	byte
 Y24dc0094:	db 00,01,02,03,04,05,06,07,08,09,0a,0b,0c,0d,0e,0f
 		db 00,08,08,07,07,07,0f,0f,00,04,0c,0c,08,08,02,06
 		db 06,0c,02,02,02,06,06,0e,02,02,02,02,06,0e,0a,0a
@@ -51828,11 +51825,11 @@ Y24dc0496:	dw 03c7
 Y24dc0498:	dw 03c9
 X24dc049a:	dw 03da
 X24dc049c:	dw 0008
-Y24dc049e:	db "\r\nVideo mode: C)ga E)ga V)ga? ",00,00
-Y24dc04be:	dw 0020
+Y24dc049e:	db "\r\nVideo mode: C)ga E)ga V)ga? ",00
+X24dc04bd:	byte
+Y24dc04be:	db " ",00
 Y24dc04c0:	dword
-Y24dc04c4:	word
-Y24dc04c6:	word
+Y24dc04c4:	dword
 Y24dc04c8:	word
 Y24dc04ca:	word
 Y24dc04cc:	word
@@ -51847,7 +51844,8 @@ Y24dc0566:	db "  Move joystick to LOWER RIGHT corner and press button: ",00
 Y24dc059f:	db "   Calibration failed - try again (y/N)? ",00
 Y24dc05c8:	db "\r\n",00
 Y24dc05cb:	db "\r\nGame controller:  K)eyboard,  J)oystick?  ",00
-Y24dc05f8:	db "\r\n",00,00
+Y24dc05f8:	db "\r\n",00
+X24dc05fb:	byte
 Y24dc05fc:	ds 0040
 Y24dc063c:	word
 Y24dc063e:	word
@@ -51908,31 +51906,32 @@ Y24dc0bd9:	db "     VGA 256-color graphics\r\n",00
 Y24dc0bf7:	db "\r\n",00
 Y24dc0bfa:	db " Note: If you have a slow old coomputer, CGA\r\n",00
 Y24dc0c28:	db "       graphics are recommended.\r\n",00
-Y24dc0c4b:	byte
+X24dc0c4b:	byte
 Y24dc0c4c:	db "\\screen",00
 Y24dc0c54:	db ".RAW",00
 Y24dc0c59:	db "\\screen",00
 Y24dc0c61:	db ".MAP",00
 Y24dc0c66:	db " ",00
 Y24dc0c68:	db " ",00
-Y24dc0c6a:	db "\r\n",00,00
+Y24dc0c6a:	db "\r\n",00
+X24dc0c6d:	byte
 Y24dc0c6e:	dw 0001
 Y24dc0c70:	dw 0001
 Y24dc0c72:	word
-Y24dc0c74:	dw 006c,0040
+Y24dc0c74:	dd Y0040006c
 Y24dc0c78:	dword
 Y24dc0c7c:	dd A0ce00c4f
 Y24dc0c80:	word
 Y24dc0c82:	dword
-Y24dc0c86:	dw 0040,0043,0047,004c,0050,0055,005a,005f, 0065,006b,0072,0079,0000,0000,0000,0000
-		dw 0080,0087,008f,0098,00a1,00aa,00b5,00bf, 00cb,00d7,00e4,00f2,0000,0000,0000,0000
-		dw 0100,010f,011f,0130,0142,0155,016a,017f, 0196,01ae,01c8,01e3,0000,0000,0000,0000
-		dw 0200,021e,023e,0260,0285,02ab,02d4,02ff, 032c,035d,0390,03c7,0000,0000,0000,0000
-		dw 0400,043c,047d,04c1,050a,0556,05a8,05fe, 0659,06ba,0721,078d,0000,0000,0000,0000
-		dw 0800,0879,08fa,0983,0a14,0aad,0b50,0bfc, 0cb2,0d74,0e41,0f1a,0000,0000,0000,0000
-		dw 1000,10f3,11f5,1306,1428,155b,16a0,17f9, 1965,1ae8,1c82,1e34,0000,0000,0000,0000
-		dw 2000,21e7,23eb,260d,2851,2ab7,2d41,2ff2, 32cb,35d1,3904,3d1e,0000,0000,0000,0000
-		dw 4000,43ce,47d6,4c1b,50a2,556e,5a82,5fe4, 6597,6ba2,7208,78d0,0000,0000,0000,0000
+Y24dc0c86:	dw 0040,0043,0047,004c,0050,0055,005a,005f,0065,006b,0072,0079,0000,0000,0000,0000
+		dw 0080,0087,008f,0098,00a1,00aa,00b5,00bf,00cb,00d7,00e4,00f2,0000,0000,0000,0000
+		dw 0100,010f,011f,0130,0142,0155,016a,017f,0196,01ae,01c8,01e3,0000,0000,0000,0000
+		dw 0200,021e,023e,0260,0285,02ab,02d4,02ff,032c,035d,0390,03c7,0000,0000,0000,0000
+		dw 0400,043c,047d,04c1,050a,0556,05a8,05fe,0659,06ba,0721,078d,0000,0000,0000,0000
+		dw 0800,0879,08fa,0983,0a14,0aad,0b50,0bfc,0cb2,0d74,0e41,0f1a,0000,0000,0000,0000
+		dw 1000,10f3,11f5,1306,1428,155b,16a0,17f9,1965,1ae8,1c82,1e34,0000,0000,0000,0000
+		dw 2000,21e7,23eb,260d,2851,2ab7,2d41,2ff2,32cb,35d1,3904,3d1e,0000,0000,0000,0000
+		dw 4000,43ce,47d6,4c1b,50a2,556e,5a82,5fe4,6597,6ba2,7208,78d0,0000,0000,0000,0000
 Y24dc0da6:	dw 0010
 Y24dc0da8:	word
 Y24dc0daa:	word
@@ -52080,26 +52079,36 @@ Y24dc128f:	db "SHIELD OF INVINCIBILITY",00
 Y24dc12a7:	db "Press UP/DOWN to toggle switch",00
 Y24dc12c6:	db "USE GEMS TO OPEN DOORS ON THE MAP",00
 Y24dc12e8:	db "YOUR FEEBLE ATTEMPT FAILS.",00
-r24dc1303:	db "Press UP/DOWN to use elevator",00
+Y24dc1303:	db "Press UP/DOWN to use elevator",00
 Y24dc1322:	dw 0008,0008,0008,0008,0009,000a,000b,000c,0026,0026,0026,0026,0026,000b,000a,0009
 Y24dc1342:	dw ffff,fffe,ffff,0000
-Y24dc134a:	dw 0013,0013,0013,0013,0013,0010,0012,0010,0013,0010,0012,0010,0012,0012,0012,0012
+Y24dc134a:	dw 0013,0013,0013,0013
+		dw 0013,0010,0012,0010
+		dw 0013,0010,0012,0010
+		dw 0012,0012,0012,0012
 Y24dc136a:	db 18,18,19,1a,1a,19,19
 Y24dc1371:	db 04,00,00,06,04,04,00
 Y24dc1378:	db 48,49,48,49,48,48,49,48,49,49,48,48,48,49,49,49,4a,4a,4a,4a,4a
 Y24dc138d:	dw 0000,0001,0002,0001
 Y24dc1395:	dw 0000,0001,0002,0003,0002,0001
-Y24dc13a1:	byte
+X24dc13a1:	byte
 Y24dc13a2:	dw 4000
 Y24dc13a4:	word
 Y24dc13a6:	word
 Y24dc13a8:	word
 Y24dc13aa:	word
-Y24dc13ac:	db 00,00,00,00,00,00,00,17,00,1c,00,00,00,18,1c,00
-		db 00,00,00,00,30,00,00,00,00,00,05,30,00,17,18,12
-		db 10,00,03,00,0c,00,08,00,29,00,20,08,18,0a,00,23,00,30
+Y24dc13ac:	db 00,00,00,00,00,00,00,17,00,1c
+		db 00,00,00,18,1c,00,00,00,00,00
+		db 30,00,00,00,00,00,05,30,00,17
+		db 18,12,10,00,03,00,0c,00,08,00
+		db 29,00,20,08,18,0a,00,23,00,30
 Y24dc13de:	word
-Y24dc13e0:	db "1234567890-=QWERTYUIOP[]ASDFGHJKL;'ZXCVBNM,./",01,02,03,04,05,06,00
+Y24dc13e0:	db "1234567890-="
+		db "QWERTYUIOP[]"
+		db "ASDFGHJKL;'"
+		db "ZXCVBNM,./"
+		db 01,02,03,04,05,06
+		db 00
 Y24dc1414:	db "JUMP   ",00
 Y24dc141c:	db "KNIFE  ",00
 Y24dc1424:	db "       ",00
@@ -52169,11 +52178,9 @@ Y24dc16d6:	db "            Run this game without any TSR's in memory\r\n",00
 Y24dc170e:	db "            Buy more memory (640K is required)\r\n",00
 Y24dc173f:	db "             Turn off the digital Sound Blaster effects -- they eat up RAM\r\n",00
 Y24dc178b:	db " The problem may be due to not enough free RAM or disk space.",00
-Y24dc17c9:	byte
-Y24dc17ca:	byte
-Y24dc17cb:	byte
-Y24dc17cc:	byte
-Y24dc17cd:	byte
+X24dc17c9:	byte
+Y24dc17ca:	word
+Y24dc17cc:	word
 Y24dc17ce:	db "kind:            ",00
 Y24dc17e0:	db "stat:            ",00
 Y24dc17f2:	db "  xd:            ",00
@@ -52209,102 +52216,117 @@ Y24dc191e:	db " Epic MegaGames, 10406 Holbrook Drive, Potomac MD 20854",00
 Y24dc1956:	dw 0018
 Y24dc1958:	word
 Y24dc195a:	dw 0007
-Y24dc195c:	db "7PICK A CHOICE:\r2PLAY\r2RESTORE\r5STORY\r5INSTRUCTIONS\r5CREDITS\r3DEMO\r3NOISEMAKER\r4QUIT\r",00
+Y24dc195c:	db '7', "PICK A CHOICE:\r"
+		db '2', "PLAY\r"
+		db '2', "RESTORE\r"
+		db '5', "STORY\r"
+		db '5', "INSTRUCTIONS\r"
+		db '5', "CREDITS\r"
+		db '3', "DEMO\r"
+		db '3', "NOISEMAKER\r"
+		db '4', "QUIT\r"
+		db 00
 Y24dc19b2:	db "PRSICDNQ",05,10,00
 Y24dc19bd:	dw 0008
 Y24dc19bf:	dd Y24dc23ee,Y24dc23f4,Y24dc23fa,Y24dc2401,Y24dc2402,Y24dc2403,Y24dc2404,Y24dc2405,Y24dc2406,Y24dc2407
 Y24dc19e7:	db 03,09,11,00,00,00,00,00,00,00
 Y24dc19f1:	dd Y24dc2408,Y24dc2414,Y24dc2420,Y24dc242c,Y24dc242d,Y24dc242e,Y24dc242f,Y24dc2430,Y24dc2431,Y24dc2432
-Y24dc1a19:	db 03,10,19,1b,0f,c9,cd,cd,bb,"  ",c9,cd,cd,bb,"  ",c9,cd,cd,bb,"  ",c9,cd,cd,bb,18
-		db " ",0c,"Epic MegaGames Presents",0f,ba,"  ",ba,"  ",c8,cd,cd,bc,"  ",ba,"  ",ba,"  ",ba,"  ",ba
-		db 19,03,da,c4,c4,c4,bf," ",da,c4,c4,bf," ",da,c4,c4,c4," ",da,c4,c4,bf,18
-		db " ",0c,"A Commercial Production"
-		db 19,03,0f,ba,"  ",ba,"  ",c9,cd,cd,bb,"  ",ba,"  ",ba,"  ",ba,"  ",ba
-		db 19,03,b3,"  ",c4,bf," ",b3,"  ",b3," ",c3,c4,c4,"  ",c0,c4,c4,bf,18
-		db 19,16,c9,1a,03,cd,bc,"  ",ba,"  ",ba,"  ",ba,"  ",ba,"  ",ba,"  ",ba,"  ",ba
-		db 19,03,c0,c4,c4,c4,d9," ",c0,c4,c4,d9," ",c0,c4,c4,c4," ",c0,c4,c4,d9,18
-		db "  ",02,1a,06,db,12,1a,0a,db,"  ",db,0f,ba,02,1a,06,db
-		db 0f,ba,02,db,db,0f,ba,02,db,db,0f,ba,02,db,db,0f,ba,02,db,db,0f,ba,02
-		db db,db,0f,ba,02,db,db,0f,ba,02,db,db,10,1a,19,db,18
-		db "  ",db,db,06,1a,0e,db,16,19,03,0f,c8,1a,06,cd,bc,06,db,db,0f,c8,cd,cd,bc,06
-		db db,db,0f,c8,cd,cd,bc,06,db,db,0f,c8,cd,cd,bc,06,db,db,10,1a,17,db,02,db,db,18
-		db "  ",db,db,06,db,db,11,19,43,10,db,db,02,db,db,18
-		db "  ",db,db,06,db,db,11,19,43,10,db,db,02,db,db,18
-		db "  ",db,db,06,db,db,11,19,43,10,db,db,02,db,db,18
-		db "  ",db,db,06,db,db,11,19,43,10,db,db,02,db,db,18
-		db "  ",db,db,06,db,db,11,19,43,10,db,db,02,db,db,18
-		db "  ",db,db,06,db,db,11,19,43,10,db,db,02,db,db,18
-		db "  ",db,db,06,db,db,11,19,43,10,db,db,02,db,db,18
-		db "  ",db,db,06,db,db,11,19,43,10,db,db,02,db,db,18
-		db "  ",db,db,06,db,db,11,19,43,10,db,db,02,db,db,18
-		db "  ",db,db,06,db,db,11,19,43,10,db,db,02,db,db,18
-		db "  ",db,db,06,1a,47,db,02,db,db,18
-		db "  ",1a,4b,db,18,18
-		db 0f,d2,19,02,d2,19,08,d2,19,26,d2,19,0c,07,"Tim Sweeney",18
-		db 0f,ba,19,02,ba,19,08,ba,19,26,ba,"  ",07,"John Pallett-Plowright",18
-		db 0f,ba,19,02,ba," ",c9,cd,cd,bb," ",c9,cd,cd,b9," ",c9,cd,cd,cd,bb," ",c9,cd,cd,b8," ",c9,cd,cd,bb
-		db " ",c9,cd,cd,b8,c9,cd,cd,bb," ",d2,"  ",d2," ",c9,cd,cd,bb," ",c9,cd,cd,b9,19,0b,07,"Dan Froelich",18
-		db 0f,ba,19,02,ba," ",ba,"  ",ba," ",ba,"  ",ba," ",ba,cd,cd,cd,bc," ",ba,19,03,ba,"  ",ba," ",ba
-		db 19,02,ba,"  ",ba," ",ba,"  ",ba," ",ba,"  ",ba," ",ba,"  ",ba,19,0b,07,"Joe Hitchens",18
-		db 0f,c8,cd,cd,cd,bc," ",d0,"  ",d0," ",c8,cd,cd,bc," ",c8,1a,03,cd," ",d0,19,03,c8,cd,cd,b9," ",d0
-		db 19,02,c8,cd,cd,bc," ",c8,cd,cd,bc," ",d0,"  ",d0," ",c8,cd,cd,bc,18
-		db 19,1a,cd,cd,cd,bc," ",0b,"Copyright 1992 Epic MegaGames",18,00
-Y24dc1d4c:	db 0c,10,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00
-		db 16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00
-		db 16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00
-		db 16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00
-		db 16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00
-		db 16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00
-		db 16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00
-		db 16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00
-		db 16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00
-		db 16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00
-		db 16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00
-		db 16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00
-		db 16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00
-		db 16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00
-		db 16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00
-		db 16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00
-		db 16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00
-		db 16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00
-		db 16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00
-		db 16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,18
-		db 19,1a,0a,"Thank you for playing Jill goes Underground!",18
-		db " ",08,1a,13,dc,07,dc,18," ",08,db,14," ",0c,1a,04,dc,19,0c,08,10,db
-		db 19,02,09,"This is the second volume of the Jill series from Epic",18
-		db " ",08,db,14," ",0c,db,19,08,df,19,06,08,10,db
-		db 19,02,09,"Mega Games.  Please do not copy or distribute this",18
-		db " ",08,db,14," ",0c,db,df,df,df," ",db,df,df,db," ",de,dd," ",db,df,df,"  ",08,10,db
-		db 19,02,09,"program -- it is not shareware.  But please do share",18
-		db " ",08,db,14," ",0c,db,1a,03,dc,db,dc,dc,db," ",db,db," ",db,dc,dc,"  ",08,10,db
-		db 19,02,09,"volume one (Jill of the Jungle) with your friends.",18
-		db " ",08,db,14,19,05,0c,db,19,0b,08,10,db,19,02,09,"Only volume one is shareware.",18
-		db " ",08,17,df,14,1a,12,dc,10,db,18
-		db " ",09,1a,21,dc,03,dc,18
-		db " ",09,db,11," ",03,da,c4,c2,c4,bf,19,08,da,c4,c4,c4,19,0d,09,db,10
-		db 19,02,0d,"We are Epic MegaGames and we're here to",18
-		db " ",09,db,11," ",03,b3," ",b3," ",b3,da,c4,bf,da,c4,bf,da,c4,bf,b3
-		db 19,02,da,c4,bf," ",c2,c2,bf,da,c4,bf,da,c4,c4," ",09,db,10
-		db 19,02,0d,"bring you top quality computer",18
-		db " ",09,db,11," ",03,b3,19,02,b3,b3,c4,d9,b3," ",b3,b3," ",b3,b3," ",c4,bf,b3," ",b3," ",1a,03,b3,c4
-		db d9,c0,c4,bf," ",09,db,10,19,02,0d,"entertainment at great prices!  Look in",18
-		db " ",09,db,11," ",03,b3,19,02,b3,c0,c4,c4,c0,c4,b3,c0,c4,b3,c0,c4,c4,d9,c0,c4,b3," ",d9," ",d9,c0
-		db 1a,03,c4,d9," ",09,db,10,19,02,0d,"our catalog (CATALOG.EXE) for information",18
-		db " ",09,db,11,19,08,03,c4,c4,d9,19,14,09,db,10,19,02,0d,"about our other hot products.",18
-		db " ",03,df,09,1a,21,df,18,18
-		db 0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16
-		db 0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16
-		db 0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16
-		db 0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16
-		db 0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16
-		db 0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16
-		db 0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16
-		db 0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16
-		db 0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16
-		db 0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,18
-		db 19,2a,dc,19,03,07,"Thanks,",18
-		db 19,28,0c,dc,14,df,dc,df,10,dc,18,19,29,df,14,dc,10,df,19,02,0f
-		db "Tim Sweeney ",07,"(author of Jill)",18,18,18,18,18,00
+Y24dc1a19:	db 03,10,19,1b, 0f,c9,cd,cd,bb,"  ",c9,cd,cd,bb,"  ",c9,cd,cd,bb,"  ",c9,cd,cd,bb, 18
+		db " ", 0c,"Epic MegaGames Presents"
+		db 19,03, 0f,ba,"  ",ba,"  ",c8,cd,cd,bc,"  ",ba,"  ",ba,"  ",ba,"  ",ba
+		db 19,03, da,c4,c4,c4,bf," ",da,c4,c4,bf," ",da,c4,c4,c4," ",da,c4,c4,bf, 18
+		db " ", 0c,"A Commercial Production"
+		db 19,03, 0f,ba,"  ",ba,"  ",c9,cd,cd,bb,"  ",ba,"  ",ba,"  ",ba,"  ",ba
+		db 19,03, b3,"  ",c4,bf," ",b3,"  ",b3," ",c3,c4,c4,"  ",c0,c4,c4,bf, 18
+		db 19,16, c9, 1a,03,cd, bc,"  ",ba,"  ",ba,"  ",ba,"  ",ba,"  ",ba,"  ",ba,"  ",ba
+		db 19,03, c0,c4,c4,c4,d9," ",c0,c4,c4,d9," ",c0,c4,c4,c4," ",c0,c4,c4,d9, 18
+		db "  ", 02,1a,06,db, 12,1a,0a,db, "  ",db
+		db 0f,ba, 02,1a,06,db, 0f,ba, 02,db,db, 0f,ba, 02,db,db, 0f,ba, 02,db,db
+		db 0f,ba, 02,db,db, 0f,ba, 02,db,db, 0f,ba, 02,db,db, 0f,ba, 02,db,db
+		db 10,1a,19,db, 18
+		db "  ",db,db, 06,1a,0e,db, 16,19,03, 0f,c8, 1a,06,cd, bc, 06,db,db, 0f,c8,cd,cd,bc
+		db 06,db,db, 0f,c8,cd,cd,bc, 06,db,db, 0f,c8,cd,cd,bc, 06,db,db, 10,1a,17,db, 02,db,db, 18
+		db "  ",db,db, 06,db,db, 11,19,43, 10,db,db, 02,db,db, 18
+		db "  ",db,db, 06,db,db, 11,19,43, 10,db,db, 02,db,db, 18
+		db "  ",db,db, 06,db,db, 11,19,43, 10,db,db, 02,db,db, 18
+		db "  ",db,db, 06,db,db, 11,19,43, 10,db,db, 02,db,db, 18
+		db "  ",db,db, 06,db,db, 11,19,43, 10,db,db, 02,db,db, 18
+		db "  ",db,db, 06,db,db, 11,19,43, 10,db,db, 02,db,db, 18
+		db "  ",db,db, 06,db,db, 11,19,43, 10,db,db, 02,db,db, 18
+		db "  ",db,db, 06,db,db, 11,19,43, 10,db,db, 02,db,db, 18
+		db "  ",db,db, 06,db,db, 11,19,43, 10,db,db, 02,db,db, 18
+		db "  ",db,db, 06,db,db, 11,19,43, 10,db,db, 02,db,db, 18
+		db "  ",db,db, 06,1a,47,db, 02,db,db, 18
+		db "  ", 1a,4b,db, 18
+		db 18
+		db 0f,d2, 19,02, d2, 19,08, d2, 19,26, d2, 19,0c, 07,"Tim Sweeney", 18
+		db 0f,ba, 19,02, ba, 19,08, ba, 19,26, ba,"  ", 07,"John Pallett-Plowright", 18
+		db 0f,ba, 19,02, ba," ",c9,cd,cd,bb," ",c9,cd,cd,b9," ",c9,cd,cd,cd,bb," ",c9,cd,cd,b8
+		db " ",c9,cd,cd,bb," ",c9,cd,cd,b8,c9,cd,cd,bb," ",d2,"  ",d2," ",c9,cd,cd,bb," ",c9,cd,cd,b9
+		db 19,0b, 07,"Dan Froelich", 18
+		db 0f,ba, 19,02, ba," ",ba,"  ",ba," ",ba,"  ",ba," ",ba,cd,cd,cd,bc," ",ba
+		db 19,03, ba,"  ",ba," ",ba, 19,02, ba,"  ",ba," ",ba,"  ",ba," ",ba,"  ",ba," ",ba,"  ",ba
+		db 19,0b, 07,"Joe Hitchens", 18
+		db 0f,c8,cd,cd,cd,bc," ",d0,"  ",d0," ",c8,cd,cd,bc," ",c8, 1a,03,cd, " ",d0
+		db 19,03, c8,cd,cd,b9," ",d0
+		db 19,02, c8,cd,cd,bc," ",c8,cd,cd,bc," ",d0,"  ",d0," ",c8,cd,cd,bc, 18
+		db 19,1a, cd,cd,cd,bc," ", 0b,"Copyright 1992 Epic MegaGames", 18
+		db 00
+Y24dc1d4c:	db 0c,10,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 18
+		db 19,1a, 0a,"Thank you for playing Jill goes Underground!", 18
+		db " ", 08,1a,13,dc, 07,dc, 18
+		db " ", 08,db, 14," ", 0c,1a,04,dc, 19,0c
+		db 08,10,db, 19,02, 09,"This is the second volume of the Jill series from Epic", 18
+		db " ", 08,db, 14," ", 0c,db, 19,08, df, 19,06
+		db 08,10,db, 19,02, 09,"MegaGames.  Please do not copy or distribute this", 18
+		db " ", 08,db, 14," ", 0c,db,df,df,df," ",db,df,df,db," ",de,dd," ",db,df,df,"  "
+		db 08,10,db, 19,02, 09,"program -- it is NOT shareware.  But please do share", 18
+		db " ", 08,db, 14," ", 0c,db, 1a,03,dc, db,dc,dc,db," ",db,db," ",db,dc,dc,"  "
+		db 08,10,db, 19,02, 09,"volume one (Jill of the Jungle) with your friends.", 18
+		db " ", 08,db, 14,19,05, 0c,db, 19,0b
+		db 08,10,db, 19,02, 09,"Only volume one is shareware.", 18
+		db " ", 08,17,df, 14,1a,12,dc, 10,db, 18
+		db " ", 09,1a,21,dc, 03,dc, 18
+		db " ", 09,db, 11," ", 03,da,c4,c2,c4,bf, 19,08, da,c4,c4,c4, 19,0d
+		db 09,db, 10,19,02, 0d,"We are Epic MegaGames and we're here to", 18
+		db " ", 09,db, 11," ", 03,b3," ",b3," ",b3,da,c4,bf,da,c4,bf,da,c4,bf,b3
+		db 19,02, da,c4,bf," ",c2,c2,bf,da,c4,bf,da,c4,c4," "
+		db 09,db, 10,19,02, 0d,"bring you top quality computer", 18
+		db " ", 09,db, 11," ", 03,b3, 19,02, b3,b3,c4,d9,b3," ",b3,b3," ",b3,b3," ",c4,bf,b3," ",b3," "
+		db 1a,03,b3, c4,d9,c0,c4,bf," "
+		db 09,db, 10,19,02, 0d,"entertainment at great prices!  Look in", 18
+		db " ", 09,db, 11," ", 03,b3, 19,02, b3,c0,c4,c4,c0,c4,b3,c0,c4,b3,c0,c4,c4,d9,c0,c4,b3," ",d9," ",d9,c0
+		db 1a,03,c4, d9," ", 09,db, 10,19,02, 0d,"our catalog (CATALOG.EXE) for information", 18
+		db " ", 09,db, 11,19,08, 03,c4,c4,d9, 19,14, 09,db, 10,19,02, 0d,"about our other hot products.", 18
+		db " ", 03,df, 09,1a,21,df, 18
+		db 18
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 18
+		db 19,2a, dc, 19,03, 07,"Thanks,", 18
+		db 19,28, 0c,dc, 14,df,dc,df, 10,dc, 18
+		db 19,29, df, 14,dc, 10,df, 19,02, 0f,"Tim Sweeney ", 07,"(author of Jill)", 18
+		db 18
+		db 18
+		db 18
+		db 18
+		db 00
 Y24dc231f:	word
 Y24dc2321:	dw 0332
 Y24dc2323:	db "Tim Sweeney",00
@@ -52374,7 +52396,7 @@ Y24dc2640:	db "",00
 Y24dc2641:	db "",00
 Y24dc2642:	word
 Y24dc2644:	dw 0220
-Y24dc2646:	ds 0006
+Y24dc2646:	ds 2*0003
 Y24dc264c:	word
 Y24dc264e:	db 00,13,02,02,04,05,06,08,08,08,14,15,05,13,ff,16
 		db 05,11,02,ff,ff,ff,ff,ff,ff,ff,ff,ff,ff,ff,ff,ff
@@ -52391,7 +52413,7 @@ Y24dc26ba:	dword
 Y24dc26be:	dword
 Y24dc26c2:	word
 Y24dc26c4:	byte
-Y24dc26c5:	db 20,20,20,20,20,20,20,20,20,21,21,21,21,21,20,20
+		db 20,20,20,20,20,20,20,20,20,21,21,21,21,21,20,20
 		db 20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20
 		db 01,40,40,40,40,40,40,40,40,40,40,40,40,40,40,40
 		db 02,02,02,02,02,02,02,02,02,02,40,40,40,40,40,40
@@ -52407,42 +52429,45 @@ Y24dc26c5:	db 20,20,20,20,20,20,20,20,20,21,21,21,21,21,20,20
 		db 00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00
 		db 00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00
 		db 00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00
-Y24dc27c5:	byte
-Y24dc27c6:	db 01,20,02,20,02,20,04,a0,02,a0,ff,ff,ff,ff,ff,ff
-		db ff,ff,ff,ff,ff,ff,ff,ff,ff,ff,ff,ff,ff,ff,ff,ff
-		db ff,ff,ff,ff,ff,ff,ff,ff
+X24dc27c5:	byte
+Y24dc27c6:	dw 2001,2002,2002,a004,a002,ffff,ffff,ffff
+		dw ffff,ffff,ffff,ffff,ffff,ffff,ffff,ffff
+		dw ffff,ffff,ffff,ffff
 Y24dc27ee:	dw 4000
 Y24dc27f0:	dw ffff
 Y24dc27f2:	db "print scanf : floating point formats not linked\r\n",00
 Y24dc2824:	db "(null)",00
-Y24dc282b:	db "0123456789ABCDEF",00
-Y24dc283c:	db 14,14,01,14,15,14,14,14,14,02,00,14,03,04,14,09
+Y24dc282b:	db "0123456789ABCDEF"
+Y24dc283b:	db 00
+		db 14,14,01,14,15,14,14,14,14,02,00,14,03,04,14,09
 		db 05,05,05,05,05,05,05,05,05,14,14,14,14,14,14,14
 		db 14,14,14,14,0f,17,0f,08,14,14,14,07,14,16,14,14
 		db 14,14,14,14,14,14,14,0d,14,14,14,14,14,14,14,14
 		db 14,14,10,0a,0f,0f,0f,08,0a,14,14,06,14,12,0b,0e
 		db 14,14,11,14,0c,14,14,0d,14,14,14,14,14,14,14,00
-Y24dc289c:	byte
-Y24dc289d:	byte
-Y24dc289e:	byte
-Y24dc289f:	byte
-Y24dc28a0:	byte
-Y24dc28a1:	byte
-Y24dc28a2:	byte
-Y24dc28a3:	byte
-Y24dc28a4:	byte
-Y24dc28a5:	byte
-Y24dc28a6:	byte
-Y24dc28a7:	word
-Y24dc28a9:	word
+Y24dc289c:	byte	;; 00
+		byte	;; 01
+		byte	;; 02
+		byte	;; 03
+		byte	;; 04
+		byte	;; 05
+		byte	;; 06
+		byte	;; 07
+		byte	;; 08
+		byte	;; 09
+		byte	;; 0a
+		word	;; 0b
+		word	;; 0d
 Y24dc28ab:	dw 0001
 Y24dc28ad:	db "COMPAQ",00
-Y24dc28b4:	dw 0001,0000
+Y24dc28b4:	dd 00000001
 Y24dc28b8:	dw offset A076a019f
 Y24dc28ba:	dw offset A076a019f
 Y24dc28bc:	dw offset A076a0423
 Y24dc28be:	dd A076a03a9
 X24dc28c2:	dd A076a03ae,A076a03ae,A076a03ae
+
+;; BSS Area
 Y24dc28ce:	ds 0100
 Y24dc29ce:	ds 0050
 Y24dc2a1e:	ds 0080
@@ -52450,7 +52475,7 @@ Y24dc2a9e:	ds 0080
 Y24dc2b1e:	ds 0080
 Y24dc2b9e:	ds 0100
 Y24dc2c9e:	dword
-Y24dc2ca2:	ds 0500
+Y24dc2ca2:	ds 2*4*0100
 Y24dc34a2:	ds 0010
 Y24dc34b2:	word
 Y24dc34b4:	word
@@ -52462,23 +52487,25 @@ Y24dc34bd:	byte
 Y24dc34be:	word
 Y24dc34c0:	word
 Y24dc34c2:	word
-Y24dc34c4:	word
-Y24dc34c6:	word
+Y24dc34c4:	dword
 Y24dc34c8:	dword
 Y24dc34cc:	dword
 Y24dc34d0:	word
 Y24dc34d2:	byte
 Y24dc34d3:	byte
-Y24dc34d4:	ds 0200
+Y24dc34d4:	ds 2*0100
 Y24dc36d4:	byte
 Y24dc36d5:	byte
 Y24dc36d6:	byte
 Y24dc36d7:	byte
-Y24dc36d8:	word
+Y24dc36d8:	byte
+X24dc36d9:	byte
 Y24dc36da:	word
 X24dc36dc:	word
 Y24dc36de:	word
-Y24dc36e0:	ds 0006
+Y24dc36e0:	word
+Y24dc36e2:	word
+Y24dc36e4:	word
 Y24dc36e6:	word
 Y24dc36e8:	word
 Y24dc36ea:	word
@@ -52509,22 +52536,23 @@ Y24dc3836:	word
 Y24dc3838:	word
 Y24dc383a:	word
 Y24dc383c:	word
-Y24dc383e:	ds 0056
+Y24dc383e:	ds 2*000b
+X24dc3854:	ds 0040
 Y24dc3894:	word
 Y24dc3896:	word
-Y24dc3898:	ds 0064
-Y24dc38fc:	ds 0064
+Y24dc3898:	ds 2*0032
+Y24dc38fc:	ds 2*0032
 Y24dc3960:	dword
-Y24dc3964:	ds 00c8
+Y24dc3964:	ds 4*0032
 X24dc3a2c:	word
-Y24dc3a2e:	ds 0200
-Y24dc3c2e:	ds 0050
-Y24dc3c7e:	ds 00c8
+Y24dc3a2e:	ds 4*0080
+Y24dc3c2e:	ds 2*0028
+Y24dc3c7e:	ds 4*0032
 X24dc3d46:	word
 Y24dc3d48:	word
 Y24dc3d4a:	dword
 X24dc3d4e:	word
-Y24dc3d50:	ds 00a0
+Y24dc3d50:	ds 4*0028
 Y24dc3df0:	word
 Y24dc3df2:	dword
 Y24dc3df6:	word
@@ -52540,393 +52568,395 @@ Y24dc3e0c:	word
 Y24dc3e0e:	word
 Y24dc3e10:	word
 Y24dc3e12:	word
-Y24dc3e14:	ds 4000
+Y24dc3e14:	ds 2*0080*0040
 Y24dc7e14:	ds 0046
-Y24dc7e5a:	ds 12c0
-Y24dc911a:	ds 1f3e
-Y24dcb058:	ds 0078
+Y24dc7e5a:	ds 8*0258
+Y24dc911a:	ds 1f*0102
+Y24dcb058:	ds 000c*000a
 Y24dcb0d0:	ds 003c
 Y24dcb10c:	ds 0010
 Y24dcb11c:	dword
 Y24dcb120:	word
 Y24dcb122:	word
-Y24dcb124:	ds 008a
-Y24dcb1ae:	ds 008a
-Y24dcb238:	ds 0028
+Y24dcb124:	ds 2*0045
+Y24dcb1ae:	ds 2*0045
+Y24dcb238:	ds 4*000a
 Y24dcb260:	dword
-Y24dcb264:	ds 0028
-Y24dcb28c:	ds 0010
-Y24dcb29c:	ds 0010
-Y24dcb2ac:	ds 0010
-Y24dcb2bc:	ds 0114
+Y24dcb264:	ds 0058
+Y24dcb2bc:	ds 4*0045
 Y24dcb3d0:	ds 0020
 Y24dcb3f0:	dword
 Y24dcb3f4:	ds 0010
 Y24dcb404:	word
 Y24dcb406:	word
 Y24dcb408:	word
-Y24dcb40a:	ds 0114
+Y24dcb40a:	ds 4*0045
 Y24dcb51e:	word
 Y24dcb520:	word
-Y24dcb522:	ds 0048
+Y24dcb522:	ds 0006*000c
 Y24dcb56a:	ds 0040
 Y24dcb5aa:	ds 0020
 Y24dcb5ca:	word
 Y24dcb5cc:	ds 0020
-Y24dcb5ec:	ds 008a
-Y24dcb676:	ds 008a
+Y24dcb5ec:	ds 2*0045
+Y24dcb676:	ds 2*0045
 Y24dcb700:	ds 0058
 Y24dcb758:	word
-Y24dcb75a:	ds 0180
+Y24dcb75a:	ds 2*00c0
 Y24dcb8da:	ds 0300
-Y24dcbbda:	ds 000a
+Y24dcbbda:	ds 2*0006
 Y24dcbbe6:	word
 Y24dcbbe8:	word
-Y24dcbbea:	ds 008a
+Y24dcbbea:	ds 2*0045
 Y24dcbc74:	word
 Y24dcbc76:	word
 Y24dcbc78:	word
 Y24dcbc7a:	word
 Y24dcbc7c:	word
 Y24dcbc7e:	word
-Y24dcbc80:	ds 0090
+Y24dcbc80:	ds 4*0020
+Y24dcbd00:	word
+Y24dcbd02:	ds 000e
 
 Segment 30ad ;; Stack Area
-Y30ad0000:	ds 00c0
-Y30ad00c0:	ds 000c
-Y30ad00cc:	dword
-Y30ad00d0:	dword
-Y30ad00d4:	word
-Y30ad00d6:	word
-Y30ad00d8:	word
-Y30ad00da:	word
-Y30ad00dc:	word
-Y30ad00de:	word
-Y30ad00e0:	dword
-Y30ad00e4:	dw ffff
+Y30ad0000:	ds 00c0	;; 24dcbd10
+Y30ad00c0:	ds 000c	;; 24dcbdd0
+Y30ad00cc:	dword	;; 24dcbddc
+Y30ad00d0:	dword	;; 24dcbde0
+Y30ad00d4:	word	;; 24dcbde4
+Y30ad00d6:	word	;; 24dcbde6
+Y30ad00d8:	word	;; 24dcbde8
+Y30ad00da:	word	;; 24dcbdea
+Y30ad00dc:	word	;; 24dcbdec
+Y30ad00de:	word	;; 24dcbdee
+Y30ad00e0:	dword	;; 24dcbdf0
+Y30ad00e4:	dw ffff	;; 24dcbdf4
+Y30ad00e6:	;; 24dcbdf6
 
 ;; === External Data Module ===
 Segment 30bb ;; Sound Segment
-Y30bb0006:	dw 0180,0182,0184,0186,0188,018a,018c,018e, 0190,0192,0194,0196,0198,019a,019c,019e
-		dw 01a0,019f,019e,019d,019c,019b,019a,0199, 0198,0197,0196,0195,0194,0193,0192,0191
-		dw 0190,0192,0190,0192,0190,0192,0190,0192, 0190,0192,0190,0192,0190,0192,0190,0192
-		dw 0190,0192,0190,0192,0190,0192,0190,0192, 0190,0192,0190,0192,0190,0192,0190,0192
-		dw 0190,0192,0190,0192,0190,0192,0190,0192, 0190,0192,0190,0192,0190,0192,0190,0192
-		dw 0190,0192,0190,0192,0190,0192,0190,0192, 0190,0192,0190,0192,0190,0192,0190,0192
-		dw 0190,0192,0190,0192,0190,0192,0190,0192, 0190,0192,0190,0192,0190,0192,0190,0192
-		dw 0190,0192,0190,0192,0190,0192,0190,0192, 0190,0192,0190,0192,0190,0192,0190,0192
-		dw 0000,0000,0020,0002,0040,0006,0060,000c, 0080,0014,00a0,001e,00c0,002a,00e0,0038
-		dw 0100,0048,0120,005a,0140,006e,0160,0084, 0180,009c,01a0,00b6,01c0,00d2,01e0,00f0
-		dw 0200,0110,0220,0132,0240,0156,0260,017c, 0280,01a4,02a0,01ce,02c0,01fa,02e0,0228
-		dw 0300,0258,0320,028a,0340,02be,0360,02f4, 0380,032c,03a0,0366,03c0,03a2,03e0,03e0
-		dw 0400,0420,0420,0462,0440,04a6,0460,04ec, 0480,0534,04a0,057e,04c0,05ca,04e0,0618
-		dw 0500,0668,0520,06ba,0540,070e,0560,0764, 0580,07bc,05a0,0816,05c0,0872,05e0,08d0
-		dw 0600,0930,0620,0992,0640,09f6,0660,0a5c, 0680,0ac4,06a0,0b2e,06c0,0b9a,06e0,0c08
-		dw 0700,0c78,0720,0cea,0740,0d5e,0760,0dd4, 0780,0e4c,07a0,0ec6,07c0,0f42,07e0,0fc0
-		dw 0000,0001,0008,001b,0040,007d,00d8,0157, 0200,02d9,03e8,0533,06c0,0895,0ab8,0d2f
-		dw 1000,1331,16c8,1acb,1f40,242d,2998,2f87, 3600,3d09,44a8,4ce3,55c0,5f45,6978,745f
-		dw 8000,8c61,9988,a77b,b640,c5dd,d658,e7b7, fa00,0d39,2168,3693,4cc0,63f5,7c38,958f
-		dw b000,cb91,e848,062b,2540,458d,6718,89e7, ae00,d369,fa28,2243,4bc0,76a5,a2f8,d0bf
-		dw 0000,30c1,6308,96db,cc40,033d,3bd8,7617, b200,ef99,2ee8,6ff3,b2c0,f755,3db8,85ef
-		dw d000,1bf1,69c8,b98b,0b40,5eed,b498,0c47, 6600,c1c9,1fa8,7fa3,e1c0,4605,ac78,151f
-		dw 8000,ed21,5c88,ce3b,4240,b89d,3158,ac77, 2a00,a9f9,2c68,b153,38c0,c2b5,4f38,de4f
-		dw 7000,0451,9b48,34eb,d140,704d,1218,b6a7, 5e00,0829,b528,6503,17c0,cd65,85f8,417f
-		dw 0270,0268,0260,0258,0250,0248,0241,0239, 0232,022a,0223,021b,0214,020d,0206,01ff
-		dw 01f8,01f1,01ea,01e3,01dc,01d5,01cf,01c8, 01c2,01bb,01b5,01ae,01a8,01a2,019c,0196
-		dw 0190,0190,0190,0190,0190,0190,0190,0190, 0190,0190,0190,0190,0190,0190,0190,0190
-		dw 0190,0190,0190,0190,0190,0190,0190,0190, 0190,0190,0190,0190,0190,0190,0190,0190
-		dw 0190,0190,0190,0190,0190,0190,0190,0190, 0190,0190,0190,0190,0190,0190,0190,0190
-		dw 0190,0190,0190,0190,0190,0190,0190,0190, 0190,0190,0190,0190,0190,0190,0190,0190
-		dw 0190,0190,0190,0190,0190,0190,0190,0190, 0190,0190,0190,0190,0190,0190,0190,0190
-		dw 0190,0190,0190,0190,0190,0190,0190,0190, 0190,0190,0190,0190,0190,0190,0190,0190
-		dw 0022,000d,044a,006d,048d,02c7,010f,0281, 0356,0118,0384,0056,0165,03c5,0225,0088
-		dw 021d,00cf,040c,0080,017b,0356,02cf,0128, 03be,0275,03b0,0268,01dd,0015,00f7,0053
-		dw 036d,022a,0175,01d2,018d,021f,02ea,0019, 012c,0173,0273,008f,024d,0008,0103,0218
-		dw 01e3,00f2,00d9,000a,010d,013e,019f,00c8, 00c5,0187,0011,01b8,0060,0189,005f,00f9
-		dw 006e,0186,00cb,00b1,00b3,005a,0005,002b, 00e4,00f2,00fa,0067,0052,001a,0092,00a5
-		dw 0002,0099,009c,004f,003e,0007,0064,003c, 0073,007b,0038,0050,000c,005e,001c,000b
-		dw 004f,0015,004f,0038,000a,0045,0006,001a, 0018,0017,002f,0028,000f,0002,0003,000f
-		dw 000b,0016,0002,0010,000a,0004,0008,0001, 0000,0001,0001,0001,0001,0000,0000,0000
-		dw 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6, 07d0,08ca,09c4,0abe,0bb8,0cb2,0dac,0ea6
-		dw 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6, 07d0,08ca,09c4,0abe,0bb8,0cb2,0dac,0ea6
-		dw 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6, 07d0,08ca,09c4,0abe,0bb8,0cb2,0dac,0ea6
-		dw 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6, 07d0,08ca,09c4,0abe,0bb8,0cb2,0dac,0ea6
-		dw 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6, 07d0,08ca,09c4,0abe,0bb8,0cb2,0dac,0ea6
-		dw 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6, 07d0,08ca,09c4,0abe,0bb8,0cb2,0dac,0ea6
-		dw 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6, 07d0,08ca,09c4,0abe,0bb8,0cb2,0dac,0ea6
-		dw 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6, 07d0,08ca,09c4,0abe,0bb8,0cb2,0dac,0ea6
-		dw 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6, 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6
-		dw 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6, 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6
-		dw 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6, 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6
-		dw 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6, 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6
-		dw 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6, 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6
-		dw 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6, 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6
-		dw 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6, 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6
-		dw 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6, 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6
-		dw 01b7,036f,06df,0dbf,01b7,036f,06df,0dbf, 01b7,036f,06df,0dbf,01b7,036f,06df,0dbf
-		dw ffff,036f,06df,0dbf,01b7,036f,06df,0dbf, ffff,036f,06df,0dbf,01b7,036f,06df,0dbf
-		dw ffff,ffff,06df,0dbf,01b7,036f,06df,0dbf, ffff,ffff,06df,0dbf,01b7,036f,06df,0dbf
-		dw ffff,ffff,ffff,0dbf,01b7,036f,06df,0dbf, ffff,ffff,ffff,0dbf,01b7,036f,06df,0dbf
-		dw ffff,ffff,ffff,ffff,01b7,036f,06df,0dbf, ffff,ffff,ffff,ffff,01b7,036f,06df,0dbf
-		dw ffff,ffff,ffff,ffff,ffff,036f,06df,0dbf, ffff,ffff,ffff,ffff,ffff,036f,06df,0dbf
-		dw ffff,ffff,ffff,ffff,ffff,ffff,06df,0dbf, ffff,ffff,ffff,ffff,ffff,ffff,06df,0dbf
-		dw ffff,ffff,ffff,ffff,ffff,ffff,ffff,0dbf, ffff,ffff,ffff,ffff,ffff,ffff,ffff,0dbf
-		dw 00c8,0000,0000,0000,00c8,0000,0000,0000, 00c8,0000,0000,0000,00c8,0000,0000,0000
-		dw 00c8,0000,0000,0000,00c8,0000,0000,0000, 00c8,0000,0000,0000,00c8,0000,0000,0000
-		dw 00c8,0000,0000,0000,00c8,0000,0000,0000, 00c8,0000,0000,0000,00c8,0000,0000,0000
-		dw 00c8,0000,0000,0000,00c8,0000,0000,0000, 00c8,0000,0000,0000,00c8,0000,0000,0000
-		dw 00c8,0000,0000,0000,00c8,0000,0000,0000, 00c8,0000,0000,0000,00c8,0000,0000,0000
-		dw 00c8,0000,0000,0000,00c8,0000,0000,0000, 00c8,0000,0000,0000,00c8,0000,0000,0000
-		dw 00c8,0000,0000,0000,00c8,0000,0000,0000, 00c8,0000,0000,0000,00c8,0000,0000,0000
-		dw 00c8,0000,0000,0000,00c8,0000,0000,0000, 00c8,0000,0000,0000,00c8,0000,0000,0000
-		dw 0140,0000,0000,0000,0138,0000,0000,0000, 0130,0000,0000,0000,0128,0000,0000,0000
-		dw 0120,0000,0000,0000,0118,0000,0000,0000, 0110,0000,0000,0000,0108,0000,0000,0000
-		dw 0100,0000,0000,0000,00f8,0000,0000,0000, 00f0,0000,0000,0000,00e8,0000,0000,0000
-		dw 00e0,0000,0000,0000,00d8,0000,0000,0000, 00d0,0000,0000,0000,00c8,0000,0000,0000
-		dw 00c0,0000,0000,0000,00b8,0000,0000,0000, 00b0,0000,0000,0000,00a8,0000,0000,0000
-		dw 00a0,0000,0000,0000,0098,0000,0000,0000, 0090,0000,0000,0000,0088,0000,0000,0000
-		dw 0080,0000,0000,0000,0078,0000,0000,0000, 0070,0000,0000,0000,0068,0000,0000,0000
-		dw 0060,0000,0000,0000,0058,0000,0000,0000, 0050,0000,0000,0000,0048,0000,0000,0000
-		dw 0320,0322,0323,0322,0320,031e,031d,031e, 0320,0322,0323,0322,0320,031e,031d,031e
-		dw 0320,0322,0323,0322,0320,031e,031d,031e, 0320,0322,0323,0322,0320,031e,031d,031e
-		dw 0320,0322,0323,0322,0320,031e,031d,031e, 0320,0322,0323,0322,0320,031e,031d,031e
-		dw 0320,0322,0323,0322,0320,031e,031d,031e, 0320,0322,0323,0322,0320,031e,031d,031e
-		dw 0320,0322,0323,0322,0320,031e,031d,031e, 0320,0322,0323,0322,0320,031e,031d,031e
-		dw 0320,0322,0323,0322,0320,031e,031d,031e, 0320,0322,0323,0322,0320,031e,031d,031e
-		dw 0320,0322,0323,0322,0320,031e,031d,031e, 0320,0322,0323,0322,0320,031e,031d,031e
-		dw 0320,0322,0323,0322,0320,031e,031d,031e, 0320,0322,0323,0322,0320,031e,031d,031e
-		dw 0300,0305,030a,030d,0310,030f,030e,030b, 0308,0305,0302,0301,0300,0303,0306,030b
-		dw 0310,0315,031a,031d,0320,031f,031e,031b, 0318,0315,0312,0311,0310,0313,0316,031b
-		dw 0320,0324,0328,032a,032c,032a,0328,0324, 0320,031c,0318,0316,0314,0316,0318,031c
-		dw 0320,0324,0328,032a,032c,032a,0328,0324, 0320,031c,0318,0316,0314,0316,0318,031c
-		dw 0320,0324,0328,032a,032c,032a,0328,0324, 0320,031c,0318,0316,0314,0316,0318,031c
-		dw 0320,0324,0328,032a,032c,032a,0328,0324, 0320,031c,0318,0316,0314,0316,0318,031c
-		dw 0320,0324,0328,032a,032c,032a,0328,0324, 0320,031c,0318,0316,0314,0316,0318,031c
-		dw 0320,0324,0328,032a,032c,032a,0328,0324, 0320,031c,0318,0316,0314,0316,0318,031c
-		dw 0000,0000,0000,0000,0320,0000,0000,0000, 0640,0000,0000,0000,0960,0000,0000,0000
-		dw 0c80,0000,0000,0000,0fa0,0000,0000,0000, 12c0,0000,0000,0000,15e0,0000,0000,0000
-		dw 1900,0000,0000,0000,1c20,0000,0000,0000, 1f40,0000,0000,0000,2260,0000,0000,0000
-		dw 2580,0000,0000,0000,28a0,0000,0000,0000, 2bc0,0000,0000,0000,2ee0,0000,0000,0000
-		dw 3200,0000,0000,0000,3520,0000,0000,0000, 3840,0000,0000,0000,3b60,0000,0000,0000
-		dw 3e80,0000,0000,0000,41a0,0000,0000,0000, 44c0,0000,0000,0000,47e0,0000,0000,0000
-		dw 4b00,0000,0000,0000,4e20,0000,0000,0000, 5140,0000,0000,0000,5460,0000,0000,0000
-		dw 5780,0000,0000,0000,5aa0,0000,0000,0000, 5dc0,0000,0000,0000,60e0,0000,0000,0000
-		dw 0280,0285,028a,028f,0294,0299,029e,02a3, 02a8,02ad,02b2,02b7,02bc,02c1,02c6,02cb
-		dw 02d0,02d5,02da,02df,02e4,02e9,02ee,02f3, 02f8,02fd,0302,0307,030c,0311,0316,031b
-		dw 0320,0320,0320,0320,0320,0320,0320,0320, 0320,0320,0320,0320,0320,0320,0320,0320
-		dw 0320,0320,0320,0320,0320,0320,0320,0320, 0320,0320,0320,0320,0320,0320,0320,0320
-		dw 0320,0320,0320,0320,0320,0320,0320,0320, 0320,0320,0320,0320,0320,0320,0320,0320
-		dw 0320,0320,0320,0320,0320,0320,0320,0320, 0320,0320,0320,0320,0320,0320,0320,0320
-		dw 0320,0320,0320,0320,0320,0320,0320,0320, 0320,0320,0320,0320,0320,0320,0320,0320
-		dw 0320,0320,0320,0320,0320,0320,0320,0320, 0320,0320,0320,0320,0320,0320,0320,0320
-		dw 0bf8,0980,0800,0bf8,0980,0800,0bf8,0980, 0800,0bf8,0980,0800,0bf8,0980,0800,0bf8
-		dw 0980,0800,0bf8,0980,0800,0bf8,0980,0800, 0bf8,0980,0800,0bf8,0980,0800,0bf8,0980
-		dw 0800,0bf8,0980,0800,0bf8,0980,0800,0bf8, 0980,0800,0bf8,0980,0800,0bf8,0980,0800
-		dw 0bf8,0980,0800,0bf8,0980,0800,0bf8,0980, 0800,0bf8,0980,0800,0bf8,0980,0800,0bf8
-		dw 0980,0800,0bf8,0980,0800,0bf8,0980,0800, 0bf8,0980,0800,0bf8,0980,0800,0bf8,0980
-		dw 0800,0bf8,0980,0800,0bf8,0980,0800,0bf8, 0980,0800,0bf8,0980,0800,0bf8,0980,0800
-		dw 0bf8,0980,0800,0bf8,0980,0800,0bf8,0980, 0800,0bf8,0980,0800,0bf8,0980,0800,0bf8
-		dw 0980,0800,0bf8,0980,0800,0bf8,0980,0800, 0bf8,0980,0800,0bf8,0980,0800,0bf8,0980
-		dw 0bf8,0a10,0800,0bf8,0a10,0800,0bf8,0a10, 0800,0bf8,0a10,0800,0bf8,0a10,0800,0bf8
-		dw 0a10,0800,0bf8,0a10,0800,0bf8,0a10,0800, 0bf8,0a10,0800,0bf8,0a10,0800,0bf8,0a10
-		dw 0800,0bf8,0a10,0800,0bf8,0a10,0800,0bf8, 0a10,0800,0bf8,0a10,0800,0bf8,0a10,0800
-		dw 0bf8,0a10,0800,0bf8,0a10,0800,0bf8,0a10, 0800,0bf8,0a10,0800,0bf8,0a10,0800,0bf8
-		dw 0a10,0800,0bf8,0a10,0800,0bf8,0a10,0800, 0bf8,0a10,0800,0bf8,0a10,0800,0bf8,0a10
-		dw 0800,0bf8,0a10,0800,0bf8,0a10,0800,0bf8, 0a10,0800,0bf8,0a10,0800,0bf8,0a10,0800
-		dw 0bf8,0a10,0800,0bf8,0a10,0800,0bf8,0a10, 0800,0bf8,0a10,0800,0bf8,0a10,0800,0bf8
-		dw 0a10,0800,0bf8,0a10,0800,0bf8,0a10,0800, 0bf8,0a10,0800,0bf8,0a10,0800,0bf8,0a10
-		dw 0800,0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8, 0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8,0800
-		dw 0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8, 0800,0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8
-		dw 0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8,0800, 0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8
-		dw 0800,0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8, 0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8,0800
-		dw 0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8, 0800,0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8
-		dw 0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8,0800, 0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8
-		dw 0800,0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8, 0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8,0800
-		dw 0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8, 0800,0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8
-		dw 0800,0aa8,0d70,0800,0aa8,0d70,0800,0aa8, 0d70,0800,0aa8,0d70,0800,0aa8,0d70,0800
-		dw 0aa8,0d70,0800,0aa8,0d70,0800,0aa8,0d70, 0800,0aa8,0d70,0800,0aa8,0d70,0800,0aa8
-		dw 0d70,0800,0aa8,0d70,0800,0aa8,0d70,0800, 0aa8,0d70,0800,0aa8,0d70,0800,0aa8,0d70
-		dw 0800,0aa8,0d70,0800,0aa8,0d70,0800,0aa8, 0d70,0800,0aa8,0d70,0800,0aa8,0d70,0800
-		dw 0aa8,0d70,0800,0aa8,0d70,0800,0aa8,0d70, 0800,0aa8,0d70,0800,0aa8,0d70,0800,0aa8
-		dw 0d70,0800,0aa8,0d70,0800,0aa8,0d70,0800, 0aa8,0d70,0800,0aa8,0d70,0800,0aa8,0d70
-		dw 0800,0aa8,0d70,0800,0aa8,0d70,0800,0aa8, 0d70,0800,0aa8,0d70,0800,0aa8,0d70,0800
-		dw 0aa8,0d70,0800,0aa8,0d70,0800,0aa8,0d70, 0800,0aa8,0d70,0800,0aa8,0d70,0800,0aa8
-		dw 05e0,05e3,05e6,05e9,05f0,05f3,05f6,05f9, 0600,0603,0606,0609,060e,0611,0614,0617
-		dw 061c,061f,0622,0625,0626,0629,062c,062f, 0630,0633,0636,0639,0638,063b,063e,0641
-		dw 0640,0640,0640,0640,063c,063c,063c,063c, 0638,0638,0638,0638,0636,0636,0636,0636
-		dw 0634,0634,0634,0634,0636,0636,0636,0636, 0638,0638,0638,0638,063c,063c,063c,063c
-		dw 0640,0640,0640,0640,0644,0644,0644,0644, 0648,0648,0648,0648,064a,064a,064a,064a
-		dw 064c,064c,064c,064c,064a,064a,064a,064a, 0648,0648,0648,0648,0644,0644,0644,0644
-		dw 0640,0640,0640,0640,063c,063c,063c,063c, 0638,0638,0638,0638,0636,0636,0636,0636
-		dw 0634,0634,0634,0634,0636,0636,0636,0636, 0638,0638,0638,0638,063c,063c,063c,063c
-		dw 1000,1000,1000,1000,1000,1000,1000,1000, 1540,1540,1540,1540,1540,1540,1540,1540
-		dw 1000,1000,1000,1000,1000,1000,1000,1000, 1540,1540,1540,1540,1540,1540,1540,1540
-		dw 1000,1000,1000,1000,1000,1000,1000,1000, 1540,1540,1540,1540,1540,1540,1540,1540
-		dw 1000,1000,1000,1000,1000,1000,1000,1000, 1540,1540,1540,1540,1540,1540,1540,1540
-		dw 1000,1000,1000,1000,1000,1000,1000,1000, 1540,1540,1540,1540,1540,1540,1540,1540
-		dw 1000,1000,1000,1000,1000,1000,1000,1000, 1540,1540,1540,1540,1540,1540,1540,1540
-		dw 1000,1000,1000,1000,1000,1000,1000,1000, 1540,1540,1540,1540,1540,1540,1540,1540
-		dw 1000,1000,1000,1000,1000,1000,1000,1000, 1540,1540,1540,1540,1540,1540,1540,1540
-		dw 0000,0204,0304,0383,0020,0214,030c,0387, 0040,0224,0314,038b,0060,0234,031c,038f
-		dw 0080,0244,0324,0393,00a0,0254,032c,0397, 00c0,0264,0334,039b,00e0,0274,033c,039f
-		dw 0100,0284,0344,03a3,0120,0294,034c,03a7, 0140,02a4,0354,03ab,0160,02b4,035c,03af
-		dw 0180,02c4,0364,03b3,01a0,02d4,036c,03b7, 01c0,02e4,0374,03bb,01e0,02f4,037c,03bf
-		dw 0200,0304,0384,03c3,0220,0314,038c,03c7, 0240,0324,0394,03cb,0260,0334,039c,03cf
-		dw 0280,0344,03a4,03d3,02a0,0354,03ac,03d7, 02c0,0364,03b4,03db,02e0,0374,03bc,03df
-		dw 0300,0384,03c4,03e3,0320,0394,03cc,03e7, 0340,03a4,03d4,03eb,0360,03b4,03dc,03ef
-		dw 0380,03c4,03e4,03f3,03a0,03d4,03ec,03f7, 03c0,03e4,03f4,03fb,03e0,03f4,03fc,03ff
-		dw 0800,0285,07e0,028f,07c0,0299,07a0,02a3, 0780,02ad,0760,02b7,0740,02c1,0720,02cb
-		dw 0700,02d5,06e0,02df,06c0,02e9,06a0,02f3, 0680,02fd,0660,0307,0640,0311,0620,031b
-		dw 0600,0320,05e0,0320,05c0,0320,05a0,0320, 0580,0320,0560,0320,0540,0320,0520,0320
-		dw 0500,0320,04e0,0320,04c0,0320,04a0,0320, 0480,0320,0460,0320,0440,0320,0420,0320
-		dw 0400,0320,03e0,0320,03c0,0320,03a0,0320, 0380,0320,0360,0320,0340,0320,0320,0320
-		dw 0300,0320,02e0,0320,02c0,0320,02a0,0320, 0280,0320,0260,0320,0240,0320,0220,0320
-		dw 0200,0320,01e0,0320,01c0,0320,01a0,0320, 0180,0320,0160,0320,0140,0320,0120,0320
-		dw 0100,0320,00e0,0320,00c0,0320,00a0,0320, 0080,0320,0060,0320,0040,0320,0020,0320
-		dw 0000,0285,0020,028f,0040,0299,0060,02a3, 0080,02ad,00a0,02b7,00c0,02c1,00e0,02cb
-		dw 0100,02d5,0120,02df,0140,02e9,0160,02f3, 0180,02fd,01a0,0307,01c0,0311,01e0,031b
-		dw 0200,0320,0220,0320,0240,0320,0260,0320, 0280,0320,02a0,0320,02c0,0320,02e0,0320
-		dw 0300,0320,0320,0320,0340,0320,0360,0320, 0380,0320,03a0,0320,03c0,0320,03e0,0320
-		dw 0400,0320,0420,0320,0440,0320,0460,0320, 0480,0320,04a0,0320,04c0,0320,04e0,0320
-		dw 0500,0320,0520,0320,0540,0320,0560,0320, 0580,0320,05a0,0320,05c0,0320,05e0,0320
-		dw 0600,0320,0620,0320,0640,0320,0660,0320, 0680,0320,06a0,0320,06c0,0320,06e0,0320
-		dw 0700,0320,0720,0320,0740,0320,0760,0320, 0780,0320,07a0,0320,07c0,0320,07e0,0320
-		dw 0328,0338,0347,0328,0325,0326,032f,0334, 0323,0334,0332,0330,0327,0324,033c,0334
-		dw 0341,0325,0329,0323,0320,0340,0339,032b, 0347,0336,0338,033f,0320,033e,0335,0330
-		dw 0337,0325,0322,0340,0341,0346,032c,0321, 0335,0335,032c,0336,0322,032e,0346,0339
-		dw 0329,0323,0340,0344,0325,0325,0347,0323, 0322,033a,033d,0341,0333,0327,033e,033a
-		dw 0337,0340,033c,0331,032d,0326,032f,033b, 032e,0339,0332,0323,0323,032e,0333,033f
-		dw 033f,0321,0333,032b,0337,0346,032e,0324, 0330,032d,033b,0327,0340,032c,0326,0322
-		dw 0339,0341,0325,033c,032a,0327,0338,0330, 0346,0338,0326,0330,0342,0335,033d,0337
-		dw 033a,0322,0320,032f,0334,033c,032f,032c, 0331,033f,033a,0338,0328,032b,0346,0321
-		dw 0325,0534,047a,0396,0552,035a,04d6,04ca, 0452,0348,04e4,044f,03c4,0343,0337,049f
-		dw 04a1,047d,036a,03ed,04b7,0378,049b,0462, 0487,0499,038d,03a6,0331,0324,03a0,0415
-		dw 03c4,040a,0438,03be,03b1,0402,0383,0356, 0392,039a,037b,035e,03c5,0322,034e,0383
-		dw 037e,0392,0354,033b,038b,0383,0372,032a, 033f,032b,0350,0324,0326,0338,0328,0320
-		dw 0320,0321,032d,0321,0323,0326,0353,0352, 0325,0374,036d,036d,037d,0359,0391,0381
-		dw 0339,0399,0337,0349,03ca,03dc,035e,03e9, 033d,0395,03be,03ab,0342,0351,037f,043a
-		dw 03f0,0352,0378,037d,0464,0331,045e,0379, 0497,03bc,0369,03e5,04ac,0463,03d0,0429
-		dw 0365,034a,04c8,032a,0471,0505,0537,040c, 043e,0490,0406,03f0,04d0,03a0,04b7,0352
-		dw 0320,0322,0322,0322,0328,0326,0323,0325, 032d,0322,0325,032e,0338,032d,0334,032c
-		dw 0325,0325,0328,0337,0330,0323,032a,034c, 0342,0339,0341,0340,0344,0331,0357,032e
-		dw 035a,0326,0363,035d,0331,0328,0351,035c, 032c,032b,0320,032f,032a,0368,0322,037a
-		dw 035c,0348,033a,0333,036d,034f,037b,0353, 036a,0360,035b,036f,0380,0347,032e,0366
-		dw 039f,0325,036f,0367,0335,0321,035e,0358, 035e,0374,0394,035f,032e,037d,0333,039e
-		dw 035a,0385,0382,0346,0321,03a4,0329,0383, 0396,0369,032f,03a5,03ca,036c,03da,03be
-		dw 03c6,0332,034e,0352,03e3,0385,0366,032b, 03b7,03a2,03dc,0375,0341,035e,03e1,0369
-		dw 039a,03c6,039a,03e9,0356,03af,037b,0356, 03bc,03d2,03bc,03e9,037a,03b5,03be,03ac
-		dw 0000,0400,0400,0400,01f0,0400,0400,0400, 03c0,0400,0400,0400,0570,0400,0400,0400
-		dw 0700,0400,0400,0400,0870,0400,0400,0400, 09c0,0400,0400,0400,0af0,0400,0400,0400
-		dw 0c00,0400,0400,0400,0cf0,0400,0400,0400, 0dc0,0400,0400,0400,0e70,0400,0400,0400
-		dw 0f00,0400,0400,0400,0f70,0400,0400,0400, 0fc0,0400,0400,0400,0ff0,0400,0400,0400
-		dw 1000,0400,0400,0400,0ff0,0400,0400,0400, 0fc0,0400,0400,0400,0f70,0400,0400,0400
-		dw 0f00,0400,0400,0400,0e70,0400,0400,0400, 0dc0,0400,0400,0400,0cf0,0400,0400,0400
-		dw 0c00,0400,0400,0400,0af0,0400,0400,0400, 09c0,0400,0400,0400,0870,0400,0400,0400
-		dw 0700,0400,0400,0400,0570,0400,0400,0400, 03c0,0400,0400,0400,01f0,0400,0400,0400
-		dw 0640,0640,0640,0640,0640,0640,0640,0640, 0640,0640,0640,0640,0640,0640,0640,0640
-		dw ffff,0640,0640,0640,0640,0640,0640,0640, ffff,0640,0640,0640,0640,0640,0640,0640
-		dw ffff,ffff,0640,0640,0640,0640,0640,0640, ffff,ffff,0640,0640,0640,0640,0640,0640
-		dw ffff,ffff,ffff,0640,0640,0640,0640,0640, ffff,ffff,ffff,0640,0640,0640,0640,0640
-		dw ffff,ffff,ffff,ffff,0640,0640,0640,0640, ffff,ffff,ffff,ffff,0640,0640,0640,0640
-		dw ffff,ffff,ffff,ffff,ffff,0640,0640,0640, ffff,ffff,ffff,ffff,ffff,0640,0640,0640
-		dw ffff,ffff,ffff,ffff,ffff,ffff,0640,0640, ffff,ffff,ffff,ffff,ffff,ffff,0640,0640
-		dw ffff,ffff,ffff,ffff,ffff,ffff,ffff,0640, ffff,ffff,ffff,ffff,ffff,ffff,ffff,0640
-		dw 0640,0640,0640,0640,0640,0640,0640,0640, 0640,0640,0640,0640,0640,0640,0640,0640
-		dw 0640,0640,0640,0640,0640,0640,0640,0640, 0640,0640,0640,0640,0640,0640,0640,0640
-		dw 0640,063e,0644,063a,0648,0636,064c,0632, 0650,062e,0654,062a,0658,0626,065c,0622
-		dw 0660,061e,0664,061a,0668,0616,066c,0612, 0670,060e,0674,060a,0678,0606,067c,0602
-		dw 0680,05fe,0684,05fa,0688,05f6,068c,05f2, 0690,05ee,0694,05ea,0698,05e6,069c,05e2
-		dw 06a0,05de,06a4,05da,06a8,05d6,06ac,05d2, 06b0,05ce,06b4,05ca,06b8,05c6,06bc,05c2
-		dw 06c0,05be,06c4,05ba,06c8,05b6,06cc,05b2, 06d0,05ae,06d4,05aa,06d8,05a6,06dc,05a2
-		dw 06e0,059e,06e4,059a,06e8,0596,06ec,0592, 06f0,058e,06f4,058a,06f8,0586,06fc,0582
-		dw 0640,0640,0640,0640,0640,0640,0640,0640, 0640,0640,0640,0640,0640,0640,0640,0640
-		dw ffff,0640,0640,0640,0640,0640,0640,0640, ffff,0640,0640,0640,0640,0640,0640,0640
-		dw ffff,ffff,0640,0640,0640,0640,0640,0640, ffff,ffff,0640,0640,0640,0640,0640,0640
-		dw ffff,ffff,ffff,0640,0640,0640,0640,0640, ffff,ffff,ffff,0640,0640,0640,0640,0640
-		dw ffff,ffff,ffff,ffff,0640,0640,0640,0640, ffff,ffff,ffff,ffff,0640,0640,0640,0640
-		dw ffff,ffff,ffff,ffff,ffff,0640,0640,0640, ffff,ffff,ffff,ffff,ffff,0640,0640,0640
-		dw ffff,ffff,ffff,ffff,ffff,ffff,0640,0640, ffff,ffff,ffff,ffff,ffff,ffff,0640,0640
-		dw ffff,ffff,ffff,ffff,ffff,ffff,ffff,0640, ffff,ffff,ffff,ffff,ffff,ffff,ffff,0640
-		dw 0147,011d,0144,010e,0107,015a,00fe,011f, 011f,012f,0129,013a,00fb,013b,014a,0111
-		dw 0108,011c,012b,013b,0158,0147,010b,0152, 0123,0137,0148,0147,0142,0110,0106,0155
-		dw 0136,015d,0141,011b,0157,0105,0145,011e, 0144,00fe,013d,0151,0105,0153,0115,0112
-		dw 0128,0108,0121,0121,0151,012b,012a,0124, 015d,0105,0147,014e,010c,0100,0150,0138
-		dw 0125,0103,012d,0149,0133,0100,00fa,0114, 00fd,0105,0125,012f,012e,014e,0140,0145
-		dw 0139,012e,0101,0124,0116,0117,010f,0131, 0137,0142,013a,012d,0115,0127,0116,015d
-		dw 0133,011a,0107,0104,011f,0120,013d,0116, 0129,0144,012e,013c,0135,0154,0143,011e
-		dw 0118,0151,012c,013d,011c,010c,0136,00fa, 0120,00fc,0137,00fe,0119,0101,0134,0138
-		dw 0640,063f,063a,0639,0640,0640,0643,0648, 0642,0642,063b,0634,062d,062d,0634,0635
-		dw 0637,0638,0637,063b,0642,0646,0642,0642, 0640,0646,0645,063f,0637,0637,063a,0641
-		dw 0640,0638,0633,063b,0636,063b,0636,0637, 0632,063a,063e,0646,0647,0641,063f,063e
-		dw 0641,063f,0644,063e,0638,0630,0634,0634, 0631,0633,062d,062f,0629,0630,0638,0640
-		dw 063f,0641,063a,0632,0639,063c,0644,0646, 064c,0650,0648,064f,0655,0659,065f,0664
-		dw 065e,065f,0658,0651,064d,0651,0652,0657, 065a,0658,0658,0656,0658,0651,064a,064b
-		dw 0649,0649,064b,0648,0643,064a,0647,064a, 0643,063f,0643,063b,0639,0632,0634,063b
-		dw 0643,063c,0642,063b,0643,0644,0640,0646, 0644,063e,063c,063e,0637,063d,0644,063f
-		dw 031f,063f,031f,063f,031f,063f,031f,063f, 031f,063f,031f,063f,031f,063f,031f,063f
-		dw 031f,063f,031f,063f,031f,063f,031f,063f, 031f,063f,031f,063f,031f,063f,031f,063f
-		dw 031f,063f,031f,063f,031f,063f,031f,063f, 031f,063f,031f,063f,031f,063f,031f,063f
-		dw 031f,063f,031f,063f,031f,063f,031f,063f, 031f,063f,031f,063f,031f,063f,031f,063f
-		dw 031f,063f,031f,063f,031f,063f,031f,063f, 031f,063f,031f,063f,031f,063f,031f,063f
-		dw 031f,063f,031f,063f,031f,063f,031f,063f, 031f,063f,031f,063f,031f,063f,031f,063f
-		dw 031f,063f,031f,063f,031f,063f,031f,063f, 031f,063f,031f,063f,031f,063f,031f,063f
-		dw 031f,063f,031f,063f,031f,063f,031f,063f, 031f,063f,031f,063f,031f,063f,031f,063f
-		dw 0800,0800,0800,0800,07fe,07ff,0804,0803, 07f8,07fb,080c,0807,07ee,07f6,0818,080e
-		dw 07e0,07ee,0828,0816,07ce,07e5,083c,0821, 07b8,07d9,0854,082d,079e,07cc,0870,083c
-		dw 0780,07bc,0890,084c,075e,07ab,08b4,085f, 0738,0797,08dc,0873,070e,0782,0908,088a
-		dw 06e0,076a,0938,08a2,06ae,0751,096c,08bd, 0678,0735,09a4,08d9,063e,0718,09e0,08f8
-		dw 0600,06f8,0a20,0918,05be,06d7,0a64,093b, 0578,06b3,0aac,095f,052e,068e,0af8,0986
-		dw 04e0,0666,0b48,09ae,048e,063d,0b9c,09d9, 0438,0611,0bf4,0a05,03de,05e4,0c50,0a34
-		dw 0380,05b4,0cb0,0a64,031e,0583,0d14,0a97, 02b8,054f,0d7c,0acb,024e,051a,0de8,0b02
-		dw 01e0,04e2,0e58,0b3a,016e,04a9,0ecc,0b75, 00f8,046d,0f44,0bb1,007e,0430,0fc0,0bf0
-		dw 0400,0010,0410,0030,0420,0050,0430,0070, 0440,0090,0450,00b0,0460,00d0,0470,00f0
-		dw 0480,0110,0490,0130,04a0,0150,04b0,0170, 04c0,0190,04d0,01b0,04e0,01d0,04f0,01f0
-		dw 0500,0210,0510,0230,0520,0250,0530,0270, 0540,0290,0550,02b0,0560,02d0,0570,02f0
-		dw 0580,0310,0590,0330,05a0,0350,05b0,0370, 05c0,0390,05d0,03b0,05e0,03d0,05f0,03f0
-		dw 0600,0410,0610,0430,0620,0450,0630,0470, 0640,0490,0650,04b0,0660,04d0,0670,04f0
-		dw 0680,0510,0690,0530,06a0,0550,06b0,0570, 06c0,0590,06d0,05b0,06e0,05d0,06f0,05f0
-		dw 0700,0610,0710,0630,0720,0650,0730,0670, 0740,0690,0750,06b0,0760,06d0,0770,06f0
-		dw 0780,0710,0790,0730,07a0,0750,07b0,0770, 07c0,0790,07d0,07b0,07e0,07d0,07f0,07f0
-		dw 0000,0001,0080,0009,0100,0019,0180,0031, 0200,0051,0280,0079,0300,00a9,0380,00e1
-		dw 0400,0121,0480,0169,0500,01b9,0580,0211, 0600,0271,0680,02d9,0700,0349,0780,03c1
-		dw 0800,0441,0880,04c9,0900,0559,0980,05f1, 0a00,0691,0a80,0739,0b00,07e9,0b80,08a1
-		dw 0c00,0961,0c80,0a29,0d00,0af9,0d80,0bd1, 0e00,0cb1,0e80,0d99,0f00,0e89,0f80,0f81
-		dw 1000,1081,1080,1189,1100,1299,1180,13b1, 1200,14d1,1280,15f9,1300,1729,1380,1861
-		dw 1400,19a1,1480,1ae9,1500,1c39,1580,1d91, 1600,1ef1,1680,2059,1700,21c9,1780,2341
-		dw 1800,24c1,1880,2649,1900,27d9,1980,2971, 1a00,2b11,1a80,2cb9,1b00,2e69,1b80,3021
-		dw 1c00,31e1,1c80,33a9,1d00,3579,1d80,3751, 1e00,3931,1e80,3b19,1f00,3d09,1f80,3f01
-		dw 0000,0001,0080,0009,0100,0019,0180,0031, 0200,0051,0280,0079,0300,00a9,0380,00e1
-		dw 0400,0121,0480,0169,0500,01b9,0580,0211, 0600,0271,0680,02d9,0700,0349,0780,03c1
-		dw 0800,0441,0880,04c9,0900,0559,0980,05f1, 0a00,0691,0a80,0739,0b00,07e9,0b80,08a1
-		dw 0c00,0961,0c80,0a29,0d00,0af9,0d80,0bd1, 0e00,0cb1,0e80,0d99,0f00,0e89,0f80,0f81
-		dw 1000,1081,1080,1189,1100,1299,1180,13b1, 1200,14d1,1280,15f9,1300,1729,1380,1861
-		dw 1400,19a1,1480,1ae9,1500,1c39,1580,1d91, 1600,1ef1,1680,2059,1700,21c9,1780,2341
-		dw 1800,24c1,1880,2649,1900,27d9,1980,2971, 1a00,2b11,1a80,2cb9,1b00,2e69,1b80,3021
-		dw 1c00,31e1,1c80,33a9,1d00,3579,1d80,3751, 1e00,3931,1e80,3b19,1f00,3d09,1f80,3f01
-		dw 0800,0800,0800,0800,07fe,07ff,0804,0803, 07f8,07fb,080c,0807,07ee,07f6,0818,080e
-		dw 07e0,07ee,0828,0816,07ce,07e5,083c,0821, 07b8,07d9,0854,082d,079e,07cc,0870,083c
-		dw 0780,07bc,0890,084c,075e,07ab,08b4,085f, 0738,0797,08dc,0873,070e,0782,0908,088a
-		dw 06e0,076a,0938,08a2,06ae,0751,096c,08bd, 0678,0735,09a4,08d9,063e,0718,09e0,08f8
-		dw 0600,06f8,0a20,0918,05be,06d7,0a64,093b, 0578,06b3,0aac,095f,052e,068e,0af8,0986
-		dw 04e0,0666,0b48,09ae,048e,063d,0b9c,09d9, 0438,0611,0bf4,0a05,03de,05e4,0c50,0a34
-		dw 0380,05b4,0cb0,0a64,031e,0583,0d14,0a97, 02b8,054f,0d7c,0acb,024e,051a,0de8,0b02
-		dw 01e0,04e2,0e58,0b3a,016e,04a9,0ecc,0b75, 00f8,046d,0f44,0bb1,007e,0430,0fc0,0bf0
-		dw 0800,0800,0800,0800,07fe,07ff,0804,0803, 07f8,07fb,080c,0807,07ee,07f6,0818,080e
-		dw 07e0,07ee,0828,0816,07ce,07e5,083c,0821, 07b8,07d9,0854,082d,079e,07cc,0870,083c
-		dw 0780,07bc,0890,084c,075e,07ab,08b4,085f, 0738,0797,08dc,0873,070e,0782,0908,088a
-		dw 06e0,076a,0938,08a2,06ae,0751,096c,08bd, 0678,0735,09a4,08d9,063e,0718,09e0,08f8
-		dw 0600,06f8,0a20,0918,05be,06d7,0a64,093b, 0578,06b3,0aac,095f,052e,068e,0af8,0986
-		dw 04e0,0666,0b48,09ae,048e,063d,0b9c,09d9, 0438,0611,0bf4,0a05,03de,05e4,0c50,0a34
-		dw 0380,05b4,0cb0,0a64,031e,0583,0d14,0a97, 02b8,054f,0d7c,0acb,024e,051a,0de8,0b02
-		dw 01e0,04e2,0e58,0b3a,016e,04a9,0ecc,0b75, 00f8,046d,0f44,0bb1,007e,0430,0fc0,0bf0
-Y30bb2706:	dw 0000,0000,0002,0000,0003,0002,0004,0000, 0005,0008,0002,0008,0007,0004,0008,0000
-		dw 0008,000e,000f,0008,000b,0002,0001,0008, 0017,0014,0017,0004,0012,0008,0002,0000
-		dw 0002,0008,0012,0020,000d,0022,0014,0008, 0027,0020,001b,0018,0017,0018,001b,0020
-		dw 0027,0030,0008,0014,0022,0032,000d,0020, 0035,0012,002a,0008,0023,0002,0020,0000
-		dw 0021,0002,0026,0008,002f,0012,003c,0020, 0004,0032,0017,0048,002e,0014,0049,0030
-		dw 0017,0050,0038,0020,0008,0046,002f,0018, 0001,0044,002e,0018,0002,004a,0035,0020
-		dw 000b,0058,0044,0030,001c,0008,005b,0048, 0035,0022,000f,0068,0056,0044,0032,0020
-		dw 000e,006e,005d,004c,003b,002a,0019,0008, 0070,0060,0050,0040,0030,0020,0010,0000
-		dw 0004,0008,0004,0002,0001,0004,0004,0004, 000c,0002,0010,0010,0006,0002,0010,0010
-		dw 0010,0010,0004,0004,0004,0001,0001,0001, 0001,0001,0004,0004,0006,0002,0001,0001
+Y30bb0006:	;; 30ad00e6 ;; 24dcbdf6
+		dw 0180,0182,0184,0186,0188,018a,018c,018e,0190,0192,0194,0196,0198,019a,019c,019e
+		dw 01a0,019f,019e,019d,019c,019b,019a,0199,0198,0197,0196,0195,0194,0193,0192,0191
+		dw 0190,0192,0190,0192,0190,0192,0190,0192,0190,0192,0190,0192,0190,0192,0190,0192
+		dw 0190,0192,0190,0192,0190,0192,0190,0192,0190,0192,0190,0192,0190,0192,0190,0192
+		dw 0190,0192,0190,0192,0190,0192,0190,0192,0190,0192,0190,0192,0190,0192,0190,0192
+		dw 0190,0192,0190,0192,0190,0192,0190,0192,0190,0192,0190,0192,0190,0192,0190,0192
+		dw 0190,0192,0190,0192,0190,0192,0190,0192,0190,0192,0190,0192,0190,0192,0190,0192
+		dw 0190,0192,0190,0192,0190,0192,0190,0192,0190,0192,0190,0192,0190,0192,0190,0192
+		dw 0000,0000,0020,0002,0040,0006,0060,000c,0080,0014,00a0,001e,00c0,002a,00e0,0038
+		dw 0100,0048,0120,005a,0140,006e,0160,0084,0180,009c,01a0,00b6,01c0,00d2,01e0,00f0
+		dw 0200,0110,0220,0132,0240,0156,0260,017c,0280,01a4,02a0,01ce,02c0,01fa,02e0,0228
+		dw 0300,0258,0320,028a,0340,02be,0360,02f4,0380,032c,03a0,0366,03c0,03a2,03e0,03e0
+		dw 0400,0420,0420,0462,0440,04a6,0460,04ec,0480,0534,04a0,057e,04c0,05ca,04e0,0618
+		dw 0500,0668,0520,06ba,0540,070e,0560,0764,0580,07bc,05a0,0816,05c0,0872,05e0,08d0
+		dw 0600,0930,0620,0992,0640,09f6,0660,0a5c,0680,0ac4,06a0,0b2e,06c0,0b9a,06e0,0c08
+		dw 0700,0c78,0720,0cea,0740,0d5e,0760,0dd4,0780,0e4c,07a0,0ec6,07c0,0f42,07e0,0fc0
+		dw 0000,0001,0008,001b,0040,007d,00d8,0157,0200,02d9,03e8,0533,06c0,0895,0ab8,0d2f
+		dw 1000,1331,16c8,1acb,1f40,242d,2998,2f87,3600,3d09,44a8,4ce3,55c0,5f45,6978,745f
+		dw 8000,8c61,9988,a77b,b640,c5dd,d658,e7b7,fa00,0d39,2168,3693,4cc0,63f5,7c38,958f
+		dw b000,cb91,e848,062b,2540,458d,6718,89e7,ae00,d369,fa28,2243,4bc0,76a5,a2f8,d0bf
+		dw 0000,30c1,6308,96db,cc40,033d,3bd8,7617,b200,ef99,2ee8,6ff3,b2c0,f755,3db8,85ef
+		dw d000,1bf1,69c8,b98b,0b40,5eed,b498,0c47,6600,c1c9,1fa8,7fa3,e1c0,4605,ac78,151f
+		dw 8000,ed21,5c88,ce3b,4240,b89d,3158,ac77,2a00,a9f9,2c68,b153,38c0,c2b5,4f38,de4f
+		dw 7000,0451,9b48,34eb,d140,704d,1218,b6a7,5e00,0829,b528,6503,17c0,cd65,85f8,417f
+		dw 0270,0268,0260,0258,0250,0248,0241,0239,0232,022a,0223,021b,0214,020d,0206,01ff
+		dw 01f8,01f1,01ea,01e3,01dc,01d5,01cf,01c8,01c2,01bb,01b5,01ae,01a8,01a2,019c,0196
+		dw 0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190
+		dw 0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190
+		dw 0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190
+		dw 0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190
+		dw 0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190
+		dw 0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190,0190
+		dw 0022,000d,044a,006d,048d,02c7,010f,0281,0356,0118,0384,0056,0165,03c5,0225,0088
+		dw 021d,00cf,040c,0080,017b,0356,02cf,0128,03be,0275,03b0,0268,01dd,0015,00f7,0053
+		dw 036d,022a,0175,01d2,018d,021f,02ea,0019,012c,0173,0273,008f,024d,0008,0103,0218
+		dw 01e3,00f2,00d9,000a,010d,013e,019f,00c8,00c5,0187,0011,01b8,0060,0189,005f,00f9
+		dw 006e,0186,00cb,00b1,00b3,005a,0005,002b,00e4,00f2,00fa,0067,0052,001a,0092,00a5
+		dw 0002,0099,009c,004f,003e,0007,0064,003c,0073,007b,0038,0050,000c,005e,001c,000b
+		dw 004f,0015,004f,0038,000a,0045,0006,001a,0018,0017,002f,0028,000f,0002,0003,000f
+		dw 000b,0016,0002,0010,000a,0004,0008,0001,0000,0001,0001,0001,0001,0000,0000,0000
+		dw 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6,07d0,08ca,09c4,0abe,0bb8,0cb2,0dac,0ea6
+		dw 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6,07d0,08ca,09c4,0abe,0bb8,0cb2,0dac,0ea6
+		dw 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6,07d0,08ca,09c4,0abe,0bb8,0cb2,0dac,0ea6
+		dw 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6,07d0,08ca,09c4,0abe,0bb8,0cb2,0dac,0ea6
+		dw 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6,07d0,08ca,09c4,0abe,0bb8,0cb2,0dac,0ea6
+		dw 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6,07d0,08ca,09c4,0abe,0bb8,0cb2,0dac,0ea6
+		dw 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6,07d0,08ca,09c4,0abe,0bb8,0cb2,0dac,0ea6
+		dw 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6,07d0,08ca,09c4,0abe,0bb8,0cb2,0dac,0ea6
+		dw 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6,0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6
+		dw 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6,0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6
+		dw 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6,0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6
+		dw 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6,0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6
+		dw 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6,0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6
+		dw 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6,0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6
+		dw 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6,0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6
+		dw 0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6,0000,00fa,01f4,02ee,03e8,04e2,05dc,06d6
+		dw 01b7,036f,06df,0dbf,01b7,036f,06df,0dbf,01b7,036f,06df,0dbf,01b7,036f,06df,0dbf
+		dw ffff,036f,06df,0dbf,01b7,036f,06df,0dbf,ffff,036f,06df,0dbf,01b7,036f,06df,0dbf
+		dw ffff,ffff,06df,0dbf,01b7,036f,06df,0dbf,ffff,ffff,06df,0dbf,01b7,036f,06df,0dbf
+		dw ffff,ffff,ffff,0dbf,01b7,036f,06df,0dbf,ffff,ffff,ffff,0dbf,01b7,036f,06df,0dbf
+		dw ffff,ffff,ffff,ffff,01b7,036f,06df,0dbf,ffff,ffff,ffff,ffff,01b7,036f,06df,0dbf
+		dw ffff,ffff,ffff,ffff,ffff,036f,06df,0dbf,ffff,ffff,ffff,ffff,ffff,036f,06df,0dbf
+		dw ffff,ffff,ffff,ffff,ffff,ffff,06df,0dbf,ffff,ffff,ffff,ffff,ffff,ffff,06df,0dbf
+		dw ffff,ffff,ffff,ffff,ffff,ffff,ffff,0dbf,ffff,ffff,ffff,ffff,ffff,ffff,ffff,0dbf
+		dw 00c8,0000,0000,0000,00c8,0000,0000,0000,00c8,0000,0000,0000,00c8,0000,0000,0000
+		dw 00c8,0000,0000,0000,00c8,0000,0000,0000,00c8,0000,0000,0000,00c8,0000,0000,0000
+		dw 00c8,0000,0000,0000,00c8,0000,0000,0000,00c8,0000,0000,0000,00c8,0000,0000,0000
+		dw 00c8,0000,0000,0000,00c8,0000,0000,0000,00c8,0000,0000,0000,00c8,0000,0000,0000
+		dw 00c8,0000,0000,0000,00c8,0000,0000,0000,00c8,0000,0000,0000,00c8,0000,0000,0000
+		dw 00c8,0000,0000,0000,00c8,0000,0000,0000,00c8,0000,0000,0000,00c8,0000,0000,0000
+		dw 00c8,0000,0000,0000,00c8,0000,0000,0000,00c8,0000,0000,0000,00c8,0000,0000,0000
+		dw 00c8,0000,0000,0000,00c8,0000,0000,0000,00c8,0000,0000,0000,00c8,0000,0000,0000
+		dw 0140,0000,0000,0000,0138,0000,0000,0000,0130,0000,0000,0000,0128,0000,0000,0000
+		dw 0120,0000,0000,0000,0118,0000,0000,0000,0110,0000,0000,0000,0108,0000,0000,0000
+		dw 0100,0000,0000,0000,00f8,0000,0000,0000,00f0,0000,0000,0000,00e8,0000,0000,0000
+		dw 00e0,0000,0000,0000,00d8,0000,0000,0000,00d0,0000,0000,0000,00c8,0000,0000,0000
+		dw 00c0,0000,0000,0000,00b8,0000,0000,0000,00b0,0000,0000,0000,00a8,0000,0000,0000
+		dw 00a0,0000,0000,0000,0098,0000,0000,0000,0090,0000,0000,0000,0088,0000,0000,0000
+		dw 0080,0000,0000,0000,0078,0000,0000,0000,0070,0000,0000,0000,0068,0000,0000,0000
+		dw 0060,0000,0000,0000,0058,0000,0000,0000,0050,0000,0000,0000,0048,0000,0000,0000
+		dw 0320,0322,0323,0322,0320,031e,031d,031e,0320,0322,0323,0322,0320,031e,031d,031e
+		dw 0320,0322,0323,0322,0320,031e,031d,031e,0320,0322,0323,0322,0320,031e,031d,031e
+		dw 0320,0322,0323,0322,0320,031e,031d,031e,0320,0322,0323,0322,0320,031e,031d,031e
+		dw 0320,0322,0323,0322,0320,031e,031d,031e,0320,0322,0323,0322,0320,031e,031d,031e
+		dw 0320,0322,0323,0322,0320,031e,031d,031e,0320,0322,0323,0322,0320,031e,031d,031e
+		dw 0320,0322,0323,0322,0320,031e,031d,031e,0320,0322,0323,0322,0320,031e,031d,031e
+		dw 0320,0322,0323,0322,0320,031e,031d,031e,0320,0322,0323,0322,0320,031e,031d,031e
+		dw 0320,0322,0323,0322,0320,031e,031d,031e,0320,0322,0323,0322,0320,031e,031d,031e
+		dw 0300,0305,030a,030d,0310,030f,030e,030b,0308,0305,0302,0301,0300,0303,0306,030b
+		dw 0310,0315,031a,031d,0320,031f,031e,031b,0318,0315,0312,0311,0310,0313,0316,031b
+		dw 0320,0324,0328,032a,032c,032a,0328,0324,0320,031c,0318,0316,0314,0316,0318,031c
+		dw 0320,0324,0328,032a,032c,032a,0328,0324,0320,031c,0318,0316,0314,0316,0318,031c
+		dw 0320,0324,0328,032a,032c,032a,0328,0324,0320,031c,0318,0316,0314,0316,0318,031c
+		dw 0320,0324,0328,032a,032c,032a,0328,0324,0320,031c,0318,0316,0314,0316,0318,031c
+		dw 0320,0324,0328,032a,032c,032a,0328,0324,0320,031c,0318,0316,0314,0316,0318,031c
+		dw 0320,0324,0328,032a,032c,032a,0328,0324,0320,031c,0318,0316,0314,0316,0318,031c
+		dw 0000,0000,0000,0000,0320,0000,0000,0000,0640,0000,0000,0000,0960,0000,0000,0000
+		dw 0c80,0000,0000,0000,0fa0,0000,0000,0000,12c0,0000,0000,0000,15e0,0000,0000,0000
+		dw 1900,0000,0000,0000,1c20,0000,0000,0000,1f40,0000,0000,0000,2260,0000,0000,0000
+		dw 2580,0000,0000,0000,28a0,0000,0000,0000,2bc0,0000,0000,0000,2ee0,0000,0000,0000
+		dw 3200,0000,0000,0000,3520,0000,0000,0000,3840,0000,0000,0000,3b60,0000,0000,0000
+		dw 3e80,0000,0000,0000,41a0,0000,0000,0000,44c0,0000,0000,0000,47e0,0000,0000,0000
+		dw 4b00,0000,0000,0000,4e20,0000,0000,0000,5140,0000,0000,0000,5460,0000,0000,0000
+		dw 5780,0000,0000,0000,5aa0,0000,0000,0000,5dc0,0000,0000,0000,60e0,0000,0000,0000
+		dw 0280,0285,028a,028f,0294,0299,029e,02a3,02a8,02ad,02b2,02b7,02bc,02c1,02c6,02cb
+		dw 02d0,02d5,02da,02df,02e4,02e9,02ee,02f3,02f8,02fd,0302,0307,030c,0311,0316,031b
+		dw 0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320
+		dw 0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320
+		dw 0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320
+		dw 0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320
+		dw 0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320
+		dw 0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320,0320
+		dw 0bf8,0980,0800,0bf8,0980,0800,0bf8,0980,0800,0bf8,0980,0800,0bf8,0980,0800,0bf8
+		dw 0980,0800,0bf8,0980,0800,0bf8,0980,0800,0bf8,0980,0800,0bf8,0980,0800,0bf8,0980
+		dw 0800,0bf8,0980,0800,0bf8,0980,0800,0bf8,0980,0800,0bf8,0980,0800,0bf8,0980,0800
+		dw 0bf8,0980,0800,0bf8,0980,0800,0bf8,0980,0800,0bf8,0980,0800,0bf8,0980,0800,0bf8
+		dw 0980,0800,0bf8,0980,0800,0bf8,0980,0800,0bf8,0980,0800,0bf8,0980,0800,0bf8,0980
+		dw 0800,0bf8,0980,0800,0bf8,0980,0800,0bf8,0980,0800,0bf8,0980,0800,0bf8,0980,0800
+		dw 0bf8,0980,0800,0bf8,0980,0800,0bf8,0980,0800,0bf8,0980,0800,0bf8,0980,0800,0bf8
+		dw 0980,0800,0bf8,0980,0800,0bf8,0980,0800,0bf8,0980,0800,0bf8,0980,0800,0bf8,0980
+		dw 0bf8,0a10,0800,0bf8,0a10,0800,0bf8,0a10,0800,0bf8,0a10,0800,0bf8,0a10,0800,0bf8
+		dw 0a10,0800,0bf8,0a10,0800,0bf8,0a10,0800,0bf8,0a10,0800,0bf8,0a10,0800,0bf8,0a10
+		dw 0800,0bf8,0a10,0800,0bf8,0a10,0800,0bf8,0a10,0800,0bf8,0a10,0800,0bf8,0a10,0800
+		dw 0bf8,0a10,0800,0bf8,0a10,0800,0bf8,0a10,0800,0bf8,0a10,0800,0bf8,0a10,0800,0bf8
+		dw 0a10,0800,0bf8,0a10,0800,0bf8,0a10,0800,0bf8,0a10,0800,0bf8,0a10,0800,0bf8,0a10
+		dw 0800,0bf8,0a10,0800,0bf8,0a10,0800,0bf8,0a10,0800,0bf8,0a10,0800,0bf8,0a10,0800
+		dw 0bf8,0a10,0800,0bf8,0a10,0800,0bf8,0a10,0800,0bf8,0a10,0800,0bf8,0a10,0800,0bf8
+		dw 0a10,0800,0bf8,0a10,0800,0bf8,0a10,0800,0bf8,0a10,0800,0bf8,0a10,0800,0bf8,0a10
+		dw 0800,0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8,0800
+		dw 0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8
+		dw 0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8
+		dw 0800,0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8,0800
+		dw 0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8
+		dw 0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8
+		dw 0800,0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8,0800
+		dw 0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8,0bf8,0800,0aa8
+		dw 0800,0aa8,0d70,0800,0aa8,0d70,0800,0aa8,0d70,0800,0aa8,0d70,0800,0aa8,0d70,0800
+		dw 0aa8,0d70,0800,0aa8,0d70,0800,0aa8,0d70,0800,0aa8,0d70,0800,0aa8,0d70,0800,0aa8
+		dw 0d70,0800,0aa8,0d70,0800,0aa8,0d70,0800,0aa8,0d70,0800,0aa8,0d70,0800,0aa8,0d70
+		dw 0800,0aa8,0d70,0800,0aa8,0d70,0800,0aa8,0d70,0800,0aa8,0d70,0800,0aa8,0d70,0800
+		dw 0aa8,0d70,0800,0aa8,0d70,0800,0aa8,0d70,0800,0aa8,0d70,0800,0aa8,0d70,0800,0aa8
+		dw 0d70,0800,0aa8,0d70,0800,0aa8,0d70,0800,0aa8,0d70,0800,0aa8,0d70,0800,0aa8,0d70
+		dw 0800,0aa8,0d70,0800,0aa8,0d70,0800,0aa8,0d70,0800,0aa8,0d70,0800,0aa8,0d70,0800
+		dw 0aa8,0d70,0800,0aa8,0d70,0800,0aa8,0d70,0800,0aa8,0d70,0800,0aa8,0d70,0800,0aa8
+		dw 05e0,05e3,05e6,05e9,05f0,05f3,05f6,05f9,0600,0603,0606,0609,060e,0611,0614,0617
+		dw 061c,061f,0622,0625,0626,0629,062c,062f,0630,0633,0636,0639,0638,063b,063e,0641
+		dw 0640,0640,0640,0640,063c,063c,063c,063c,0638,0638,0638,0638,0636,0636,0636,0636
+		dw 0634,0634,0634,0634,0636,0636,0636,0636,0638,0638,0638,0638,063c,063c,063c,063c
+		dw 0640,0640,0640,0640,0644,0644,0644,0644,0648,0648,0648,0648,064a,064a,064a,064a
+		dw 064c,064c,064c,064c,064a,064a,064a,064a,0648,0648,0648,0648,0644,0644,0644,0644
+		dw 0640,0640,0640,0640,063c,063c,063c,063c,0638,0638,0638,0638,0636,0636,0636,0636
+		dw 0634,0634,0634,0634,0636,0636,0636,0636,0638,0638,0638,0638,063c,063c,063c,063c
+		dw 1000,1000,1000,1000,1000,1000,1000,1000,1540,1540,1540,1540,1540,1540,1540,1540
+		dw 1000,1000,1000,1000,1000,1000,1000,1000,1540,1540,1540,1540,1540,1540,1540,1540
+		dw 1000,1000,1000,1000,1000,1000,1000,1000,1540,1540,1540,1540,1540,1540,1540,1540
+		dw 1000,1000,1000,1000,1000,1000,1000,1000,1540,1540,1540,1540,1540,1540,1540,1540
+		dw 1000,1000,1000,1000,1000,1000,1000,1000,1540,1540,1540,1540,1540,1540,1540,1540
+		dw 1000,1000,1000,1000,1000,1000,1000,1000,1540,1540,1540,1540,1540,1540,1540,1540
+		dw 1000,1000,1000,1000,1000,1000,1000,1000,1540,1540,1540,1540,1540,1540,1540,1540
+		dw 1000,1000,1000,1000,1000,1000,1000,1000,1540,1540,1540,1540,1540,1540,1540,1540
+		dw 0000,0204,0304,0383,0020,0214,030c,0387,0040,0224,0314,038b,0060,0234,031c,038f
+		dw 0080,0244,0324,0393,00a0,0254,032c,0397,00c0,0264,0334,039b,00e0,0274,033c,039f
+		dw 0100,0284,0344,03a3,0120,0294,034c,03a7,0140,02a4,0354,03ab,0160,02b4,035c,03af
+		dw 0180,02c4,0364,03b3,01a0,02d4,036c,03b7,01c0,02e4,0374,03bb,01e0,02f4,037c,03bf
+		dw 0200,0304,0384,03c3,0220,0314,038c,03c7,0240,0324,0394,03cb,0260,0334,039c,03cf
+		dw 0280,0344,03a4,03d3,02a0,0354,03ac,03d7,02c0,0364,03b4,03db,02e0,0374,03bc,03df
+		dw 0300,0384,03c4,03e3,0320,0394,03cc,03e7,0340,03a4,03d4,03eb,0360,03b4,03dc,03ef
+		dw 0380,03c4,03e4,03f3,03a0,03d4,03ec,03f7,03c0,03e4,03f4,03fb,03e0,03f4,03fc,03ff
+		dw 0800,0285,07e0,028f,07c0,0299,07a0,02a3,0780,02ad,0760,02b7,0740,02c1,0720,02cb
+		dw 0700,02d5,06e0,02df,06c0,02e9,06a0,02f3,0680,02fd,0660,0307,0640,0311,0620,031b
+		dw 0600,0320,05e0,0320,05c0,0320,05a0,0320,0580,0320,0560,0320,0540,0320,0520,0320
+		dw 0500,0320,04e0,0320,04c0,0320,04a0,0320,0480,0320,0460,0320,0440,0320,0420,0320
+		dw 0400,0320,03e0,0320,03c0,0320,03a0,0320,0380,0320,0360,0320,0340,0320,0320,0320
+		dw 0300,0320,02e0,0320,02c0,0320,02a0,0320,0280,0320,0260,0320,0240,0320,0220,0320
+		dw 0200,0320,01e0,0320,01c0,0320,01a0,0320,0180,0320,0160,0320,0140,0320,0120,0320
+		dw 0100,0320,00e0,0320,00c0,0320,00a0,0320,0080,0320,0060,0320,0040,0320,0020,0320
+		dw 0000,0285,0020,028f,0040,0299,0060,02a3,0080,02ad,00a0,02b7,00c0,02c1,00e0,02cb
+		dw 0100,02d5,0120,02df,0140,02e9,0160,02f3,0180,02fd,01a0,0307,01c0,0311,01e0,031b
+		dw 0200,0320,0220,0320,0240,0320,0260,0320,0280,0320,02a0,0320,02c0,0320,02e0,0320
+		dw 0300,0320,0320,0320,0340,0320,0360,0320,0380,0320,03a0,0320,03c0,0320,03e0,0320
+		dw 0400,0320,0420,0320,0440,0320,0460,0320,0480,0320,04a0,0320,04c0,0320,04e0,0320
+		dw 0500,0320,0520,0320,0540,0320,0560,0320,0580,0320,05a0,0320,05c0,0320,05e0,0320
+		dw 0600,0320,0620,0320,0640,0320,0660,0320,0680,0320,06a0,0320,06c0,0320,06e0,0320
+		dw 0700,0320,0720,0320,0740,0320,0760,0320,0780,0320,07a0,0320,07c0,0320,07e0,0320
+		dw 0328,0338,0347,0328,0325,0326,032f,0334,0323,0334,0332,0330,0327,0324,033c,0334
+		dw 0341,0325,0329,0323,0320,0340,0339,032b,0347,0336,0338,033f,0320,033e,0335,0330
+		dw 0337,0325,0322,0340,0341,0346,032c,0321,0335,0335,032c,0336,0322,032e,0346,0339
+		dw 0329,0323,0340,0344,0325,0325,0347,0323,0322,033a,033d,0341,0333,0327,033e,033a
+		dw 0337,0340,033c,0331,032d,0326,032f,033b,032e,0339,0332,0323,0323,032e,0333,033f
+		dw 033f,0321,0333,032b,0337,0346,032e,0324,0330,032d,033b,0327,0340,032c,0326,0322
+		dw 0339,0341,0325,033c,032a,0327,0338,0330,0346,0338,0326,0330,0342,0335,033d,0337
+		dw 033a,0322,0320,032f,0334,033c,032f,032c,0331,033f,033a,0338,0328,032b,0346,0321
+		dw 0325,0534,047a,0396,0552,035a,04d6,04ca,0452,0348,04e4,044f,03c4,0343,0337,049f
+		dw 04a1,047d,036a,03ed,04b7,0378,049b,0462,0487,0499,038d,03a6,0331,0324,03a0,0415
+		dw 03c4,040a,0438,03be,03b1,0402,0383,0356,0392,039a,037b,035e,03c5,0322,034e,0383
+		dw 037e,0392,0354,033b,038b,0383,0372,032a,033f,032b,0350,0324,0326,0338,0328,0320
+		dw 0320,0321,032d,0321,0323,0326,0353,0352,0325,0374,036d,036d,037d,0359,0391,0381
+		dw 0339,0399,0337,0349,03ca,03dc,035e,03e9,033d,0395,03be,03ab,0342,0351,037f,043a
+		dw 03f0,0352,0378,037d,0464,0331,045e,0379,0497,03bc,0369,03e5,04ac,0463,03d0,0429
+		dw 0365,034a,04c8,032a,0471,0505,0537,040c,043e,0490,0406,03f0,04d0,03a0,04b7,0352
+		dw 0320,0322,0322,0322,0328,0326,0323,0325,032d,0322,0325,032e,0338,032d,0334,032c
+		dw 0325,0325,0328,0337,0330,0323,032a,034c,0342,0339,0341,0340,0344,0331,0357,032e
+		dw 035a,0326,0363,035d,0331,0328,0351,035c,032c,032b,0320,032f,032a,0368,0322,037a
+		dw 035c,0348,033a,0333,036d,034f,037b,0353,036a,0360,035b,036f,0380,0347,032e,0366
+		dw 039f,0325,036f,0367,0335,0321,035e,0358,035e,0374,0394,035f,032e,037d,0333,039e
+		dw 035a,0385,0382,0346,0321,03a4,0329,0383,0396,0369,032f,03a5,03ca,036c,03da,03be
+		dw 03c6,0332,034e,0352,03e3,0385,0366,032b,03b7,03a2,03dc,0375,0341,035e,03e1,0369
+		dw 039a,03c6,039a,03e9,0356,03af,037b,0356,03bc,03d2,03bc,03e9,037a,03b5,03be,03ac
+		dw 0000,0400,0400,0400,01f0,0400,0400,0400,03c0,0400,0400,0400,0570,0400,0400,0400
+		dw 0700,0400,0400,0400,0870,0400,0400,0400,09c0,0400,0400,0400,0af0,0400,0400,0400
+		dw 0c00,0400,0400,0400,0cf0,0400,0400,0400,0dc0,0400,0400,0400,0e70,0400,0400,0400
+		dw 0f00,0400,0400,0400,0f70,0400,0400,0400,0fc0,0400,0400,0400,0ff0,0400,0400,0400
+		dw 1000,0400,0400,0400,0ff0,0400,0400,0400,0fc0,0400,0400,0400,0f70,0400,0400,0400
+		dw 0f00,0400,0400,0400,0e70,0400,0400,0400,0dc0,0400,0400,0400,0cf0,0400,0400,0400
+		dw 0c00,0400,0400,0400,0af0,0400,0400,0400,09c0,0400,0400,0400,0870,0400,0400,0400
+		dw 0700,0400,0400,0400,0570,0400,0400,0400,03c0,0400,0400,0400,01f0,0400,0400,0400
+		dw 0640,0640,0640,0640,0640,0640,0640,0640,0640,0640,0640,0640,0640,0640,0640,0640
+		dw ffff,0640,0640,0640,0640,0640,0640,0640,ffff,0640,0640,0640,0640,0640,0640,0640
+		dw ffff,ffff,0640,0640,0640,0640,0640,0640,ffff,ffff,0640,0640,0640,0640,0640,0640
+		dw ffff,ffff,ffff,0640,0640,0640,0640,0640,ffff,ffff,ffff,0640,0640,0640,0640,0640
+		dw ffff,ffff,ffff,ffff,0640,0640,0640,0640,ffff,ffff,ffff,ffff,0640,0640,0640,0640
+		dw ffff,ffff,ffff,ffff,ffff,0640,0640,0640,ffff,ffff,ffff,ffff,ffff,0640,0640,0640
+		dw ffff,ffff,ffff,ffff,ffff,ffff,0640,0640,ffff,ffff,ffff,ffff,ffff,ffff,0640,0640
+		dw ffff,ffff,ffff,ffff,ffff,ffff,ffff,0640,ffff,ffff,ffff,ffff,ffff,ffff,ffff,0640
+		dw 0640,0640,0640,0640,0640,0640,0640,0640,0640,0640,0640,0640,0640,0640,0640,0640
+		dw 0640,0640,0640,0640,0640,0640,0640,0640,0640,0640,0640,0640,0640,0640,0640,0640
+		dw 0640,063e,0644,063a,0648,0636,064c,0632,0650,062e,0654,062a,0658,0626,065c,0622
+		dw 0660,061e,0664,061a,0668,0616,066c,0612,0670,060e,0674,060a,0678,0606,067c,0602
+		dw 0680,05fe,0684,05fa,0688,05f6,068c,05f2,0690,05ee,0694,05ea,0698,05e6,069c,05e2
+		dw 06a0,05de,06a4,05da,06a8,05d6,06ac,05d2,06b0,05ce,06b4,05ca,06b8,05c6,06bc,05c2
+		dw 06c0,05be,06c4,05ba,06c8,05b6,06cc,05b2,06d0,05ae,06d4,05aa,06d8,05a6,06dc,05a2
+		dw 06e0,059e,06e4,059a,06e8,0596,06ec,0592,06f0,058e,06f4,058a,06f8,0586,06fc,0582
+		dw 0640,0640,0640,0640,0640,0640,0640,0640,0640,0640,0640,0640,0640,0640,0640,0640
+		dw ffff,0640,0640,0640,0640,0640,0640,0640,ffff,0640,0640,0640,0640,0640,0640,0640
+		dw ffff,ffff,0640,0640,0640,0640,0640,0640,ffff,ffff,0640,0640,0640,0640,0640,0640
+		dw ffff,ffff,ffff,0640,0640,0640,0640,0640,ffff,ffff,ffff,0640,0640,0640,0640,0640
+		dw ffff,ffff,ffff,ffff,0640,0640,0640,0640,ffff,ffff,ffff,ffff,0640,0640,0640,0640
+		dw ffff,ffff,ffff,ffff,ffff,0640,0640,0640,ffff,ffff,ffff,ffff,ffff,0640,0640,0640
+		dw ffff,ffff,ffff,ffff,ffff,ffff,0640,0640,ffff,ffff,ffff,ffff,ffff,ffff,0640,0640
+		dw ffff,ffff,ffff,ffff,ffff,ffff,ffff,0640,ffff,ffff,ffff,ffff,ffff,ffff,ffff,0640
+		dw 0147,011d,0144,010e,0107,015a,00fe,011f,011f,012f,0129,013a,00fb,013b,014a,0111
+		dw 0108,011c,012b,013b,0158,0147,010b,0152,0123,0137,0148,0147,0142,0110,0106,0155
+		dw 0136,015d,0141,011b,0157,0105,0145,011e,0144,00fe,013d,0151,0105,0153,0115,0112
+		dw 0128,0108,0121,0121,0151,012b,012a,0124,015d,0105,0147,014e,010c,0100,0150,0138
+		dw 0125,0103,012d,0149,0133,0100,00fa,0114,00fd,0105,0125,012f,012e,014e,0140,0145
+		dw 0139,012e,0101,0124,0116,0117,010f,0131,0137,0142,013a,012d,0115,0127,0116,015d
+		dw 0133,011a,0107,0104,011f,0120,013d,0116,0129,0144,012e,013c,0135,0154,0143,011e
+		dw 0118,0151,012c,013d,011c,010c,0136,00fa,0120,00fc,0137,00fe,0119,0101,0134,0138
+		dw 0640,063f,063a,0639,0640,0640,0643,0648,0642,0642,063b,0634,062d,062d,0634,0635
+		dw 0637,0638,0637,063b,0642,0646,0642,0642,0640,0646,0645,063f,0637,0637,063a,0641
+		dw 0640,0638,0633,063b,0636,063b,0636,0637,0632,063a,063e,0646,0647,0641,063f,063e
+		dw 0641,063f,0644,063e,0638,0630,0634,0634,0631,0633,062d,062f,0629,0630,0638,0640
+		dw 063f,0641,063a,0632,0639,063c,0644,0646,064c,0650,0648,064f,0655,0659,065f,0664
+		dw 065e,065f,0658,0651,064d,0651,0652,0657,065a,0658,0658,0656,0658,0651,064a,064b
+		dw 0649,0649,064b,0648,0643,064a,0647,064a,0643,063f,0643,063b,0639,0632,0634,063b
+		dw 0643,063c,0642,063b,0643,0644,0640,0646,0644,063e,063c,063e,0637,063d,0644,063f
+		dw 031f,063f,031f,063f,031f,063f,031f,063f,031f,063f,031f,063f,031f,063f,031f,063f
+		dw 031f,063f,031f,063f,031f,063f,031f,063f,031f,063f,031f,063f,031f,063f,031f,063f
+		dw 031f,063f,031f,063f,031f,063f,031f,063f,031f,063f,031f,063f,031f,063f,031f,063f
+		dw 031f,063f,031f,063f,031f,063f,031f,063f,031f,063f,031f,063f,031f,063f,031f,063f
+		dw 031f,063f,031f,063f,031f,063f,031f,063f,031f,063f,031f,063f,031f,063f,031f,063f
+		dw 031f,063f,031f,063f,031f,063f,031f,063f,031f,063f,031f,063f,031f,063f,031f,063f
+		dw 031f,063f,031f,063f,031f,063f,031f,063f,031f,063f,031f,063f,031f,063f,031f,063f
+		dw 031f,063f,031f,063f,031f,063f,031f,063f,031f,063f,031f,063f,031f,063f,031f,063f
+		dw 0800,0800,0800,0800,07fe,07ff,0804,0803,07f8,07fb,080c,0807,07ee,07f6,0818,080e
+		dw 07e0,07ee,0828,0816,07ce,07e5,083c,0821,07b8,07d9,0854,082d,079e,07cc,0870,083c
+		dw 0780,07bc,0890,084c,075e,07ab,08b4,085f,0738,0797,08dc,0873,070e,0782,0908,088a
+		dw 06e0,076a,0938,08a2,06ae,0751,096c,08bd,0678,0735,09a4,08d9,063e,0718,09e0,08f8
+		dw 0600,06f8,0a20,0918,05be,06d7,0a64,093b,0578,06b3,0aac,095f,052e,068e,0af8,0986
+		dw 04e0,0666,0b48,09ae,048e,063d,0b9c,09d9,0438,0611,0bf4,0a05,03de,05e4,0c50,0a34
+		dw 0380,05b4,0cb0,0a64,031e,0583,0d14,0a97,02b8,054f,0d7c,0acb,024e,051a,0de8,0b02
+		dw 01e0,04e2,0e58,0b3a,016e,04a9,0ecc,0b75,00f8,046d,0f44,0bb1,007e,0430,0fc0,0bf0
+		dw 0400,0010,0410,0030,0420,0050,0430,0070,0440,0090,0450,00b0,0460,00d0,0470,00f0
+		dw 0480,0110,0490,0130,04a0,0150,04b0,0170,04c0,0190,04d0,01b0,04e0,01d0,04f0,01f0
+		dw 0500,0210,0510,0230,0520,0250,0530,0270,0540,0290,0550,02b0,0560,02d0,0570,02f0
+		dw 0580,0310,0590,0330,05a0,0350,05b0,0370,05c0,0390,05d0,03b0,05e0,03d0,05f0,03f0
+		dw 0600,0410,0610,0430,0620,0450,0630,0470,0640,0490,0650,04b0,0660,04d0,0670,04f0
+		dw 0680,0510,0690,0530,06a0,0550,06b0,0570,06c0,0590,06d0,05b0,06e0,05d0,06f0,05f0
+		dw 0700,0610,0710,0630,0720,0650,0730,0670,0740,0690,0750,06b0,0760,06d0,0770,06f0
+		dw 0780,0710,0790,0730,07a0,0750,07b0,0770,07c0,0790,07d0,07b0,07e0,07d0,07f0,07f0
+		dw 0000,0001,0080,0009,0100,0019,0180,0031,0200,0051,0280,0079,0300,00a9,0380,00e1
+		dw 0400,0121,0480,0169,0500,01b9,0580,0211,0600,0271,0680,02d9,0700,0349,0780,03c1
+		dw 0800,0441,0880,04c9,0900,0559,0980,05f1,0a00,0691,0a80,0739,0b00,07e9,0b80,08a1
+		dw 0c00,0961,0c80,0a29,0d00,0af9,0d80,0bd1,0e00,0cb1,0e80,0d99,0f00,0e89,0f80,0f81
+		dw 1000,1081,1080,1189,1100,1299,1180,13b1,1200,14d1,1280,15f9,1300,1729,1380,1861
+		dw 1400,19a1,1480,1ae9,1500,1c39,1580,1d91,1600,1ef1,1680,2059,1700,21c9,1780,2341
+		dw 1800,24c1,1880,2649,1900,27d9,1980,2971,1a00,2b11,1a80,2cb9,1b00,2e69,1b80,3021
+		dw 1c00,31e1,1c80,33a9,1d00,3579,1d80,3751,1e00,3931,1e80,3b19,1f00,3d09,1f80,3f01
+		dw 0000,0001,0080,0009,0100,0019,0180,0031,0200,0051,0280,0079,0300,00a9,0380,00e1
+		dw 0400,0121,0480,0169,0500,01b9,0580,0211,0600,0271,0680,02d9,0700,0349,0780,03c1
+		dw 0800,0441,0880,04c9,0900,0559,0980,05f1,0a00,0691,0a80,0739,0b00,07e9,0b80,08a1
+		dw 0c00,0961,0c80,0a29,0d00,0af9,0d80,0bd1,0e00,0cb1,0e80,0d99,0f00,0e89,0f80,0f81
+		dw 1000,1081,1080,1189,1100,1299,1180,13b1,1200,14d1,1280,15f9,1300,1729,1380,1861
+		dw 1400,19a1,1480,1ae9,1500,1c39,1580,1d91,1600,1ef1,1680,2059,1700,21c9,1780,2341
+		dw 1800,24c1,1880,2649,1900,27d9,1980,2971,1a00,2b11,1a80,2cb9,1b00,2e69,1b80,3021
+		dw 1c00,31e1,1c80,33a9,1d00,3579,1d80,3751,1e00,3931,1e80,3b19,1f00,3d09,1f80,3f01
+		dw 0800,0800,0800,0800,07fe,07ff,0804,0803,07f8,07fb,080c,0807,07ee,07f6,0818,080e
+		dw 07e0,07ee,0828,0816,07ce,07e5,083c,0821,07b8,07d9,0854,082d,079e,07cc,0870,083c
+		dw 0780,07bc,0890,084c,075e,07ab,08b4,085f,0738,0797,08dc,0873,070e,0782,0908,088a
+		dw 06e0,076a,0938,08a2,06ae,0751,096c,08bd,0678,0735,09a4,08d9,063e,0718,09e0,08f8
+		dw 0600,06f8,0a20,0918,05be,06d7,0a64,093b,0578,06b3,0aac,095f,052e,068e,0af8,0986
+		dw 04e0,0666,0b48,09ae,048e,063d,0b9c,09d9,0438,0611,0bf4,0a05,03de,05e4,0c50,0a34
+		dw 0380,05b4,0cb0,0a64,031e,0583,0d14,0a97,02b8,054f,0d7c,0acb,024e,051a,0de8,0b02
+		dw 01e0,04e2,0e58,0b3a,016e,04a9,0ecc,0b75,00f8,046d,0f44,0bb1,007e,0430,0fc0,0bf0
+		dw 0800,0800,0800,0800,07fe,07ff,0804,0803,07f8,07fb,080c,0807,07ee,07f6,0818,080e
+		dw 07e0,07ee,0828,0816,07ce,07e5,083c,0821,07b8,07d9,0854,082d,079e,07cc,0870,083c
+		dw 0780,07bc,0890,084c,075e,07ab,08b4,085f,0738,0797,08dc,0873,070e,0782,0908,088a
+		dw 06e0,076a,0938,08a2,06ae,0751,096c,08bd,0678,0735,09a4,08d9,063e,0718,09e0,08f8
+		dw 0600,06f8,0a20,0918,05be,06d7,0a64,093b,0578,06b3,0aac,095f,052e,068e,0af8,0986
+		dw 04e0,0666,0b48,09ae,048e,063d,0b9c,09d9,0438,0611,0bf4,0a05,03de,05e4,0c50,0a34
+		dw 0380,05b4,0cb0,0a64,031e,0583,0d14,0a97,02b8,054f,0d7c,0acb,024e,051a,0de8,0b02
+		dw 01e0,04e2,0e58,0b3a,016e,04a9,0ecc,0b75,00f8,046d,0f44,0bb1,007e,0430,0fc0,0bf0
+		dw 0000,0000,0002,0000,0003,0002,0004,0000,0005,0008,0002,0008,0007,0004,0008,0000
+		dw 0008,000e,000f,0008,000b,0002,0001,0008,0017,0014,0017,0004,0012,0008,0002,0000
+		dw 0002,0008,0012,0020,000d,0022,0014,0008,0027,0020,001b,0018,0017,0018,001b,0020
+		dw 0027,0030,0008,0014,0022,0032,000d,0020,0035,0012,002a,0008,0023,0002,0020,0000
+		dw 0021,0002,0026,0008,002f,0012,003c,0020,0004,0032,0017,0048,002e,0014,0049,0030
+		dw 0017,0050,0038,0020,0008,0046,002f,0018,0001,0044,002e,0018,0002,004a,0035,0020
+		dw 000b,0058,0044,0030,001c,0008,005b,0048,0035,0022,000f,0068,0056,0044,0032,0020
+		dw 000e,006e,005d,004c,003b,002a,0019,0008,0070,0060,0050,0040,0030,0020,0010,0000
+Y30bb2806:	;; 30ad28e6 ;; 24dce5f6
+		dw 0004,0008,0004,0002,0001,0004,0004,0004,000c,0002,0010,0010,0006,0002,0010,0010
+		dw 0010,0010,0004,0004,0004,0001,0001,0001,0001,0001,0004,0004,0006,0002,0001,0001
 		dw 0001,0004,0004,0002,0001,0001,0001,0001

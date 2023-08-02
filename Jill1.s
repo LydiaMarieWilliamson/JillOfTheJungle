@@ -1,5 +1,12 @@
+Segment 0040 ;; DOS Segment.
+Y00400000:
+Y0040001a: word	;; 0040001a	;; Handler queue head.
+Y0040001c: word ;; 0040001c	;; Handler queue tail.
+Y00400063: word	;; 00400063	;; Port number.
+Y0040006c: word	;; 0040006c	;; Clock.
+
 ;; CS:IP = 0000:0000, SS:SP = 2f84:00e6
-;; Relocated to 076a (under Linux), 140c (under Windows). 
+;; Relocated to 076a under Linux; previously to 140c under Windows.
 
 ;; === Top-Level Runtime System ===
 Segment 076a ;; C0L:C0L
@@ -60,7 +67,7 @@ L076a0090:
    cmp BP,DI	;;; 076A:0095 3BEF
    jnb L076a009c	;;; 076A:0097 7303
 L076a0099:
-jmp near L076a01af	;;; 076A:0099 E91301
+jmp near A076a01af	;;; 076A:0099 E91301
 L076a009c:
    mov BX,DI	;;; 076A:009C 8BDF
    add BX,DX	;;; 076A:009E 03DA
@@ -112,11 +119,12 @@ A076a010d:
    mov AH,4C	;;; 076A:011E B44C
    mov AL,[BP+04]	;;; 076A:0120 8A4604
    int 21	;;; 076A:0123 CD21
+
 B076a0125:
    mov CX,000E	;;; 076A:0125 B90E00
    nop	;;; 076A:0128 90
    mov DX,offset Y2a17002f	;;; 076A:0129 BA2F00
-jmp near L076a01b6	;;; 076A:012C E98700
+jmp near B076a01b6	;;; 076A:012C E98700
 
 B076a012f:
    push DS	;;; 076A:012F 1E
@@ -179,11 +187,13 @@ B076a01a7:
    mov BX,0002	;;; 076A:01A9 BB0200
    int 21	;;; 076A:01AC CD21
 ret near	;;; 076A:01AE C3
-L076a01af:
+
+A076a01af:
    mov CX,001E	;;; 076A:01AF B91E00
    nop	;;; 076A:01B2 90
    mov DX,offset Y2a17003d	;;; 076A:01B3 BA3D00
-L076a01b6:
+
+B076a01b6:
    mov DS,[CS:offset Y076a01c7]	;;; 076A:01B6 2E8E1EC701
    call near B076a01a7	;;; 076A:01BB E8E9FF
    mov AX,0003	;;; 076A:01BE B80300
@@ -292,7 +302,7 @@ L076a0285:
 L076a0287:
 ret near	;;; 076A:0287 C3
 L076a0288:
-jmp far L076a01af	;;; 076A:0288 EAAF016A07
+jmp far A076a01af	;;; 076A:0288 EAAF016A07
 L076a028d:
    pop CX	;;; 076A:028D 59
    add CX,DX	;;; 076A:028E 03CA
@@ -339,7 +349,7 @@ A076a02d0:
    mov DS,DX	;;; 076A:02EE 8EDA
    or AX,DX	;;; 076A:02F0 0BC2
    jnz L076a02f9	;;; 076A:02F2 7505
-jmp far L076a01af	;;; 076A:02F4 EAAF016A07
+jmp far A076a01af	;;; 076A:02F4 EAAF016A07
 L076a02f9:
    xor AX,AX	;;; 076A:02F9 33C0
    mov CX,FFFF	;;; 076A:02FB B9FFFF
@@ -463,7 +473,7 @@ L076a03b1:
    mov DX,2B90	;;; 076A:03C0 BA902B
    mov AH,40	;;; 076A:03C3 B440
    int 21	;;; 076A:03C5 CD21
-jmp far L076a01af	;;; 076A:03C7 EAAF016A07
+jmp far A076a01af	;;; 076A:03C7 EAAF016A07
 
 A076a03cc:
 jmp far [2C52]	;;; 076A:03CC FF2E522C
@@ -3054,10 +3064,8 @@ L086009c4:
 jmp near L086009fc	;;; 0860:09CD EB2D
 L086009cf:
 jmp near [CS:BX+08]	;;; 0860:09CF 2EFF6708
-
 Y086009d3:	dw 001b,0043,0045,0056
 		dw L086009f8,L086009e3,L086009ea,L086009f1
-
 L086009e3:
    mov byte ptr [3B53],00	;;; 0860:09E3 C606533B00
 jmp near L086009fc	;;; 0860:09E8 EB12
@@ -4533,9 +4541,7 @@ L09270b44:
    mov BX,AX	;;; 0927:0B44 8BD8
    shl BX,1	;;; 0927:0B46 D1E3
 jmp near [CS:BX+offset Y09270b4d]	;;; 0927:0B48 2EFFA74D0B
-
 Y09270b4d:	dw L09270b5b,L09270df2,L09270c21,L09270df2,L09270cde,L09270df2,L09270d7c
-
 L09270b5b:
    sar word ptr [BP-0E],1	;;; 0927:0B5B D17EF2
    sar word ptr [BP-0E],1	;;; 0927:0B5E D17EF2
@@ -4935,9 +4941,7 @@ L09270eb6:
    mov BX,AX	;;; 0927:0EB6 8BD8
    shl BX,1	;;; 0927:0EB8 D1E3
 jmp near [CS:BX+offset Y09270ebf]	;;; 0927:0EBA 2EFFA7BF0E
-
 Y09270ebf:	dw L09270ecd,L092710b9,L09270f6a,L092710b9,L09271012,L092710b9,L092710b7
-
 L09270ecd:
    mov AL,[BP+0A]	;;; 0927:0ECD 8A460A
    and AL,03	;;; 0927:0ED0 2403
@@ -7482,10 +7486,8 @@ L0b390333:
 jmp near L0b3903ae	;;; 0B39:033C EB70
 L0b39033e:
 jmp near [CS:BX+10]	;;; 0B39:033E 2EFF6710
-
 Y0b390342:	dw 0032,0034,0036,0038,00c8,00cb,00cd,00d0
 		dw L0b39039b,L0b390377,L0b390386,L0b390362,L0b390362,L0b390377,L0b390386,L0b39039b
-
 L0b390362:
    or SI,SI	;;; 0B39:0362 0BF6
    jz L0b390369	;;; 0B39:0364 7403
@@ -9256,7 +9258,7 @@ L0c59011f:
    mov DX,0003	;;; 0C59:014F BA0300
    mul DX	;;; 0C59:0152 F7E2
    mov BX,AX	;;; 0C59:0154 8BD8
-   mov AL,[BX+offset Y21a70194+1]	;;; 0C59:0156 8A879501
+   mov AL,[BX+offset Y2a170194+1]	;;; 0C59:0156 8A879501
    mov AH,00	;;; 0C59:015A B400
    shl AX,1	;;; 0C59:015C D1E0
    shl AX,1	;;; 0C59:015E D1E0
@@ -9272,7 +9274,7 @@ L0c59011f:
    mov DX,0003	;;; 0C59:0174 BA0300
    mul DX	;;; 0C59:0177 F7E2
    mov BX,AX	;;; 0C59:0179 8BD8
-   mov AL,[BX+offset Y21a70194+2]	;;; 0C59:017B 8A879601
+   mov AL,[BX+offset Y2a170194+2]	;;; 0C59:017B 8A879601
    mov AH,00	;;; 0C59:017F B400
    shl AX,1	;;; 0C59:0181 D1E0
    shl AX,1	;;; 0C59:0183 D1E0
@@ -10247,9 +10249,8 @@ jmp near L0c7e083e	;;; 0C7E:08C9 E972FF
 L0c7e08cc:
    mov SP,BP	;;; 0C7E:08CC 8BE5
    pop BP	;;; 0C7E:08CE 5D
-
-X0c7e08cf:
 ret far	;;; 0C7E:08CF CB
+
 X0c7e08d0:
    push BP	;;; 0C7E:08D0 55
    mov BP,SP	;;; 0C7E:08D1 8BEC
@@ -10444,9 +10445,8 @@ jmp near L0c7e0935	;;; 0C7E:0AD9 E959FE
 L0c7e0adc:
    mov SP,BP	;;; 0C7E:0ADC 8BE5
    pop BP	;;; 0C7E:0ADE 5D
-
-X0c7e0adf:
 ret far	;;; 0C7E:0ADF CB
+
 X0c7e0ae0:
    mov word ptr [0C72],0000	;;; 0C7E:0AE0 C706720C0000
    call far A29f50038	;;; 0C7E:0AE6 9A3800F529
@@ -10554,9 +10554,8 @@ jmp near L0c7e0b5e	;;; 0C7E:0BE9 E972FF
 L0c7e0bec:
    mov SP,BP	;;; 0C7E:0BEC 8BE5
    pop BP	;;; 0C7E:0BEE 5D
-
-X0c7e0bef:
 ret far	;;; 0C7E:0BEF CB
+
 X0c7e0bf0:
    push BP	;;; 0C7E:0BF0 55
    mov BP,SP	;;; 0C7E:0BF1 8BEC
@@ -14386,9 +14385,7 @@ L0d8c256a:
    mov BX,AX	;;; 0D8C:256A 8BD8
    shl BX,1	;;; 0D8C:256C D1E3
 jmp near [CS:BX+offset Y0d8c2573]	;;; 0D8C:256E 2EFFA77325
-
 Y0d8c2573:	dw L0d8c257f,L0d8c267b,L0d8c267b,L0d8c260a,L0d8c25f8,L0d8c25ce
-
 L0d8c257f:
    cmp word ptr [13C4],+00	;;; 0D8C:257F 833EC41300
    jnz L0d8c2589	;;; 0D8C:2583 7503
@@ -18879,9 +18876,7 @@ L11860cef:
    mov BX,AX	;;; 1186:0CEF 8BD8
    shl BX,1	;;; 1186:0CF1 D1E3
 jmp near [CS:BX+offset Y11860cf8]	;;; 1186:0CF3 2EFFA7F80C
-
 Y11860cf8:	dw L11860d04,L11860d41,L11860d59,L11860e0c,L11860e4f,L11860e0c
-
 L11860d04:
    mov AX,SI	;;; 1186:0D04 8BC6
    mov DX,001F	;;; 1186:0D06 BA1F00
@@ -20612,9 +20607,7 @@ L11861c3f:
    mov BX,AX	;;; 1186:1C3F 8BD8
    shl BX,1	;;; 1186:1C41 D1E3
 jmp near [CS:BX+offset Y11861c48]	;;; 1186:1C43 2EFFA7481C
-
 Y11861c48:	dw L11861c54,L11861dd8,L11861ccd,L11861d90,L11861dc0,L11861da8
-
 L11861c54:
    mov AX,SI	;;; 1186:1C54 8BC6
    mov DX,001F	;;; 1186:1C56 BA1F00
@@ -26691,11 +26684,9 @@ L1668035f:
    mov BX,AX	;;; 1668:035F 8BD8
    shl BX,1	;;; 1668:0361 D1E3
 jmp near [CS:BX+offset Y16680368]	;;; 1668:0363 2EFFA76803
-
 Y16680368:	dw L1668038e,L16680418,L16680418,L16680418,L166803a0,L16680418,L16680418,L16680418
 		dw L166803b2,L16680418,L16680418,L16680418,L166803c4,L16680418,L16680418,L166803d6
 		dw L16680418,L16680418,L166803e8
-
 L1668038e:
    mov AX,0190	;;; 1668:038E B89001
    push AX	;;; 1668:0391 50
@@ -27352,10 +27343,8 @@ jmp near L16e0076f	;;; 16E0:022A E94205
 L16e0022d:
    mov BX,AX	;;; 16E0:022D 8BD8
    shl BX,1	;;; 16E0:022F D1E3
-jmp near [CS:BX+offset Y16E00236]	;;; 16E0:0231 2EFFA73602
-
+jmp near [CS:BX+offset Y16e00236]	;;; 16E0:0231 2EFFA73602
 Y16e00236:	dw L16e00242,L16e0076f,L16e004a2,L16e00585,L16e005a6,L16e0065c
-
 L16e00242:
    mov AX,SI	;;; 16E0:0242 8BC6
    mov DX,001F	;;; 16E0:0244 BA1F00
@@ -28027,10 +28016,8 @@ jmp near L16e01a69	;;; 16E0:083C E92A12
 L16e0083f:
    mov BX,AX	;;; 16E0:083F 8BD8
    shl BX,1	;;; 16E0:0841 D1E3
-jmp near [CS:BX+offset Y16E00848]	;;; 16E0:0843 2EFFA74808
-
+jmp near [CS:BX+offset Y16e00848]	;;; 16E0:0843 2EFFA74808
 Y16e00848:	dw L16e00854,L16e01a69,L16e01355,L16e016a4,L16e01107,L16e011ac
-
 L16e00854:
    mov AX,0001	;;; 16E0:0854 B80100
    push AX	;;; 16E0:0857 50
@@ -32461,10 +32448,8 @@ L19dd0036:
 jmp near L19dd0308	;;; 19DD:003F E9C602
 L19dd0042:
 jmp near [CS:BX+0C]	;;; 19DD:0042 2EFF670C
-
 Y19dd0046:	dw 0000,0017,0036,0037,0038,0039
 		dw L19dd005e,L19dd011f,L19dd0248,L19dd02ae,L19dd017c,L19dd01e2
-
 L19dd005e:
    mov AX,0008	;;; 19DD:005E B80800
    push AX	;;; 19DD:0061 50
@@ -35266,10 +35251,8 @@ L19dd1941:
 jmp near L19dd19f1	;;; 19DD:194A E9A400
 L19dd194d:
 jmp near [CS:BX+0A]	;;; 19DD:194D 2EFF670A
-
 Y19dd1951:	dw 001b,0051,0052,0053,00bb
 		dw L19dd19d2,L19dd19d2,L19dd198c,L19dd1965,L19dd19c7
-
 L19dd1965:
    mov AX,[3B56]	;;; 19DD:1965 A1563B
    mov [BP-08],AX	;;; 19DD:1968 8946F8
@@ -37953,7 +37936,7 @@ L19dd30d4:
    mov [offset Y2a17b770+2],DS	;;; 19DD:31B2 8C1E72B7
    mov word ptr [offset Y2a17b770],offset Y2a17b8b8+38	;;; 19DD:31B6 C70670B7F0B8
    mov [offset Y2a17ba44+2],DS	;;; 19DD:31BC 8C1E46BA
-   mov word ptr [offset Y2a17ba44],offset Y2a17b900	;;; 19DD:31C0 C70644BA00B9
+   mov word ptr [offset Y2a17ba44],offset Y2a17b8b8+48	;;; 19DD:31C0 C70644BA00B9
    mov word ptr [offset Y2a17b760+08],0000	;;; 19DD:31C6 C70668B70000
    mov word ptr [offset Y2a17b760+0A],0000	;;; 19DD:31CC C7066AB70000
    mov word ptr [offset Y2a17b760+00],0000	;;; 19DD:31D2 C70660B70000
@@ -38426,7 +38409,7 @@ A1d3d000d:
    push BP	;;; 1D3D:000D 55
    mov BP,SP	;;; 1D3D:000E 8BEC
    push DS	;;; 1D3D:0010 1E
-   mov AX,offset Y2a17b900	;;; 1D3D:0011 B800B9
+   mov AX,offset Y2a17b8b8+48	;;; 1D3D:0011 B800B9
    push AX	;;; 1D3D:0014 50
    call far A0a820aa4	;;; 1D3D:0015 9AA40A820A
    mov SP,BP	;;; 1D3D:001A 8BE5
@@ -38438,7 +38421,7 @@ A1d3d000d:
    push AX	;;; 1D3D:0028 50
    push AX	;;; 1D3D:0029 50
    push DS	;;; 1D3D:002A 1E
-   mov AX,offset Y2a17b900	;;; 1D3D:002B B800B9
+   mov AX,offset Y2a17b8b8+48	;;; 1D3D:002B B800B9
    push AX	;;; 1D3D:002E 50
    call far A0a8206bf	;;; 1D3D:002F 9ABF06820A
    mov SP,BP	;;; 1D3D:0034 8BE5
@@ -38453,7 +38436,7 @@ A1d3d000d:
    xor AX,AX	;;; 1D3D:0048 33C0
    push AX	;;; 1D3D:004A 50
    push DS	;;; 1D3D:004B 1E
-   mov AX,offset Y2a17b900	;;; 1D3D:004C B800B9
+   mov AX,offset Y2a17b8b8+48	;;; 1D3D:004C B800B9
    push AX	;;; 1D3D:004F 50
    call far A0a8207d2	;;; 1D3D:0050 9AD207820A
    mov SP,BP	;;; 1D3D:0055 8BE5
@@ -38475,7 +38458,7 @@ A1d3d0059:
    push AX	;;; 1D3D:006E 50
    push AX	;;; 1D3D:006F 50
    push DS	;;; 1D3D:0070 1E
-   mov AX,offset Y2a17b900	;;; 1D3D:0071 B800B9
+   mov AX,offset Y2a17b8b8+48	;;; 1D3D:0071 B800B9
    push AX	;;; 1D3D:0074 50
    call far A0a8206bf	;;; 1D3D:0075 9ABF06820A
    add SP,+0E	;;; 1D3D:007A 83C40E
@@ -38500,7 +38483,7 @@ A1d3d0059:
    mov AX,001E	;;; 1D3D:00A5 B81E00
    push AX	;;; 1D3D:00A8 50
    push DS	;;; 1D3D:00A9 1E
-   mov AX,offset Y2a17b900	;;; 1D3D:00AA B800B9
+   mov AX,offset Y2a17b8b8+48	;;; 1D3D:00AA B800B9
    push AX	;;; 1D3D:00AD 50
    call far A0a8206bf	;;; 1D3D:00AE 9ABF06820A
    add SP,+0E	;;; 1D3D:00B3 83C40E
@@ -38514,7 +38497,7 @@ A1d3d0059:
    xor AX,AX	;;; 1D3D:00C3 33C0
    push AX	;;; 1D3D:00C5 50
    push DS	;;; 1D3D:00C6 1E
-   mov AX,offset Y2a17b900	;;; 1D3D:00C7 B800B9
+   mov AX,offset Y2a17b8b8+48	;;; 1D3D:00C7 B800B9
    push AX	;;; 1D3D:00CA 50
    call far A0a8206bf	;;; 1D3D:00CB 9ABF06820A
    add SP,+0E	;;; 1D3D:00D0 83C40E
@@ -38542,7 +38525,7 @@ A1d3d0059:
    mov AX,001E	;;; 1D3D:0101 B81E00
    push AX	;;; 1D3D:0104 50
    push DS	;;; 1D3D:0105 1E
-   mov AX,offset Y2a17b900	;;; 1D3D:0106 B800B9
+   mov AX,offset Y2a17b8b8+48	;;; 1D3D:0106 B800B9
    push AX	;;; 1D3D:0109 50
    call far A0a8206bf	;;; 1D3D:010A 9ABF06820A
    add SP,+0E	;;; 1D3D:010F 83C40E
@@ -38556,7 +38539,7 @@ A1d3d0059:
    xor AX,AX	;;; 1D3D:011F 33C0
    push AX	;;; 1D3D:0121 50
    push DS	;;; 1D3D:0122 1E
-   mov AX,offset Y2a17b900	;;; 1D3D:0123 B800B9
+   mov AX,offset Y2a17b8b8+48	;;; 1D3D:0123 B800B9
    push AX	;;; 1D3D:0126 50
    call far A0a8206bf	;;; 1D3D:0127 9ABF06820A
    add SP,+0E	;;; 1D3D:012C 83C40E
@@ -38584,7 +38567,7 @@ A1d3d0059:
    mov AX,001E	;;; 1D3D:015D B81E00
    push AX	;;; 1D3D:0160 50
    push DS	;;; 1D3D:0161 1E
-   mov AX,offset Y2a17b900	;;; 1D3D:0162 B800B9
+   mov AX,offset Y2a17b8b8+48	;;; 1D3D:0162 B800B9
    push AX	;;; 1D3D:0165 50
    call far A0a8206bf	;;; 1D3D:0166 9ABF06820A
    add SP,+0E	;;; 1D3D:016B 83C40E
@@ -38598,7 +38581,7 @@ A1d3d0059:
    xor AX,AX	;;; 1D3D:017B 33C0
    push AX	;;; 1D3D:017D 50
    push DS	;;; 1D3D:017E 1E
-   mov AX,offset Y2a17b900	;;; 1D3D:017F B800B9
+   mov AX,offset Y2a17b8b8+48	;;; 1D3D:017F B800B9
    push AX	;;; 1D3D:0182 50
    call far A0a8206bf	;;; 1D3D:0183 9ABF06820A
    add SP,+0E	;;; 1D3D:0188 83C40E
@@ -38626,7 +38609,7 @@ A1d3d0059:
    mov AX,001E	;;; 1D3D:01B9 B81E00
    push AX	;;; 1D3D:01BC 50
    push DS	;;; 1D3D:01BD 1E
-   mov AX,offset Y2a17b900	;;; 1D3D:01BE B800B9
+   mov AX,offset Y2a17b8b8+48	;;; 1D3D:01BE B800B9
    push AX	;;; 1D3D:01C1 50
    call far A0a8206bf	;;; 1D3D:01C2 9ABF06820A
    add SP,+0E	;;; 1D3D:01C7 83C40E
@@ -38640,7 +38623,7 @@ A1d3d0059:
    xor AX,AX	;;; 1D3D:01D7 33C0
    push AX	;;; 1D3D:01D9 50
    push DS	;;; 1D3D:01DA 1E
-   mov AX,offset Y2a17b900	;;; 1D3D:01DB B800B9
+   mov AX,offset Y2a17b8b8+48	;;; 1D3D:01DB B800B9
    push AX	;;; 1D3D:01DE 50
    call far A0a8206bf	;;; 1D3D:01DF 9ABF06820A
    add SP,+0E	;;; 1D3D:01E4 83C40E
@@ -38668,7 +38651,7 @@ A1d3d0059:
    mov AX,001E	;;; 1D3D:0215 B81E00
    push AX	;;; 1D3D:0218 50
    push DS	;;; 1D3D:0219 1E
-   mov AX,offset Y2a17b900	;;; 1D3D:021A B800B9
+   mov AX,offset Y2a17b8b8+48	;;; 1D3D:021A B800B9
    push AX	;;; 1D3D:021D 50
    call far A0a8206bf	;;; 1D3D:021E 9ABF06820A
    add SP,+0E	;;; 1D3D:0223 83C40E
@@ -38695,7 +38678,7 @@ A1d3d0059:
    xor AX,AX	;;; 1D3D:0252 33C0
    push AX	;;; 1D3D:0254 50
    push DS	;;; 1D3D:0255 1E
-   mov AX,offset Y2a17b900	;;; 1D3D:0256 B800B9
+   mov AX,offset Y2a17b8b8+48	;;; 1D3D:0256 B800B9
    push AX	;;; 1D3D:0259 50
    call far A0a8206bf	;;; 1D3D:025A 9ABF06820A
    add SP,+0E	;;; 1D3D:025F 83C40E
@@ -38774,7 +38757,7 @@ L1d3d02f1:
    mov word ptr [BP-44],1852	;;; 1D3D:0302 C746BC5218
 L1d3d0307:
    push DS	;;; 1D3D:0307 1E
-   mov AX,offset Y2a17b900	;;; 1D3D:0308 B800B9
+   mov AX,offset Y2a17b8b8+48	;;; 1D3D:0308 B800B9
    push AX	;;; 1D3D:030B 50
    call far A0a820aa4	;;; 1D3D:030C 9AA40A820A
    pop CX	;;; 1D3D:0311 59
@@ -38788,7 +38771,7 @@ L1d3d0307:
    push AX	;;; 1D3D:031E 50
    push AX	;;; 1D3D:031F 50
    push DS	;;; 1D3D:0320 1E
-   mov AX,offset Y2a17b900	;;; 1D3D:0321 B800B9
+   mov AX,offset Y2a17b8b8+48	;;; 1D3D:0321 B800B9
    push AX	;;; 1D3D:0324 50
    call far A0a8206bf	;;; 1D3D:0325 9ABF06820A
    add SP,+0E	;;; 1D3D:032A 83C40E
@@ -38802,7 +38785,7 @@ L1d3d0307:
    xor AX,AX	;;; 1D3D:033A 33C0
    push AX	;;; 1D3D:033C 50
    push DS	;;; 1D3D:033D 1E
-   mov AX,offset Y2a17b900	;;; 1D3D:033E B800B9
+   mov AX,offset Y2a17b8b8+48	;;; 1D3D:033E B800B9
    push AX	;;; 1D3D:0341 50
    call far A0a8206bf	;;; 1D3D:0342 9ABF06820A
    add SP,+0E	;;; 1D3D:0347 83C40E
@@ -38816,7 +38799,7 @@ L1d3d0307:
    xor AX,AX	;;; 1D3D:0357 33C0
    push AX	;;; 1D3D:0359 50
    push DS	;;; 1D3D:035A 1E
-   mov AX,offset Y2a17b900	;;; 1D3D:035B B800B9
+   mov AX,offset Y2a17b8b8+48	;;; 1D3D:035B B800B9
    push AX	;;; 1D3D:035E 50
    call far A0a8206bf	;;; 1D3D:035F 9ABF06820A
    add SP,+0E	;;; 1D3D:0364 83C40E
@@ -38830,7 +38813,7 @@ L1d3d0307:
    xor AX,AX	;;; 1D3D:0374 33C0
    push AX	;;; 1D3D:0376 50
    push DS	;;; 1D3D:0377 1E
-   mov AX,offset Y2a17b900	;;; 1D3D:0378 B800B9
+   mov AX,offset Y2a17b8b8+48	;;; 1D3D:0378 B800B9
    push AX	;;; 1D3D:037B 50
    call far A0a8206bf	;;; 1D3D:037C 9ABF06820A
    add SP,+0E	;;; 1D3D:0381 83C40E
@@ -38843,7 +38826,7 @@ L1d3d0307:
    mov AX,001E	;;; 1D3D:0392 B81E00
    push AX	;;; 1D3D:0395 50
    push DS	;;; 1D3D:0396 1E
-   mov AX,offset Y2a17b900	;;; 1D3D:0397 B800B9
+   mov AX,offset Y2a17b8b8+48	;;; 1D3D:0397 B800B9
    push AX	;;; 1D3D:039A 50
    call far A0a8206bf	;;; 1D3D:039B 9ABF06820A
    add SP,+0E	;;; 1D3D:03A0 83C40E
@@ -38854,7 +38837,7 @@ L1d3d0307:
    xor AX,AX	;;; 1D3D:03AB 33C0
    push AX	;;; 1D3D:03AD 50
    push DS	;;; 1D3D:03AE 1E
-   mov AX,offset Y2a17b900	;;; 1D3D:03AF B800B9
+   mov AX,offset Y2a17b8b8+48	;;; 1D3D:03AF B800B9
    push AX	;;; 1D3D:03B2 50
    call far A0a82075a	;;; 1D3D:03B3 9A5A07820A
    add SP,+0A	;;; 1D3D:03B8 83C40A
@@ -38863,7 +38846,7 @@ L1d3d0307:
    pop CX	;;; 1D3D:03C1 59
    mov [3D8A],AX	;;; 1D3D:03C2 A38A3D
    push DS	;;; 1D3D:03C5 1E
-   mov AX,offset Y2a17b900	;;; 1D3D:03C6 B800B9
+   mov AX,offset Y2a17b8b8+48	;;; 1D3D:03C6 B800B9
    push AX	;;; 1D3D:03C9 50
    call far A0a820aa4	;;; 1D3D:03CA 9AA40A820A
    pop CX	;;; 1D3D:03CF 59
@@ -38877,10 +38860,8 @@ L1d3d03df:
    mov BX,AX	;;; 1D3D:03DF 8BD8
    shl BX,1	;;; 1D3D:03E1 D1E3
 jmp near [CS:BX+offset Y1d3d03e8]	;;; 1D3D:03E3 2EFFA7E803
-
 Y1d3d03e8:	dw L1d3d0408,L1d3d0501,L1d3d0501,L1d3d0424,L1d3d0501,L1d3d0501,L1d3d0501,L1d3d0501
 		dw L1d3d0501,L1d3d0501,L1d3d04f0,L1d3d0501,L1d3d04fa,L1d3d0501,L1d3d04bb,L1d3d0441
-
 L1d3d0408:
    mov SI,[offset Y2a17bc1e]	;;; 1D3D:0408 8B361EBC
    push [BP+08]	;;; 1D3D:040C FF7608
@@ -39031,7 +39012,7 @@ L1d3d050a:
    mov AX,001E	;;; 1D3D:054E B81E00
    push AX	;;; 1D3D:0551 50
    push DS	;;; 1D3D:0552 1E
-   mov AX,offset Y2a17b900	;;; 1D3D:0553 B800B9
+   mov AX,offset Y2a17b8b8+48	;;; 1D3D:0553 B800B9
    push AX	;;; 1D3D:0556 50
    call far A0a8207d2	;;; 1D3D:0557 9AD207820A
    add SP,+10	;;; 1D3D:055C 83C410
@@ -39105,7 +39086,7 @@ L1d3d05b4:
    mov AX,001E	;;; 1D3D:05EF B81E00
    push AX	;;; 1D3D:05F2 50
    push DS	;;; 1D3D:05F3 1E
-   mov AX,offset Y2a17b900	;;; 1D3D:05F4 B800B9
+   mov AX,offset Y2a17b8b8+48	;;; 1D3D:05F4 B800B9
    push AX	;;; 1D3D:05F7 50
    call far A0a8207d2	;;; 1D3D:05F8 9AD207820A
    add SP,+10	;;; 1D3D:05FD 83C410
@@ -39159,7 +39140,7 @@ L1d3d0627:
    mov AX,001E	;;; 1D3D:0662 B81E00
    push AX	;;; 1D3D:0665 50
    push DS	;;; 1D3D:0666 1E
-   mov AX,offset Y2a17b900	;;; 1D3D:0667 B800B9
+   mov AX,offset Y2a17b8b8+48	;;; 1D3D:0667 B800B9
    push AX	;;; 1D3D:066A 50
    call far A0a8207d2	;;; 1D3D:066B 9AD207820A
    add SP,+10	;;; 1D3D:0670 83C410
@@ -39213,7 +39194,7 @@ L1d3d069a:
    mov AX,001E	;;; 1D3D:06D5 B81E00
    push AX	;;; 1D3D:06D8 50
    push DS	;;; 1D3D:06D9 1E
-   mov AX,offset Y2a17b900	;;; 1D3D:06DA B800B9
+   mov AX,offset Y2a17b8b8+48	;;; 1D3D:06DA B800B9
    push AX	;;; 1D3D:06DD 50
    call far A0a8207d2	;;; 1D3D:06DE 9AD207820A
    add SP,+10	;;; 1D3D:06E3 83C410
@@ -39267,7 +39248,7 @@ L1d3d070d:
    mov AX,001E	;;; 1D3D:0748 B81E00
    push AX	;;; 1D3D:074B 50
    push DS	;;; 1D3D:074C 1E
-   mov AX,offset Y2a17b900	;;; 1D3D:074D B800B9
+   mov AX,offset Y2a17b8b8+48	;;; 1D3D:074D B800B9
    push AX	;;; 1D3D:0750 50
    call far A0a8207d2	;;; 1D3D:0751 9AD207820A
    add SP,+10	;;; 1D3D:0756 83C410
@@ -39610,7 +39591,7 @@ L1d3d0a19:
    push AX	;;; 1D3D:0A64 50
    push AX	;;; 1D3D:0A65 50
    push DS	;;; 1D3D:0A66 1E
-   mov AX,offset Y2a17b900	;;; 1D3D:0A67 B800B9
+   mov AX,offset Y2a17b8b8+48	;;; 1D3D:0A67 B800B9
    push AX	;;; 1D3D:0A6A 50
    call far A0a8206bf	;;; 1D3D:0A6B 9ABF06820A
    add SP,+0E	;;; 1D3D:0A70 83C40E
@@ -39798,15 +39779,13 @@ L1d3d0c2b:
 jmp near L1d3d0ff8	;;; 1D3D:0C34 E9C103
 L1d3d0c37:
 jmp near [CS:BX+1C]	;;; 1D3D:0C37 2EFF671C
-
 Y1d3d0c3b:	dw 0009,000d,0020,0048,0049,004b,004c
 		dw 004e,004f,0053,0056,0059,005a,0060
 Y1d3d0c57:	dw L1d3d0d3b,L1d3d0c73,L1d3d0d67,L1d3d0dcc,L1d3d0d7c,L1d3d0d49,L1d3d0eb1
 		dw L1d3d0fa8,L1d3d0e6d,L1d3d0fd5,L1d3d0d95,L1d3d0f2f,L1d3d0e7b,L1d3d0ef1
-
 L1d3d0c73:
    push DS	;;; 1D3D:0C73 1E
-   mov AX,offset Y2a17b900	;;; 1D3D:0C74 B800B9
+   mov AX,offset Y2a17b8b8+48	;;; 1D3D:0C74 B800B9
    push AX	;;; 1D3D:0C77 50
    call far A0a820aa4	;;; 1D3D:0C78 9AA40A820A
    pop CX	;;; 1D3D:0C7D 59
@@ -39820,7 +39799,7 @@ L1d3d0c73:
    push AX	;;; 1D3D:0C8A 50
    push AX	;;; 1D3D:0C8B 50
    push DS	;;; 1D3D:0C8C 1E
-   mov AX,offset Y2a17b900	;;; 1D3D:0C8D B800B9
+   mov AX,offset Y2a17b8b8+48	;;; 1D3D:0C8D B800B9
    push AX	;;; 1D3D:0C90 50
    call far A0a8206bf	;;; 1D3D:0C91 9ABF06820A
    add SP,+0E	;;; 1D3D:0C96 83C40E
@@ -39836,7 +39815,7 @@ L1d3d0c73:
    xor AX,AX	;;; 1D3D:0CAA 33C0
    push AX	;;; 1D3D:0CAC 50
    push DS	;;; 1D3D:0CAD 1E
-   mov AX,offset Y2a17b900	;;; 1D3D:0CAE B800B9
+   mov AX,offset Y2a17b8b8+48	;;; 1D3D:0CAE B800B9
    push AX	;;; 1D3D:0CB1 50
    call far A0a8207d2	;;; 1D3D:0CB2 9AD207820A
    add SP,+10	;;; 1D3D:0CB7 83C410
@@ -40111,7 +40090,7 @@ L1d3d0f08:
 jmp near L1d3d0ff8	;;; 1D3D:0F2C E9C900
 L1d3d0f2f:
    push DS	;;; 1D3D:0F2F 1E
-   mov AX,offset Y2a17b900	;;; 1D3D:0F30 B800B9
+   mov AX,offset Y2a17b8b8+48	;;; 1D3D:0F30 B800B9
    push AX	;;; 1D3D:0F33 50
    call far A0a820aa4	;;; 1D3D:0F34 9AA40A820A
    pop CX	;;; 1D3D:0F39 59
@@ -40125,7 +40104,7 @@ L1d3d0f2f:
    push AX	;;; 1D3D:0F46 50
    push AX	;;; 1D3D:0F47 50
    push DS	;;; 1D3D:0F48 1E
-   mov AX,offset Y2a17b900	;;; 1D3D:0F49 B800B9
+   mov AX,offset Y2a17b8b8+48	;;; 1D3D:0F49 B800B9
    push AX	;;; 1D3D:0F4C 50
    call far A0a8206bf	;;; 1D3D:0F4D 9ABF06820A
    add SP,+0E	;;; 1D3D:0F52 83C40E
@@ -40149,7 +40128,7 @@ L1d3d0f2f:
    xor AX,AX	;;; 1D3D:0F7B 33C0
    push AX	;;; 1D3D:0F7D 50
    push DS	;;; 1D3D:0F7E 1E
-   mov AX,offset Y2a17b900	;;; 1D3D:0F7F B800B9
+   mov AX,offset Y2a17b8b8+48	;;; 1D3D:0F7F B800B9
    push AX	;;; 1D3D:0F82 50
    call far A0a8207d2	;;; 1D3D:0F83 9AD207820A
    add SP,+10	;;; 1D3D:0F88 83C410
@@ -44892,78 +44871,142 @@ Y20c10023:	word
 Y20c10025:	word
 Y20c10027:	db 01,11,4f,00,f1,f2,53,74,00,00
 Y20c10031:	db 08,00,08,02,08,04,08,0b,08,0d,08,0f,08,16,08,18,08,1a
-Y20c10043:	dw 0000,0000,0000,0000,0000,0000,0000,0000, 0000,a675,a0b8,9659,8d3c,852a,7df8,7782
-		dw 71ad,69ed,6552,5f1e,59a1,54be,505c,4b2c, 47b4,438c,3fd8,3bc1,38d6,3592,32a9,2f8f
-		dw 2cd0,2a5f,27d6,25e4,2394,2188,1fb4,1de0, 1c3f,1aa2,1931,17c7,1668,152f,1400,12de
-		dw 11ca,10d3,0fda,0efc,0e1f,0d5a,0c98,0be3, 0b3b,0a97,0a00,096f,08e9,0869,07f0,077e
-		dw 0712,06ad,064c,05f1,059b,054b,0500,04b7, 0473,0433,03f7,03be,0388,0356,0326,02f8
-		dw 02ce,02a5,027f,025b,023a,021a,01fb,01df, 01c4,01ab,0193,017c,0167,0152,013f,012d
-		dw 011d,010d,00fd,00ef,00e2,00d5,00c9,00be, 00b3,00a9,009f,0096,008e,0086,007e,0077
-		dw 0071,006a,0064,005f,0059,0054,004f,004b, 0047,0043,003f,003b,0038,0035,0032,002f
-Y20c10143:	db 01,01,4f,12,f1,d3,50,7c,00,00,06, 02,01,50,12,f1,d2,50,76,00,00,06
-		db 01,01,4b,17,f1,d2,50,76,00,00,06, 13,01,50,11,f1,d2,50,76,00,00,06
-		db 32,01,92,8f,ff,ff,11,13,00,00,0a, 34,03,92,0f,ff,ff,10,04,00,00,0a
-		db 34,03,92,14,ff,ff,10,04,00,00,0a, 53,51,4e,00,f1,d2,00,86,00,00,06
-		db 28,21,cf,0d,f8,c0,e5,ff,00,00,00, e2,e1,ca,15,f8,c0,e5,0e,00,00,08
-		db 2c,a1,d4,1c,f9,c0,ff,ff,00,00,00, 2b,21,ca,13,f8,c0,e5,ff,00,00,00
-		db 29,21,cd,14,f0,e0,91,86,00,00,02, 24,21,d0,14,f0,e0,01,86,00,00,02
-		db 23,21,c8,10,f0,e0,01,86,00,00,02, 64,61,c9,14,b0,f0,01,86,00,00,02
-		db 33,15,85,94,a1,72,10,23,00,00,08, 31,15,85,94,a1,73,10,33,00,00,08
-		db 31,16,81,94,a1,c2,30,74,00,00,08, 03,02,8a,94,f0,f4,7b,7b,00,00,08
-		db 03,01,8a,99,f0,f4,7b,7b,00,00,08, 23,01,8a,94,f2,f4,7b,7b,00,00,08
-		db 32,12,80,95,01,72,10,33,00,00,08, 32,14,80,90,01,73,10,33,00,00,08
-		db 31,21,16,14,73,80,8e,9e,00,00,0e, 30,21,16,10,73,80,7e,9e,00,00,0e
-		db 31,21,94,15,33,a0,73,97,00,00,0e, 31,21,94,13,d3,a0,73,97,00,00,0e
-		db 31,32,45,11,f1,f2,53,27,00,00,06, 13,15,0c,1a,f2,f2,01,b6,00,00,08
-		db 11,11,0c,15,f2,f2,01,b6,00,00,08, 11,11,0a,10,fe,f2,04,bd,00,00,08
-		db 16,e1,4d,11,fa,f1,11,f1,00,00,08, 16,f1,40,17,ba,24,11,31,00,00,08
-		db 61,e1,a7,8e,72,50,8e,1a,00,00,02, 18,e1,4d,13,32,51,13,e3,00,00,08
-		db 17,31,c0,92,12,13,41,31,00,00,06, 03,21,8f,90,f5,f3,55,33,00,00,00
-		db 13,e1,4d,12,fa,f1,11,f1,00,00,08, 11,f1,43,10,20,31,15,f8,00,00,08
-		db 11,e4,03,52,82,f0,97,f2,00,00,08, 05,14,40,0f,d1,51,53,71,00,00,06
-		db f1,21,01,12,77,81,17,18,00,00,02, f1,e1,18,17,32,f1,11,13,00,00,00
-		db 73,71,48,13,f1,f1,53,06,00,00,08, 71,61,8d,53,71,72,11,15,00,00,06
-		db d7,d2,4f,14,f2,f1,61,b2,00,00,08, 01,01,11,13,f0,f0,ff,f8,00,00,0a
-		db 31,61,8b,10,41,22,11,13,00,00,06, 31,61,8b,10,ff,44,21,15,00,00,0a
-		db 31,61,8b,10,41,32,11,15,00,00,02, 71,21,1c,10,fd,e7,13,d6,00,00,0e
-		db 71,21,1c,10,51,54,03,67,00,00,0e, 71,21,1c,10,51,54,03,17,00,00,0e
-		db 71,21,1c,10,54,53,15,49,00,00,0e, 71,61,56,10,51,54,03,17,00,00,0e
-		db 71,21,1c,10,51,54,03,17,00,00,0e, 02,01,29,90,f5,f2,75,f3,00,00,00
-		db 02,01,29,90,f0,f4,75,33,00,00,00, 01,11,49,10,f1,f1,53,74,00,00,06
-		db 01,11,89,10,f1,f1,53,74,00,00,06, 02,11,89,10,f1,f1,53,74,00,00,06
-		db 02,11,80,10,f1,f1,53,74,00,00,06, 01,08,40,50,f1,f1,53,53,00,00,00
-		db 21,21,15,90,d3,c3,2c,2c,00,00,0a, 01,21,18,90,d4,c4,f2,8a,00,00,0a
-		db 01,11,4e,10,f0,f4,7b,c8,00,00,04, 01,11,44,10,f0,f3,ab,ab,00,00,04
-		db 53,11,0e,10,f4,f1,c8,bb,00,00,04, 53,11,0b,10,f2,f2,c8,c5,00,00,04
-		db 21,21,15,10,b4,94,4c,ac,00,00,0a, 21,21,15,10,94,64,1c,ac,00,00,0a
-		db 21,a1,16,90,77,60,8f,2a,00,00,06, 21,a1,19,90,77,60,bf,2a,00,00,06
-		db a1,e2,13,90,d6,60,af,2a,00,00,02, a2,e2,1d,90,95,60,24,2a,00,00,02
-		db 32,61,9a,90,51,60,19,39,00,00,0c, a4,e2,12,90,f4,60,30,2a,00,00,02
-		db 21,21,16,10,63,63,0e,0e,00,00,0c, 31,21,16,10,63,63,0a,0b,00,00,0c
-		db 21,21,1b,10,63,63,0a,0b,00,00,0c, 20,21,1b,10,63,63,0a,0b,00,00,0c
-		db 32,61,1c,90,82,60,18,07,00,00,0c, 32,e1,18,90,51,62,14,36,00,00,0c
-		db 31,22,c3,10,87,8b,17,0e,00,00,02, 71,22,c3,14,8e,8b,17,0e,00,00,02
-		db 70,22,8d,10,6e,6b,17,0e,00,00,02, 24,31,4f,10,f2,52,06,06,00,00,0e
-		db 31,61,1b,10,64,d0,07,67,00,00,0e, 31,61,1b,10,61,d2,06,36,00,00,0c
-		db 31,61,1f,10,31,50,06,36,00,00,0c, 31,61,1f,10,41,a0,06,36,00,00,0c
-		db 21,21,9a,90,53,a0,56,16,00,00,0e, 21,21,9a,90,53,a0,56,16,00,00,0e
-		db 61,21,19,10,53,a0,58,18,00,00,0c, 61,21,19,10,73,a0,57,17,00,00,0c
-		db 21,21,1b,10,71,a1,a6,96,00,00,0e, 85,a1,91,10,f5,f0,44,45,00,00,06
-		db 07,61,51,10,f5,f0,33,25,00,00,06, 13,11,8c,90,ff,ff,21,03,00,00,0e
-		db 38,b1,8c,50,f3,f5,0d,33,00,00,0e, 87,22,91,10,f5,f0,55,54,00,00,06
-		db b3,90,4a,10,b6,d1,32,31,00,00,0e, 04,c2,00,10,fe,f6,f0,b5,00,00,0e
-		db 05,01,4e,90,da,f0,15,13,00,00,0a, 31,32,44,10,f2,f0,9a,27,00,00,06
-		db b0,d7,c4,90,a4,40,02,42,00,00,00, ca,cc,84,10,f0,59,f0,62,00,00,0c
-		db 30,35,35,10,f5,f0,f0,9b,00,00,02, b4,d7,87,90,a4,40,02,42,00,00,06
-		db 07,05,40,00,09,f6,53,96,00,00,0e, 09,01,4e,10,da,f1,25,15,00,00,0a
-		db 06,00,09,10,f4,f6,a0,46,00,00,0e, 07,00,00,10,f0,5c,f0,dc,00,00,0e
-		db 1c,0c,1e,10,e5,5d,5b,fa,00,00,0e, 11,01,8a,50,f1,f1,11,b3,00,00,06
-		db 00,00,40,10,d1,f2,53,56,00,00,0e, 32,11,44,10,f8,f5,ff,7f,00,00,0e
-		db 00,02,40,10,09,f7,53,94,00,00,0e, 11,01,86,90,f2,a0,a8,a8,00,00,08
-		db 00,13,50,10,f2,f2,70,72,00,00,0e, f0,e0,00,d0,11,11,11,11,00,00,0e
-		db 07,12,4f,10,f2,f2,60,72,00,00,08, 00,00,0b,10,a8,d6,4c,4f,00,00,00
-		db 00,00,0d,10,e8,a5,ef,ff,00,00,06, 31,16,87,90,a1,7d,11,46,00,00,08
-		db 30,10,90,10,f4,f4,49,33,00,00,0c, 24,31,54,10,55,50,fd,2d,00,00,0e
+Y20c10043:	dw 0000,0000,0000,0000,0000,0000,0000,0000,0000,a675,a0b8,9659,8d3c,852a,7df8,7782
+		dw 71ad,69ed,6552,5f1e,59a1,54be,505c,4b2c,47b4,438c,3fd8,3bc1,38d6,3592,32a9,2f8f
+		dw 2cd0,2a5f,27d6,25e4,2394,2188,1fb4,1de0,1c3f,1aa2,1931,17c7,1668,152f,1400,12de
+		dw 11ca,10d3,0fda,0efc,0e1f,0d5a,0c98,0be3,0b3b,0a97,0a00,096f,08e9,0869,07f0,077e
+		dw 0712,06ad,064c,05f1,059b,054b,0500,04b7,0473,0433,03f7,03be,0388,0356,0326,02f8
+		dw 02ce,02a5,027f,025b,023a,021a,01fb,01df,01c4,01ab,0193,017c,0167,0152,013f,012d
+		dw 011d,010d,00fd,00ef,00e2,00d5,00c9,00be,00b3,00a9,009f,0096,008e,0086,007e,0077
+		dw 0071,006a,0064,005f,0059,0054,004f,004b,0047,0043,003f,003b,0038,0035,0032,002f
+Y20c10143:	db 01,01, 4f,12, f1,d3, 50,7c, 00,00, 06
+		db 02,01, 50,12, f1,d2, 50,76, 00,00, 06
+		db 01,01, 4b,17, f1,d2, 50,76, 00,00, 06
+		db 13,01, 50,11, f1,d2, 50,76, 00,00, 06
+		db 32,01, 92,8f, ff,ff, 11,13, 00,00, 0a
+		db 34,03, 92,0f, ff,ff, 10,04, 00,00, 0a
+		db 34,03, 92,14, ff,ff, 10,04, 00,00, 0a
+		db 53,51, 4e,00, f1,d2, 00,86, 00,00, 06
+		db 28,21, cf,0d, f8,c0, e5,ff, 00,00, 00
+		db e2,e1, ca,15, f8,c0, e5,0e, 00,00, 08
+		db 2c,a1, d4,1c, f9,c0, ff,ff, 00,00, 00
+		db 2b,21, ca,13, f8,c0, e5,ff, 00,00, 00
+		db 29,21, cd,14, f0,e0, 91,86, 00,00, 02
+		db 24,21, d0,14, f0,e0, 01,86, 00,00, 02
+		db 23,21, c8,10, f0,e0, 01,86, 00,00, 02
+		db 64,61, c9,14, b0,f0, 01,86, 00,00, 02
+		db 33,15, 85,94, a1,72, 10,23, 00,00, 08
+		db 31,15, 85,94, a1,73, 10,33, 00,00, 08
+		db 31,16, 81,94, a1,c2, 30,74, 00,00, 08
+		db 03,02, 8a,94, f0,f4, 7b,7b, 00,00, 08
+		db 03,01, 8a,99, f0,f4, 7b,7b, 00,00, 08
+		db 23,01, 8a,94, f2,f4, 7b,7b, 00,00, 08
+		db 32,12, 80,95, 01,72, 10,33, 00,00, 08
+		db 32,14, 80,90, 01,73, 10,33, 00,00, 08
+		db 31,21, 16,14, 73,80, 8e,9e, 00,00, 0e
+		db 30,21, 16,10, 73,80, 7e,9e, 00,00, 0e
+		db 31,21, 94,15, 33,a0, 73,97, 00,00, 0e
+		db 31,21, 94,13, d3,a0, 73,97, 00,00, 0e
+		db 31,32, 45,11, f1,f2, 53,27, 00,00, 06
+		db 13,15, 0c,1a, f2,f2, 01,b6, 00,00, 08
+		db 11,11, 0c,15, f2,f2, 01,b6, 00,00, 08
+		db 11,11, 0a,10, fe,f2, 04,bd, 00,00, 08
+		db 16,e1, 4d,11, fa,f1, 11,f1, 00,00, 08
+		db 16,f1, 40,17, ba,24, 11,31, 00,00, 08
+		db 61,e1, a7,8e, 72,50, 8e,1a, 00,00, 02
+		db 18,e1, 4d,13, 32,51, 13,e3, 00,00, 08
+		db 17,31, c0,92, 12,13, 41,31, 00,00, 06
+		db 03,21, 8f,90, f5,f3, 55,33, 00,00, 00
+		db 13,e1, 4d,12, fa,f1, 11,f1, 00,00, 08
+		db 11,f1, 43,10, 20,31, 15,f8, 00,00, 08
+		db 11,e4, 03,52, 82,f0, 97,f2, 00,00, 08
+		db 05,14, 40,0f, d1,51, 53,71, 00,00, 06
+		db f1,21, 01,12, 77,81, 17,18, 00,00, 02
+		db f1,e1, 18,17, 32,f1, 11,13, 00,00, 00
+		db 73,71, 48,13, f1,f1, 53,06, 00,00, 08
+		db 71,61, 8d,53, 71,72, 11,15, 00,00, 06
+		db d7,d2, 4f,14, f2,f1, 61,b2, 00,00, 08
+		db 01,01, 11,13, f0,f0, ff,f8, 00,00, 0a
+		db 31,61, 8b,10, 41,22, 11,13, 00,00, 06
+		db 31,61, 8b,10, ff,44, 21,15, 00,00, 0a
+		db 31,61, 8b,10, 41,32, 11,15, 00,00, 02
+		db 71,21, 1c,10, fd,e7, 13,d6, 00,00, 0e
+		db 71,21, 1c,10, 51,54, 03,67, 00,00, 0e
+		db 71,21, 1c,10, 51,54, 03,17, 00,00, 0e
+		db 71,21, 1c,10, 54,53, 15,49, 00,00, 0e
+		db 71,61, 56,10, 51,54, 03,17, 00,00, 0e
+		db 71,21, 1c,10, 51,54, 03,17, 00,00, 0e
+		db 02,01, 29,90, f5,f2, 75,f3, 00,00, 00
+		db 02,01, 29,90, f0,f4, 75,33, 00,00, 00
+		db 01,11, 49,10, f1,f1, 53,74, 00,00, 06
+		db 01,11, 89,10, f1,f1, 53,74, 00,00, 06
+		db 02,11, 89,10, f1,f1, 53,74, 00,00, 06
+		db 02,11, 80,10, f1,f1, 53,74, 00,00, 06
+		db 01,08, 40,50, f1,f1, 53,53, 00,00, 00
+		db 21,21, 15,90, d3,c3, 2c,2c, 00,00, 0a
+		db 01,21, 18,90, d4,c4, f2,8a, 00,00, 0a
+		db 01,11, 4e,10, f0,f4, 7b,c8, 00,00, 04
+		db 01,11, 44,10, f0,f3, ab,ab, 00,00, 04
+		db 53,11, 0e,10, f4,f1, c8,bb, 00,00, 04
+		db 53,11, 0b,10, f2,f2, c8,c5, 00,00, 04
+		db 21,21, 15,10, b4,94, 4c,ac, 00,00, 0a
+		db 21,21, 15,10, 94,64, 1c,ac, 00,00, 0a
+		db 21,a1, 16,90, 77,60, 8f,2a, 00,00, 06
+		db 21,a1, 19,90, 77,60, bf,2a, 00,00, 06
+		db a1,e2, 13,90, d6,60, af,2a, 00,00, 02
+		db a2,e2, 1d,90, 95,60, 24,2a, 00,00, 02
+		db 32,61, 9a,90, 51,60, 19,39, 00,00, 0c
+		db a4,e2, 12,90, f4,60, 30,2a, 00,00, 02
+		db 21,21, 16,10, 63,63, 0e,0e, 00,00, 0c
+		db 31,21, 16,10, 63,63, 0a,0b, 00,00, 0c
+		db 21,21, 1b,10, 63,63, 0a,0b, 00,00, 0c
+		db 20,21, 1b,10, 63,63, 0a,0b, 00,00, 0c
+		db 32,61, 1c,90, 82,60, 18,07, 00,00, 0c
+		db 32,e1, 18,90, 51,62, 14,36, 00,00, 0c
+		db 31,22, c3,10, 87,8b, 17,0e, 00,00, 02
+		db 71,22, c3,14, 8e,8b, 17,0e, 00,00, 02
+		db 70,22, 8d,10, 6e,6b, 17,0e, 00,00, 02
+		db 24,31, 4f,10, f2,52, 06,06, 00,00, 0e
+		db 31,61, 1b,10, 64,d0, 07,67, 00,00, 0e
+		db 31,61, 1b,10, 61,d2, 06,36, 00,00, 0c
+		db 31,61, 1f,10, 31,50, 06,36, 00,00, 0c
+		db 31,61, 1f,10, 41,a0, 06,36, 00,00, 0c
+		db 21,21, 9a,90, 53,a0, 56,16, 00,00, 0e
+		db 21,21, 9a,90, 53,a0, 56,16, 00,00, 0e
+		db 61,21, 19,10, 53,a0, 58,18, 00,00, 0c
+		db 61,21, 19,10, 73,a0, 57,17, 00,00, 0c
+		db 21,21, 1b,10, 71,a1, a6,96, 00,00, 0e
+		db 85,a1, 91,10, f5,f0, 44,45, 00,00, 06
+		db 07,61, 51,10, f5,f0, 33,25, 00,00, 06
+		db 13,11, 8c,90, ff,ff, 21,03, 00,00, 0e
+		db 38,b1, 8c,50, f3,f5, 0d,33, 00,00, 0e
+		db 87,22, 91,10, f5,f0, 55,54, 00,00, 06
+		db b3,90, 4a,10, b6,d1, 32,31, 00,00, 0e
+		db 04,c2, 00,10, fe,f6, f0,b5, 00,00, 0e
+		db 05,01, 4e,90, da,f0, 15,13, 00,00, 0a
+		db 31,32, 44,10, f2,f0, 9a,27, 00,00, 06
+		db b0,d7, c4,90, a4,40, 02,42, 00,00, 00
+		db ca,cc, 84,10, f0,59, f0,62, 00,00, 0c
+		db 30,35, 35,10, f5,f0, f0,9b, 00,00, 02
+		db b4,d7, 87,90, a4,40, 02,42, 00,00, 06
+		db 07,05, 40,00, 09,f6, 53,96, 00,00, 0e
+		db 09,01, 4e,10, da,f1, 25,15, 00,00, 0a
+		db 06,00, 09,10, f4,f6, a0,46, 00,00, 0e
+		db 07,00, 00,10, f0,5c, f0,dc, 00,00, 0e
+		db 1c,0c, 1e,10, e5,5d, 5b,fa, 00,00, 0e
+		db 11,01, 8a,50, f1,f1, 11,b3, 00,00, 06
+		db 00,00, 40,10, d1,f2, 53,56, 00,00, 0e
+		db 32,11, 44,10, f8,f5, ff,7f, 00,00, 0e
+		db 00,02, 40,10, 09,f7, 53,94, 00,00, 0e
+		db 11,01, 86,90, f2,a0, a8,a8, 00,00, 08
+		db 00,13, 50,10, f2,f2, 70,72, 00,00, 0e
+		db f0,e0, 00,d0, 11,11, 11,11, 00,00, 0e
+		db 07,12, 4f,10, f2,f2, 60,72, 00,00, 08
+		db 00,00, 0b,10, a8,d6, 4c,4f, 00,00, 00
+		db 00,00, 0d,10, e8,a5, ef,ff, 00,00, 06
+		db 31,16, 87,90, a1,7d, 11,46, 00,00, 08
+		db 30,10, 90,10, f4,f4, 49,33, 00,00, 0c
+		db 24,31, 54,10, 55,50, fd,2d, 00,00, 0e
 Y20c106c3:	db 10,10,01,08,01,08,10,01,10,01,04,01,04,04,02,04
 		db 02,01,01,04,04,01,04,04,04,04,04,04,01,01,01,01,04,04
 Y20c106e5:	db e0,bd,00,08,38,a6,09,b6,0b,50,00,c6,a8,70,4c,90
@@ -44975,21 +45018,17 @@ Y20c106e5:	db e0,bd,00,08,38,a6,09,b6,0b,50,00,c6,a8,70,4c,90
 		db e0,bd,00,08,e0,bd,00,08,0d,55,f5,75,a5,95,01,35
 		db 00,f5,e0,bd,00,08,ff,ff
 Y20c1075d:	byte
-Y20c1075e:	db 6b,01,81,01,98,01,b0,01,ca,01,e5,01,02,02,20,02
-		db 41,02,63,02,87,02,ae,02
+Y20c1075e:	dw 016b,0181,0198,01b0,01ca,01e5,0202,0220,0241,0263,0287,02ae
 Y20c10776:	db 00,01,02,08,09,0a,10,11,12
 Y20c1077f:	db 03,04,05,0b,0c,0d,13,14,15
 Y20c10788:	db 16,16,16,16,16,16,16,16,16,16,16,16,16
 Y20c10795:	ds 0010
-Y20c107a5:	ds 0012
+Y20c107a5:	ds 2*0009
 Y20c107b7:	ds 0010
 Y20c107c7:	db 7f,7f,7f,7f,7f,7f,7f,7f,7f,7f,7f,7f,7f,7f,7f,7f
 Y20c107d7:	ds 0009
 Y20c107e0:	ds 0009
-Y20c107e9:	db 58,58,58,58,58,58,58,58,58,58,58,58,58,58,58,58
-		db 58,58,58,58,58,58,58,58,58,58,58,58,58,58,58,58
-		db 58,58,58,58,58,58,58,58,58,58,58,58,58,58,58,58
-		db 58,58,58
+Y20c107e9:	db "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 Y20c1081c:	byte
 Y20c1081d:	db "WORX TOOLKIT VERSION 2.01(F)COPYRIGHT 1993 BY MYSTIC SOFTWARE"
 Y20c1085a:	word
@@ -45005,11 +45044,11 @@ Y20c1086f:	byte
 Y20c10870:	word
 Y20c10872:	word
 Y20c10874:	db 01
-Y20c10875:	ds 0040
+Y20c10875:	ds 2*0020
 Y20c108b5:	ds 0080
-Y20c10935:	ds 0040
+Y20c10935:	ds 2*0020
 Y20c10975:	byte
-Y20c10976:	ds 0020
+Y20c10976:	ds 2*0010
 Y20c10996:	db f4
 Y20c10997:	db 02,02,02,02,01,01,02,00
 Y20c1099f:	word
@@ -45568,16 +45607,18 @@ Y20c14a03:	db "Creative Voice File",1a,1a,00,0a,01,29,11,01,0a,00,00,a0,00,80,80
 Y20c14a2c:	byte
 Y20c14a2d:	db 0a,07,05,03,02,ff,14,75,77,17,14,74,76,16
 Y20c14a3b:	byte
-Y20c14a3c:	word
-Y20c14a3e:	word
+Y20c14a3c:	dword
 Y20c14a40:	dw 0210
 Y20c14a42:	byte
 Y20c14a43:	dw ffff
 Y20c14a45:	word
-Y20c14a47:	ds 0019
+Y20c14a47:	dword	;; 00
+		ds 0004	;; 04
+		dword	;; 08
+		ds 000d	;; 0c
 Y20c14a60:	byte
 Y20c14a61:	dword
-Y20c14a65:	ds 008c
+Y20c14a65:	ds 2*0046
 
 B20c14af1:
    push AX	;;; 20C1:4AF1 50
@@ -46717,14 +46758,14 @@ A20c153ce:
    cli	;;; 20C1:53CE FA
    push AX	;;; 20C1:53CF 50
    push ES	;;; 20C1:53D0 06
-L20c153d1:
+L20c153d1:	;; (@) Self-modifying code point at L20c153d1+1.
    mov AX,0000	;;; 20C1:53D1 B80000
    mov ES,AX	;;; 20C1:53D4 8EC0
    xor AX,AX	;;; 20C1:53D6 33C0
-L20c153d8:
+L20c153d8:	;; (@) Self-modifying code point at L20c153d8+1.
    cmp AX,0000	;;; 20C1:53D8 3D0000
    jz L20c153f8	;;; 20C1:53DB 741B
-L20c153dd:
+L20c153dd:	;; (@) Self-modifying code point at L20c153dd+2.
    mov AL,[ES:0000]	;;; 20C1:53DD 26A00000
    out 42,AL	;;; 20C1:53E1 E642
    xor AL,AL	;;; 20C1:53E3 32C0
@@ -52475,7 +52516,7 @@ B28b9000a:
    mov BP,SP	;;; 28B9:000B 8BEC
    mov DX,[BP+04]	;;; 28B9:000D 8B5604
    mov CX,0F04	;;; 28B9:0010 B9040F
-   mov BX,2BBF	;;; 28B9:0013 BBBF2B
+   mov BX,offset Y2a172bbf	;;; 28B9:0013 BBBF2B
    cld	;;; 28B9:0016 FC
    mov AL,DH	;;; 28B9:0017 8AC6
    shr AL,CL	;;; 28B9:0019 D2E8
@@ -52602,11 +52643,9 @@ L28b900fb:
    mov BX,AX	;;; 28B9:00FB 8BD8
    shl BX,1	;;; 28B9:00FD D1E3
 jmp near [CS:BX+offset Y28b90104]	;;; 28B9:00FF 2EFFA70401
-
 Y28b90104:	dw L28b9014f,L28b90137,L28b90190,L28b90143,L28b901b8,L28b901c2,L28b90204,L28b9020e
 		dw L28b9021e,L28b90176,L28b90254,L28b9022e,L28b90232,L28b90236,L28b902de,L28b90397
 		dw L28b90334,L28b90356,L28b90500,L28b9052f,L28b9052f,L28b9052f,L28b90162,L28b9016c
-
 L28b90134:
 jmp near L28b9052f	;;; 28B9:0134 E9F803
 L28b90137:
@@ -52866,7 +52905,7 @@ L28b90380:
    jnz L28b90387	;;; 28B9:0380 7505
    push DS	;;; 28B9:0382 1E
    pop ES	;;; 28B9:0383 07
-   mov DI,2BB8	;;; 28B9:0384 BFB82B
+   mov DI,offset Y2a172bb8	;;; 28B9:0384 BFB82B
 L28b90387:
    call near B28b90049	;;; 28B9:0387 E8BFFC
    cmp CX,[BP+FF72]	;;; 28B9:038A 3B8E72FF
@@ -53607,9 +53646,7 @@ L2957002d:
    mov BX,AX	;;; 2957:0043 8BD8
    shl BX,1	;;; 2957:0045 D1E3
 jmp near [CS:BX+offset Y2957004c]	;;; 2957:0047 2EFFA74C00
-
 Y2957004c:	dw L2957005a,L2957006b,L29570089,L29570084,L29570089,L29570089,L2957007a
-
 L2957005a:
    mov AH,0E	;;; 2957:005A B40E
    mov AL,07	;;; 2957:005C B007
@@ -55134,7 +55171,8 @@ L2a10006e:
    pop BP	;;; 2A10:006E 5D
 ret far	;;; 2A10:006F CB
 
-Segment 2a17 ;; Data Area
+Segment 2a17 ;; Data And BSS Areas
+;; Data Area
 A2a170000:
 Y2a170000:	dword
 Y2a170004:	db "Turbo-C - Copyright (c) 1988 Borland Intl.",00
@@ -55159,7 +55197,7 @@ Y2a170083:	dword
 Y2a170087:	dword
 Y2a17008b:	dword
 Y2a17008f:	dword
-Y2a170093:	byte
+X2a170093:	byte
 Y2a170094:	db 00,01,02,03,04,05,06,07,08,09,0a,0b,0c,0d,0e,0f
 		db 00,08,08,07,07,07,0f,0f,00,04,0c,0c,08,08,02,06
 		db 06,0c,02,02,02,06,06,0e,02,02,02,02,06,0e,0a,0a
@@ -55212,9 +55250,9 @@ Y2a170494:	dw 03c8
 Y2a170496:	dw 03c7
 Y2a170498:	dw 03c9
 X2a17049a:	dw 03da
-Y2a17049c:	dw 0008	;;;
+Y2a17049c:	dw 0008
 Y2a17049e:	db "\r\nVideo mode: C)ga E)ga V)ga? ",00
-Y2a1704bd:	db 00
+X2a1704bd:	byte
 Y2a1704be:	db " ",00
 Y2a1704c0:	dword
 Y2a1704c4:	dword
@@ -55233,8 +55271,7 @@ Y2a17059f:	db "  Calibration failed - try again (y/N)? ",00
 Y2a1705c8:	db "\r\n",00
 Y2a1705cb:	db "\r\nGame controller:  K)eyboard,  J)oystick?  ",00
 Y2a1705f8:	db "\r\n",00,00
-Y2a1705fc:	ds 0004
-Y2a170600:	ds 003c
+Y2a1705fc:	ds 0040
 Y2a17063c:	word
 Y2a17063e:	word
 Y2a170640:	db "\r\n\r\nDetecting your hardward...\r\n",00
@@ -55294,7 +55331,7 @@ Y2a170bd9:	db "     VGA 256-color graphics\r\n",00
 Y2a170bf7:	db "\r\n",00
 Y2a170bfa:	db " Note: If you have a slow old computer, CGA\r\n",00
 Y2a170c28:	db "       graphics are recommended.\r\n",00
-Y2a170c4b:	db "",00
+X2a170c4b:	byte
 Y2a170c4c:	db "\screen",00
 Y2a170c54:	db ".RAW",00
 Y2a170c59:	db "\screen",00
@@ -55302,11 +55339,11 @@ Y2a170c61:	db ".MAP",00
 Y2a170c66:	db " ",00
 Y2a170c68:	db " ",00
 Y2a170c6a:	db "\r\n",00
-Y2a170c6d:	db "",00
+X2a170c6d:	byte
 Y2a170c6e:	dw 0001
 Y2a170c70:	dw 0001
 Y2a170c72:	word
-Y2a170c74:	dd 0040006c
+Y2a170c74:	dd Y0040006c
 Y2a170c78:	word
 Y2a170c7a:	word
 Y2a170c7c:	word
@@ -55468,13 +55505,16 @@ Y2a171304:	db "YOUR FEEBLE ATTEMPT FAILS.",00
 Y2a17131f:	db "Press UP/DOWN to use elevator",00,00
 Y2a17133e:	dw 0008,0008,0008,0008,0009,000a,000b,000c,0026,0026,0026,0026,0026,000b,000a,0009
 Y2a17135e:	dw ffff,fffe,ffff,0000
-Y2a171366:	dw 0013,0013,0013,0013,0013,0010,0012,0010,0013,0010,0012,0010,0012,0012,0012,0012
+Y2a171366:	dw 0013,0013,0013,0013
+		dw 0013,0010,0012,0010
+		dw 0013,0010,0012,0010
+		dw 0012,0012,0012,0012
 Y2a171386:	db 18,18,19,1a,1a,19,19
 Y2a17138d:	db 04,00,00,06,04,04,00
 Y2a171394:	db 48,49,48,49,48,48,49,48,49,49,48,48,48,49,49,49,4a,4a,4a,4a,4a
 Y2a1713a9:	dw 0000,0001,0002,0001
 Y2a1713b1:	dw 0000,0001,0002,0003,0002,0001
-Y2a1713bd:	byte
+X2a1713bd:	byte
 Y2a1713be:	dw 1000
 Y2a1713c0:	word
 Y2a1713c2:	word
@@ -55485,8 +55525,12 @@ Y2a1713c8:	db 00,00,00,00,00,00,00,17,00,1c,00,00,00,18,1c,00
 		db 10,00,03,00,0c,00,08,00,29,00,20,08,18,0a,00,23
 		db 00,30
 Y2a1713fa:	word
-Y2a1713fc:	db "1234567890-=QWERTYUIOP[]ASDFGHJKL;'ZXCVBNM,./"
-Y2a171429:	db 01,02,03,04,05,06,00
+Y2a1713fc:	db "1234567890-="
+		db "QWERTYUIOP[]"
+		db "ASDFGHJKL;'"
+		db "ZXCVBNM,./"
+		db 01,02,03,04,05,06
+		db 00
 Y2a171430:	db "JUMP   ",00
 Y2a171438:	db "KNIFE  ",00
 Y2a171440:	db "       ",00
@@ -55543,7 +55587,10 @@ Y2a171600:	db ".",00
 Y2a171602:	db "m.",00
 Y2a171605:	db "INVENTORY",00
 Y2a17160f:	db "CONTROLS",00
-Y2a171618:	db "7REALLY QUIT?\r4YES\r2NO\r",00
+Y2a171618:	db '7', "REALLY QUIT?\r"
+		db '4', "YES\r"
+		db '2', "NO\r"
+		db 00
 Y2a171630:	db "YN",00
 Y2a171633:	db "temp",00
 Y2a171638:	db " Yikes!  An error has occured.  Please report this code:  ",00
@@ -55557,7 +55604,7 @@ Y2a1716f4:	db "            Run this game without any TSR's in memory\r\n",00
 Y2a17172c:	db "            Buy more memory (640K is required)\r\n",00
 Y2a17175d:	db "            Turn off the digital Sound Blaster effects -- they eat up RAM\r\n",00
 Y2a1717a9:	db " The problem may be due to not enough free RAM or disk space.",00
-Y2a1717e7:	byte
+X2a1717e7:	byte
 Y2a1717e8:	word
 Y2a1717ea:	word
 Y2a1717ec:	db "kind:            ",00
@@ -55595,124 +55642,131 @@ Y2a17193e:	db " Epic MegaGames, 10406 Holbrook Drive, Potomac MD 20854",00
 Y2a171976:	dw 0018
 Y2a171978:	dw 007f
 Y2a17197a:	dw 0001
-Y2a17197c:	db "7PICK A CHOICE:\r"
-		db "2PLAY\r"
-		db "2RESTORE\r"
-		db "5STORY\r"
-		db "5INSTRUCTIONS\r"
-		db "5ORDERING INFO\r"
-		db "5CREDITS\r"
-		db "3DEMO\r"
-		db "3NOISEMAKER\r"
-		db "6EPIC'S BBS\r"
-		db "4QUIT\r",00
+Y2a17197c:	db '7', "PICK A CHOICE:\r"
+		db '2', "PLAY\r"
+		db '2', "RESTORE\r"
+		db '5', "STORY\r"
+		db '5', "INSTRUCTIONS\r"
+		db '5', "ORDERING INFO\r"
+		db '5', "CREDITS\r"
+		db '3', "DEMO\r"
+		db '3', "NOISEMAKER\r"
+		db '6', "EPIC'S BBS\r"
+		db '4', "QUIT\r"
+		db 00
 Y2a1719ed:	db "PRSIOCDNEQ",05,10,00
 Y2a1719fa:	dw 000a
 Y2a1719fc:	dd Y2a17272d,Y2a172737,Y2a172738,Y2a172739,Y2a17273a,Y2a17273b,Y2a17273c,Y2a17273d,Y2a17273e,Y2a17273f
 Y2a171a24:	db 64,00,00,00,00,00,00,00,00,00
 Y2a171a2e:	dd Y2a172740,Y2a17274c,Y2a17274d,Y2a17274e,Y2a17274f,Y2a172750,Y2a172751,Y2a172752,Y2a172753,Y2a172754
-Y2a171a56:	db 03,10,19,19,0f,dc,dc,dc,08,dc,19,07,0f,dc,dc,dc,08,dc,"  ",0f,dc,dc,dc,08,dc,18
-		db 19,19,0f,db,07,db,db,03,db,19,04,00,db,"  ",0f,db,07,db,db,03,db,"  ",0f,db,07,db,db,03,db,18
-		db "  ",0b,"A",0a,"n ",0b,"E",0a,"p",0b,"i",0a,"c ",0e,"M",0c,"e",0e,"g",0c,"a",0e,"G",0c,"a",0e,"m",0c,"e",0e,"s"
-		db 19,06,0f,db,07,db,db,03,db,"  ",0f,dc,dc,dc,08,dc,"  ",0f,db,07,db,db,03,db,"  ",0f,db,07,db,db,03,db
-		db 19,03,0f,"S",0b,"h",0f,"a",0b,"r",0f,"e",0b,"w",0f,"a",0b,"r",0f,"e "
-		db 0d,"P",09,"r",0d,"o",09,"d",0d,"u",09,"c",0d,"t",09,"i",0d,"o",09,"n",18
-		db 19,14,0f,1a,04,dc,db,07,db,db,03,db,"  ",0f,db,07,db,db,03,db
-		db "  ",0f,db,07,db,db,03,db,"  ",0f,db,07,db,db,03,db,18
-		db 19,03,04,1a,10,dc,0f,db,07,1a,06,db,03,db,04,dc,dc,0f,db,07,db,db,03,db,04,dc,dc,0f,db
-		db 07,db,db,03,db,04,dc,dc,0f,db,07,db,db,03,db,04,1a,1c,dc,18
-		db 19,03,14," ",0c,db,1a,0e,df,08,df,03,1a,07,df,0c,df,df,08,df,03,df,df,df,0c,df,df
-		db 08,df,03,df,df,df,0c,df,df,08,df,03,df,df,df,0c,1a,1a,df,db,04,10,db,18
-		db 19,03,14," ",0c,db," ",11,19,42,04,10,db,0c,14,db,04,10,db,18
-		db 19,03,14," ",0c,db," ",11,19,42,04,10,db,0c,14,db,04,10,db,18
-		db 19,03,14," ",0c,db," ",11,19,42,04,10,db,0c,14,db,04,10,db,18
-		db 19,03,14," ",0c,db," ",11,19,42,04,10,db,0c,14,db,04,10,db,18
-		db 19,03,14," ",0c,db," ",11,19,42,04,10,db,0c,14,db,04,10,db,18
-		db 19,03,14," ",0c,db," ",11,19,42,04,10,db,0c,14,db,04,10,db,18
-		db 19,03,14," ",0c,db," ",11,19,42,04,10,db,0c,14,db,04,10,db,18
-		db 19,03,14," ",0c,db," ",11,19,42,04,10,db,0c,14,db,04,10,db,18
-		db 19,03,14," ",0c,db," ",11,19,42,04,10,db,0c,14,db,04,10,db,18
-		db 19,03,14," ",0c,db," ",11,19,42,04,10,db,0c,14,db,04,10,db,18
-		db 19,03,14," ",0c,db,0f,dc,dc,dc,08,dc,0c,1a,04,dc,0f,1a,09,dc,08,dc,0c
-		db 1a,0c,dc,0f,dc,dc,dc,08,dc,0c,1a,1f,dc,db,04,10,db,18
-		db 19,03,df,df,0f,db,07,db,db,03,db,04,1a,04,df,0f,db,17," ",0c,"OF  THE "
-		db 03,10,db,04,1a,0c,df,0f,db,07,db,db,03,db,04,1a,21,df,18
-		db 19,05,0f,db,07,db,db,03,db,19,04,08,df,03,1a,09,df
-		db 19,0c,0f,db,07,db,db,03,db,"  ",0f,db,17,1a,05,df,08,13,df,10,"  "
-		db 0b,fe," ",09,"T",0d,"i",09,"m ",0d,"S",09,"w",0d,"e",09,"e",0d,"n",09,"e",0d,"y",18
-		db 19,05,0f,db,07,db,db,03,db,"  ",0f,dc,dc,08,dc," ",0f,dc,dc,08,dc,"  ",0f,1a,04,dc,08,dc
-		db 19,02,0f,db,17,1a,04,df,08,13,df,10,"  ",0f,db,07,db,db,03,db,"  ",0f,db,07,db,03,db,df,df,0f,db,07,db
-		db 03,db,"  ",0d,fe," ",0a,"J",0c,"o",0a,"h",0c,"n ",0a,"P",0c,"a",0a,"l",0c,"l",0a,"e",0c,"t",0a,"t",0c,"-"
-		db 0a,"P",0c,"l",0a,"o",0c,"w",0a,"r",0c,"i",0a,"g",0c,"h",0a,"t",18
-		db 19,05,0f,db,07,db,db,03,db,"  ",0f,db,07,db,03,db," ",0f,db,07,db,03,db,"  ",0f,db,07,1a,03,db
-		db 03,17,df,08,13,df,10,"  ",0f,db,07,db,03,db,df,0f,db,07,db,03,db,"  ",0f,db,07,db,db,03,db
-		db "  ",0f,db,07,db,0f,17,1a,03,df,07,10,db,03,db,"  ",0b,fe," ",09,"D",0d,"a",09,"n "
-		db 0d,"F",09,"r",0d,"o",09,"e",0d,"l",09,"i",0d,"c",09,"h",18
-		db " ",0f,1a,04,dc,db,07,db,db,03,db,"  ",0f,db,07,db,03,db," ",0f,db,07,db,03,db,"  ",0f,db,07,db,03,db,df
-		db 0f,db,07,db,03,db,"  ",0f,db,07,db,0f,17,df,df,df,07,10,db,03,db,"  ",0f,db,07,db,db,03,db,"  ",0f,db,07,db
-		db 03,db,19,06,0d,fe," ",0a,"J",0c,"o",0a,"e ",0c,"H",0a,"i",0c,"t",0a,"c",0c,"h",0a,"e",0c,"n",0a,"s",18
-		db " ",0f,db,07,1a,06,db,03,db,"  ",0f,db,07,db,db,0f,17,df,df,07,10,db,03,db,"  ",0f,db,07,db,03,db," ",0f,db
-		db 07,db,03,db,"  ",08,df,03,1a,03,df,07,db,03,db,"  ",0f,db,07,db,db,03,db
-		db "  ",0f,db,07,db,0f,17,1a,04,df,08,13,df,18
-		db 10," ",df,03,1a,07,df,"  ",08,df,03,1a,05,df,"  ",08,df,03,df,df," ",08,df,03,df,df,"  "
-		db 0f,db,17,1a,03,df,07,10,db,03,db,"  ",08,df,03,df,df,df,"  ",08,df,03,1a,06,df
-		db "  ",0b,"(",0a,"c",0b,") E",0a,"p",0b,"i",0a,"c "
-		db 0e,"M",0c,"e",0e,"g",0c,"a",0e,"G",0c,"a",0e,"m",0c,"e",0e,"s ",0c,"1",0e,"9",0c,"9",0e,"2",07,":",18
-		db 19,1d,08,df,03,1a,05,df,19,03,0f,"T",0b,"h",0f,"e ",0d,"N",09,"e",0d,"w ",0f,"N",0b,"a",0f,"m",0b,"e "
-		db 0d,"i",09,"n ",0f,"C",0b,"o",0f,"m",0b,"p",0f,"u",0b,"t",0f,"e",0b,"r "
-		db 0d,"E",09,"n",0d,"t",09,"e",0d,"r",09,"t",0d,"a",09,"i",0d,"n",09,"m",0d,"e",09,"n",0d,"t",18
+Y2a171a56:	db 03,10,19,19, 0f,dc,dc,dc, 08,dc, 19,07, 0f,dc,dc,dc, 08,dc,"  ", 0f,dc,dc,dc, 08,dc, 18
+		db 19,19,0f, db, 07,db,db, 03,db, 19,04, 00,db,"  ", 0f,db, 07,db,db, 03,db,"  ", 0f,db, 07,db,db, 03,db, 18
+		db "  ", 0b,"A", 0a,"n ", 0b,"E", 0a,"p", 0b,"i", 0a,"c ", 0e,"M", 0c,"e", 0e,"g", 0c,"a", 0e,"G", 0c,"a", 0e,"m", 0c,"e", 0e,"s"
+		db 19,06, 0f,db, 07,db,db, 03,db,"  ", 0f,dc,dc,dc, 08,dc,"  ", 0f,db, 07,db,db, 03,db,"  ", 0f,db, 07,db,db, 03,db
+		db 19,03, 0f,"S", 0b,"h", 0f,"a", 0b,"r", 0f,"e", 0b,"w", 0f,"a", 0b,"r", 0f,"e "
+		db 0d,"P", 09,"r", 0d,"o", 09,"d", 0d,"u", 09,"c", 0d,"t", 09,"i", 0d,"o", 09,"n", 18
+		db 19,14, 0f,1a,04,dc, db, 07,db,db, 03,db,"  ", 0f,db, 07,db,db, 03,db,"  "
+		db 0f,db, 07,db,db, 03,db,"  ", 0f,db, 07,db,db, 03,db, 18,19,03, 04,1a,10,dc
+		db 0f,db, 07,1a,06,db, 03,db, 04,dc,dc, 0f,db, 07,db,db, 03,db, 04,dc,dc
+		db 0f,db, 07,db,db, 03,db, 04,dc,dc, 0f,db, 07,db,db, 03,db, 04,1a,1c,dc, 18
+		db 19,03, 14," ", 0c,db, 1a,0e,df, 08,df, 03,1a, 07,df, 0c,df,df, 08,df, 03,df,df,df, 0c,df,df
+		db 08,df, 03,df,df,df, 0c,df,df, 08,df, 03,df,df,df, 0c,1a,1a,df,db, 04,10,db, 18
+		db 19,03, 14," ", 0c,db," ", 11,19,42, 04,10,db, 0c,14,db, 04,10,db, 18
+		db 19,03, 14," ", 0c,db," ", 11,19,42, 04,10,db, 0c,14,db, 04,10,db, 18
+		db 19,03, 14," ", 0c,db," ", 11,19,42, 04,10,db, 0c,14,db, 04,10,db, 18
+		db 19,03, 14," ", 0c,db," ", 11,19,42, 04,10,db, 0c,14,db, 04,10,db, 18
+		db 19,03, 14," ", 0c,db," ", 11,19,42, 04,10,db, 0c,14,db, 04,10,db, 18
+		db 19,03, 14," ", 0c,db," ", 11,19,42, 04,10,db, 0c,14,db, 04,10,db, 18
+		db 19,03, 14," ", 0c,db," ", 11,19,42, 04,10,db, 0c,14,db, 04,10,db, 18
+		db 19,03, 14," ", 0c,db," ", 11,19,42, 04,10,db, 0c,14,db, 04,10,db, 18
+		db 19,03, 14," ", 0c,db," ", 11,19,42, 04,10,db, 0c,14,db, 04,10,db, 18
+		db 19,03, 14," ", 0c,db," ", 11,19,42, 04,10,db, 0c,14,db, 04,10,db, 18
+		db 19,03, 14," ", 0c,db, 0f,dc,dc,dc, 08,dc, 0c,1a,04,dc, 0f,1a,09,dc, 08,dc
+		db 0c,1a,0c,dc, 0f,dc,dc,dc, 08,dc, 0c,1a,1f,dc, db, 04,10,db, 18
+		db 19,03, df,df, 0f,db, 07,db,db, 03,db, 04,1a,04,df
+		db 0f,db, 17," ", 0c,"OF  THE "
+		db 03,10,db, 04,1a,0c,df, 0f,db, 07,db,db, 03,db, 04,1a,21,df, 18
+		db 19,05, 0f,db, 07,db,db, 03,db, 19,04,08, df, 03,1a,09,df
+		db 19,0c, 0f,db, 07,db,db, 03,db,"  ", 0f,db, 17,1a,05,df, 08,13,df, 10,"  "
+		db 0b,fe," ", 09,"T", 0d,"i", 09,"m ", 0d,"S", 09,"w", 0d,"e", 09,"e", 0d,"n", 09,"e", 0d,"y", 18
+		db 19,05, 0f,db, 07,db,db, 03,db,"  ", 0f,dc,dc, 08,dc," ", 0f,dc,dc, 08,dc,"  ", 0f,1a,04,dc, 08,dc
+		db 19,02, 0f,db, 17,1a,04,df, 08,13,df, 10,"  ", 0f,db, 07,db,db, 03,db,"  ", 0f,db, 07,db, 03,db,df,df
+		db 0f,db, 07,db, 03,db,"  ", 0d,fe," "
+		db 0a,"J", 0c,"o", 0a,"h", 0c,"n ", 0a,"P", 0c,"a", 0a,"l", 0c,"l", 0a,"e", 0c,"t", 0a,"t", 0c,"-"
+		db 0a,"P", 0c,"l", 0a,"o", 0c,"w", 0a,"r", 0c,"i", 0a,"g", 0c,"h", 0a,"t", 18
+		db 19,05, 0f,db, 07,db,db, 03,db,"  ", 0f,db, 07,db, 03,db," ", 0f,db, 07,db, 03,db,"  ", 0f,db, 07,1a,03,db
+		db 03,17,df, 08,13,df, 10,"  ", 0f,db, 07,db, 03,db,df, 0f,db, 07,db, 03,db,"  ", 0f,db, 07,db,db, 03,db,"  "
+		db 0f,db, 07,db, 0f,17,1a, 03,df, 07,10,db, 03,db,"  ", 0b,fe," "
+		db 09,"D", 0d,"a", 09,"n ", 0d,"F", 09,"r", 0d,"o", 09,"e", 0d,"l", 09,"i", 0d,"c", 09,"h", 18
+		db " ", 0f,1a,04,dc, db, 07,db,db, 03,db,"  ", 0f,db, 07,db, 03,db," ", 0f,db, 07,db, 03,db,"  ", 0f,db, 07,db, 03,db,df
+		db 0f,db, 07,db, 03,db,"  ", 0f,db, 07,db, 0f,17,df,df,df, 07,10,db, 03,db,"  "
+		db 0f,db, 07,db,db, 03,db,"  ", 0f,db, 07,db, 03,db, 19,06, 0d,fe," "
+		db 0a,"J", 0c,"o", 0a,"e ", 0c,"H", 0a,"i", 0c,"t", 0a,"c", 0c,"h", 0a,"e", 0c,"n", 0a,"s", 18
+		db " ", 0f,db, 07,1a,06,db, 03,db,"  ", 0f,db, 07,db,db, 0f,17,df,df, 07,10,db, 03,db,"  "
+		db 0f,db, 07,db, 03,db," ", 0f,db, 07,db, 03,db,"  ", 08,df, 03,1a,03,df, 07,db, 03,db,"  "
+		db 0f,db, 07,db,db, 03,db,"  ", 0f,db, 07,db, 0f,17,1a,04,df, 08,13,df, 18
+		db 10," ",df, 03,1a,07,df, "  ", 08,df, 03,1a,05,df, "  ", 08,df, 03,df,df," ", 08,df, 03,df,df,"  "
+		db 0f,db, 17,1a,03,df, 07,10,db, 03,db,"  ", 08,df, 03,df,df,df,"  ", 08,df, 03,1a,06,df
+		db "  ", 0b,"(", 0a,"c", 0b,") E", 0a,"p", 0b,"i", 0a,"c "
+		db 0e,"M", 0c,"e", 0e,"g", 0c,"a", 0e,"G", 0c,"a", 0e,"m", 0c,"e", 0e,"s ", 0c,"1", 0e,"9", 0c,"9", 0e,"2", 07,":", 18
+		db 19,1d, 08,df, 03,1a,05,df, 19,03
+		db 0f,"T", 0b,"h", 0f,"e ", 0d,"N", 09,"e", 0d,"w ", 0f,"N", 0b,"a", 0f,"m", 0b,"e "
+		db 0d,"i", 09,"n ", 0f,"C", 0b,"o", 0f,"m", 0b,"p", 0f,"u", 0b,"t", 0f,"e", 0b,"r "
+		db 0d,"E", 09,"n", 0d,"t", 09,"e", 0d,"r", 09,"t", 0d,"a", 09,"i", 0d,"n", 09,"m", 0d,"e", 09,"n", 0d,"t", 18
 		db 00
-Y2a171f3b:	db 0c,10,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16
-		db 0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16
-		db 0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16
-		db 0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16
-		db 0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16
-		db 0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16
-		db 0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16
-		db 0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16
-		db 0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16
-		db 0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,18
-		db 19,18
-		db 0a,"Thanks for playing Jill of the Jungle ",0f,"VOLUME I",0a,".",18
-		db " ",08,1a,13,dc,07,dc,18
-		db " ",08,db,14," ",0c,1a,04,dc,19,0c,08,10,db,19,02
-		db 09,"If you've enjoyed this game,  please ",0e,"copy ",09,"it and give",18
-		db " ",08,db,14," ",0c,db,19,08,df,19,06,08,10,db,19,02
-		db 09,"Jill to all of your friends!  If you have a modem,",18
-		db " ",08,db,14," ",0c,db,df,df,df," ",db,df,df,db," ",de,dd," ",db,df,df,"  ",08,10,db,19,02
-		db 0e,"upload ",09,"this game on all of your local bulletin boards",18
-		db " ",08,db,14," ",0c,db,1a,03,dc,db,dc,dc,db," ",db,db," ",db,dc,dc,"  ",08,10,db,19,02
-		db 09,"and post messages about it to spread the word.",18
-		db " ",08,db,14,19,05,0c,db,19,0b,08,10,db,18
-		db " ",17,df,14,1a,12,dc,10,db,19,02,0d,"We are Epic MegaGames and we're here to provide you",18
-		db " ",09,1a,21,dc,03,dc,19,02,0d,"with top quality computer entertainment.",18
-		db " ",09,db,11," ",03,da,c4,c2,c4,bf,19,08,da,c4,c4,c4,19,0d,09,db,10,19,02
-		db 0d,"Look at our catalog (CATALOG.EXE) for",18
-		db " ",09,db,11," ",03,b3," ",b3," ",b3,da,c4,bf,da,c4,bf,da,c4,bf,b3,19,02,da,c4,bf," "
-		db c2,c2,bf,da,c4,bf,da,c4,c4," ",09,db,10,19,02,0d,"information about our other products.",18
-		db " ",09,db,11," ",03,b3,19,02,b3,b3,c4,d9,b3," ",b3,b3," ",b3,b3," "
-		db c4,bf,b3," ",b3," ",1a,03,b3,c4,d9,c0,c4,bf," ",09,db,18
-		db 10," ",db,11," ",03,b3,19,02,b3,c0,c4,c4,c0,c4,b3,c0,c4,b3,c0,c4,c4,d9,c0,c4,b3," ",d9," ",d9,c0,1a,03
-		db c4,d9," ",09,db,10,19,02,"Want more ",0e,"adventure",09,"?  You can register",18
-		db " ",db,11,19,08,03,c4,c4,d9,19,14,09,db,10,19,02,"and order all ",0c,"THREE ",09,"volumes in the",18
-		db " ",03,df,09,1a,21,df,19,02,"series for ",0b,"just $30 ",09,"+ ",0b,"$2 ",09,"p&h.  Print",18
-		db "the order form for details (PRINTME) or you can order toll-free by calling",18
-		db 0b,"1-800-972-7434 ",09,"(orders only!)  Your adventures will lead you through ",0a,"Jill of",18
-		db "the Jungle",09,",  ",0a,"Jill Goes Underground",09,",  ",0a,"and Jill Saves the Prince ",09,"in this Epic",18
-		db "Mega Arcade-Adventure trilogy!",18
-		db 0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16
-		db 0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16
-		db 0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16
-		db 0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16
-		db 0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16
-		db 0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16
-		db 0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16
-		db 0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16
-		db 0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16
-		db 0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,04,1a,00,16,0c,1a,00,16,18
-		db 19,2a,dc,19,03,07,"Thanks,",18
-		db 19,28,0c,dc,14,df,dc,df,10,dc,18
-		db 19,29,df,14,dc,10,df,19,02,0f,"Tim Sweeney ",07,"(author of Jill)",18
+Y2a171f3b:	db 0c,10,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 18
+		db 19,18, 0a,"Thanks for playing Jill of the Jungle ", 0f,"VOLUME I", 0a,".", 18
+		db " ", 08,1a,13,dc, 07,dc, 18
+		db " ", 08,db, 14," ", 0c,1a,04,dc, 19,0c
+		db 08,10,db, 19,02, 09,"If you've enjoyed this game,  please ", 0e,"copy ", 09,"it and give", 18
+		db " ", 08,db, 14," ", 0c,db, 19,08, df, 19,06
+		db 08,10,db, 19,02, 09,"Jill to all of your friends!  If you have a modem,", 18
+		db " ", 08,db, 14," ", 0c,db,df,df,df," ",db,df,df,db," ",de,dd," ",db,df,df,"  "
+		db 08,10,db, 19,02, 0e,"upload ", 09,"this game on all of your local bulletin boards", 18
+		db " ", 08,db, 14," ", 0c,db, 1a,03,dc, db,dc,dc,db," ",db,db," ",db,dc,dc,"  "
+		db 08,10,db, 19,02, 09,"and post messages about it to spread the word.", 18
+		db " ", 08,db, 14,19,05, 0c,db, 19,0b, 08,10,db, 18
+		db " ", 17,df, 14,1a,12,dc, 10,db, 19,02, 0d,"We are Epic MegaGames and we're here to provide you", 18
+		db " ", 09,1a,21,dc, 03,dc, 19,02, 0d,"with top quality computer entertainment.", 18
+		db " ", 09,db, 11," ", 03,da,c4,c2,c4,bf, 19,08, da,c4,c4,c4, 19,0d
+		db 09,db, 10,19,02, 0d,"Look at our catalog (CATALOG.EXE) for", 18
+		db " ", 09,db, 11," ", 03,b3," ",b3," ",b3,da,c4,bf,da,c4,bf,da,c4,bf,b3
+		db 19,02, da,c4,bf," ",c2,c2,bf,da,c4,bf,da,c4,c4," "
+		db 09,db, 10,19,02, 0d,"information about our other products.", 18
+		db " ", 09,db, 11," ", 03,b3, 19,02, b3,b3,c4,d9,b3," ",b3,b3," ",b3,b3," ",c4,bf,b3," ",b3," "
+		db 1a,03,b3, c4,d9,c0,c4,bf," ", 09,db, 18
+		db 10," ",db, 11," ", 03,b3, 19,02, b3,c0,c4,c4,c0,c4,b3,c0,c4,b3,c0,c4,c4,d9,c0,c4,b3," ",d9," ",d9,c0
+		db 1a,03,c4, d9," "
+		db 09,db, 10,19,02, "Want more ", 0e,"adventure", 09,"?  You can register", 18
+		db " ",db, 11,19,08, 03,c4,c4,d9, 19,14
+		db 09,db, 10,19,02, "and order all ",0c,"THREE ", 09,"volumes in the", 18
+		db " ", 03,df, 09,1a,21,df, 19,02, "series for ", 0b,"just $30 ", 09,"+ ", 0b,"$2 ", 09,"p&h.  Print", 18
+		db "the order form for details (PRINTME) or you can order toll-free by calling", 18
+		db 0b,"1-800-972-7434 ", 09,"(orders only!)  Your adventures will lead you through ", 0a,"Jill of", 18
+		db "the Jungle", 09,",  ", 0a,"Jill Goes Underground", 09,",  ", 0a,"and Jill Saves the Prince ", 09,"in this Epic", 18
+		db "Mega Arcade-Adventure trilogy!", 18
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16
+		db 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 04,1a,00,16, 0c,1a,00,16, 18
+		db 19,2a, dc, 19,03, 07,"Thanks,", 18
+		db 19,28, 0c,dc, 14,df,dc,df, 10,dc, 18
+		db 19,29, df, 14,dc, 10,df, 19,02, 0f,"Tim Sweeney ", 07,"(author of Jill)", 18
 		db 18
 		db 00
 Y2a172661:	word
@@ -55793,15 +55847,13 @@ Y2a172a3c:	dd A27eb0000
 Y2a172a40:	dd A27eb0000
 Y2a172a44:	dd A27eb0000
 Y2a172a48:	word
-Y2a172a4a:	word
-Y2a172a4c:	word
-Y2a172a4e:	word
-Y2a172a50:	word
-Y2a172a52:	word
-Y2a172a54:	word
+Y2a172a4a:	dword
+Y2a172a4e:	dword
+Y2a172a52:	dword
 Y2a172a56:	word
-Y2a172a58:	byte
-Y2a172a59:	db 20,20,20,20,20,20,20,20,20,21,21,21,21,21,20,20
+Y2a172a58:	;; The actual table is at 2a172a59.
+		db 00
+		db 20,20,20,20,20,20,20,20,20,21,21,21,21,21,20,20
 		db 20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20
 		db 01,40,40,40,40,40,40,40,40,40,40,40,40,40,40,40
 		db 02,02,02,02,02,02,02,02,02,02,40,40,40,40,40,40
@@ -55817,7 +55869,7 @@ Y2a172a59:	db 20,20,20,20,20,20,20,20,20,21,21,21,21,21,20,20
 		db 00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00
 		db 00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00
 		db 00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00
-Y2a172b59:	byte
+X2a172b59:	byte
 Y2a172b5a:	dw 2001,2002,2002,a004,a002,ffff,ffff,ffff
 		dw ffff,ffff,ffff,ffff,ffff,ffff,ffff,ffff
 		dw ffff,ffff,ffff,ffff
@@ -55832,7 +55884,8 @@ Y2a172bd0:	db 14,14,01,14,15,14,14,14,14,02,00,14,03,04,14,09
 		db 14,14,14,14,14,14,14,0d,14,14,14,14,14,14,14,14
 		db 14,14,10,0a,0f,0f,0f,08,0a,14,14,06,14,12,0b,0e
 		db 14,14,11,14,0c,14,14,0d,14,14,14,14,14,14,14,00
-Y2a172c30:	ds 000f
+Y2a172c30:	ds 000b
+		ds 2*0002
 Y2a172c3f:	dw 0001
 Y2a172c41:	db "COMPAQ",00
 Y2a172c48:	dd 00000001
@@ -55841,17 +55894,19 @@ Y2a172c4e:	dw offset A076a019f
 Y2a172c50:	dw offset A076a0423
 Y2a172c52:	dd A076a03a9
 Y2a172c56:	dd A076a03ae,A076a03ae,A076a03ae
-Y2a172c62:	ds 0100
+
+;; BSS Area
+Y2a172c62:	ds 2*0080
 Y2a172d62:	word
 Y2a172d64:	ds 0100
 Y2a172e64:	ds 0050
-Y2a172eb4:	ds 0080
-Y2a172f34:	ds 0200
-Y2a173134:	ds 0080
-Y2a1731b4:	ds 0080
-Y2a173234:	ds 0100
+Y2a172eb4:	ds 2*0040
+Y2a172f34:	ds 4*0080
+Y2a173134:	ds 2*0040
+Y2a1731b4:	ds 2*0040
+Y2a173234:	ds 4*0040
 Y2a173334:	dword
-Y2a173338:	ds 0800
+Y2a173338:	ds 2*0004*0100
 Y2a173b38:	ds 0010
 Y2a173b48:	word
 Y2a173b4a:	word
@@ -55868,13 +55923,13 @@ Y2a173b5e:	dword
 Y2a173b62:	dword
 Y2a173b66:	byte
 Y2a173b67:	byte
-Y2a173b68:	ds 0200
+Y2a173b68:	ds 2*0100
 Y2a173d68:	byte
 Y2a173d69:	byte
 Y2a173d6a:	byte
 Y2a173d6b:	byte
 Y2a173d6c:	byte
-Y2a173d6d:	byte
+X2a173d6d:	byte
 Y2a173d6e:	word
 Y2a173d70:	word
 Y2a173d72:	word
@@ -55912,23 +55967,23 @@ Y2a173ecc:	word
 Y2a173ece:	word
 Y2a173ed0:	word
 Y2a173ed2:	ds 0016
-Y2a173ee8:	ds 0040
+X2a173ee8:	ds 0040
 Y2a173f28:	dword
 Y2a173f2c:	dword
 Y2a173f30:	word
 Y2a173f32:	word
-Y2a173f34:	ds 0064
-Y2a173f98:	ds 0064
+Y2a173f34:	ds 2*0032
+Y2a173f98:	ds 2*0032
 Y2a173ffc:	ds 0032
-Y2a17402e:	ds 0064
+Y2a17402e:	ds 2*0032
 Y2a174092:	dword
-Y2a174096:	ds 0200
-Y2a174296:	ds 0050
-Y2a1742e6:	ds 00c8
+Y2a174096:	ds 4*0080
+Y2a174296:	ds 2*0028
+Y2a1742e6:	ds 4*0032
 Y2a1743ae:	word
 Y2a1743b0:	word
 Y2a1743b2:	word
-Y2a1743b4:	ds 00a0
+Y2a1743b4:	ds 4*0028
 Y2a174454:	word
 Y2a174456:	word
 Y2a174458:	word
@@ -55939,86 +55994,81 @@ Y2a174460:	word
 Y2a174462:	word
 Y2a174464:	word
 Y2a174466:	word
-Y2a174468:	ds 4000
-Y2a178468:	word
-Y2a17846a:	word
-Y2a17846c:	word
-Y2a17846e:	ds 0020
-Y2a17848e:	dword
-Y2a178492:	word
-Y2a178494:	dword
-Y2a178498:	ds 0016	;;;
-Y2a1784ae:	ds 12c0
-Y2a17976e:	ds 1f3e
-Y2a17b6ac:	ds 0078
+Y2a174468:	ds 2*0080*0040
+Y2a178468:	word		;; 00
+		word		;; 02
+		word		;; 04
+		ds 2*0010	;; 06
+		dword		;; 26
+		word		;; 2a
+		dword		;; 2c
+		ds 0016		;; 30
+Y2a1784ae:	ds 8*0258
+Y2a17976e:	ds 1f*0102
+Y2a17b6ac:	ds 000c*000a
 Y2a17b724:	ds 003c
 Y2a17b760:	ds 0010
 Y2a17b770:	dword
 Y2a17b774:	word
 Y2a17b776:	word
-Y2a17b778:	ds 008a
-Y2a17b802:	ds 008a
-Y2a17b88c:	ds 0028
+Y2a17b778:	ds 2*0045
+Y2a17b802:	ds 2*0045
+Y2a17b88c:	ds 4*000a
 Y2a17b8b4:	dword
 Y2a17b8b8:	ds 0058
-Y2a17b8f0:	ds 0010
-Y2a17b900:	ds 0010
-Y2a17b910:	ds 0114
+Y2a17b910:	ds 4*0045
 Y2a17ba24:	ds 0020
 Y2a17ba44:	dword
 Y2a17ba48:	ds 0010
 Y2a17ba58:	word
 Y2a17ba5a:	word
 Y2a17ba5c:	word
-Y2a17ba5e:	ds 0114
+Y2a17ba5e:	ds 4*0045
 Y2a17bb72:	word
 Y2a17bb74:	word
-Y2a17bb76:	ds 0048
+Y2a17bb76:	ds 0006*000c
 Y2a17bbbe:	ds 0040
 Y2a17bbfe:	ds 0020
 Y2a17bc1e:	word
 Y2a17bc20:	ds 0020
-Y2a17bc40:	ds 008a
-Y2a17bcca:	ds 008a
-Y2a17bd54:	ds 0028
-Y2a17bd7c:	ds 0010
-Y2a17bd8c:	ds 0020
+Y2a17bc40:	ds 2*0045
+Y2a17bcca:	ds 2*0045
+Y2a17bd54:	ds 0058
 Y2a17bdac:	word
-Y2a17bdae:	ds 0180
-Y2a17bf2e:	ds 0300
-Y2a17c22e:	ds 000c
+Y2a17bdae:	ds 2*00c0
+Y2a17bf2e:	ds 0003*0100
+Y2a17c22e:	ds 2*0006
 Y2a17c23a:	word
 Y2a17c23c:	word
-Y2a17c23e:	ds 008a
+Y2a17c23e:	ds 2*0045
 Y2a17c2c8:	word
 Y2a17c2ca:	word
 Y2a17c2cc:	word
 Y2a17c2ce:	word
 Y2a17c2d0:	word
 Y2a17c2d2:	word
-Y2a17c2d4:	ds 0a00
+Y2a17c2d4:	ds 0080*0014
 Y2a17ccd4:	word
 Y2a17ccd6:	word
 Y2a17ccd8:	word
 Y2a17ccda:	word
 Y2a17ccdc:	word
 Y2a17ccde:	dword
-Y2a17cce2:	ds 0082
-Y2a17cd64:	ds 0092
-Y2a17cdf6:	ds 000a
+Y2a17cce2:	ds 4*0020
+Y2a17cd62:	word
+X2a17cd64:	ds 000c
 
 Segment 36ee ;; Stack Area
-Y36ee0000:	ds 00c0
-Y36ee00c0:	ds 000c
-Y36ee00cc:	dword
-Y36ee00d0:	dword
-Y36ee00d4:	word
-Y36ee00d6:	word
-Y36ee00d8:	word
-Y36ee00da:	word
-Y36ee00dc:	word
-Y36ee00de:	word
-Y36ee00e0:	dword
-Y36ee00e4:	dw ffff
-Y36ee00e6:	word
-Y36ee00e8:
+Y36ee0000:	ds 00c0	;; 2a17cd70
+Y36ee00c0:	ds 000c	;; 2a17ce30
+Y36ee00cc:	dword	;; 2a17ce3c
+Y36ee00d0:	dword	;; 2a17ce40
+Y36ee00d4:	word	;; 2a17ce44
+Y36ee00d6:	word	;; 2a17ce46
+Y36ee00d8:	word	;; 2a17ce48
+Y36ee00da:	word	;; 2a17ce4a
+Y36ee00dc:	word	;; 2a17ce4c
+Y36ee00de:	word	;; 2a17ce4e
+Y36ee00e0:	dword	;; 2a17ce50
+Y36ee00e4:	dw ffff	;; 2a17ce54
+Y36ee00e6:	;; 2a17ce56
