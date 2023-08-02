@@ -1,721 +1,721 @@
-Ids
-Type 01:
-Y076a0000: __turboCrt: // Y076a0000
-Y076a0000: __cvtfak: // Y076a0000
+;; Symbol Table
+;; Type 01:
+X076a0000: __turboCrt
+X076a0000: __cvtfak
 
-Type 00:
-Y076a010d: __exit: // Y076a010d
-Y076a0172: __restorezero: // Y076a0172
-Y076a01af: _abort: // Y076a01af
-Y076a01c7: DGROUP@: // Y076a01c7
-Y076a01d2: __setargv: // Y076a01d2
-Y076a02d0: __setenvp: // Y076a02d0
-Y076a0314: PADD@: // Y076a0314
-Y076a0341: PSUB@: // Y076a0341
-Y076a036f: PCMP@: // Y076a036f
-Y076a0390: LXMUL@: // Y076a0390
-Y076a03cc: __REALCVT: // Y076a03cc
-Y076a0414: __VideoInt: // Y076a0414
-Y076a0423: __c0crtinit: // Y076a0423
-Y076a0444: __crtinit: // Y076a0444
-Y076a04f2: LDIV@: // Y076a04f2
-Y076a04f6: LUDIV@: // Y076a04f6
-Y076a04fb: LMOD@: // Y076a04fb
-Y076a0500: LUMOD@: // Y076a0500
-Y076a0595: LXRSH@: // Y076a0595
-Y076a05c5: OVERFLOW@: // Y076a05c5
-Y076a05d5: PSBP@: // Y076a05d5
-Y076a05fa: SCOPY@: // Y076a05fa
-Y07cb0006: _copyfile: // Y07cb0006
-Y07d60007: _shm_init: // Y07d60007
-Y07d60052: _init8bit: // Y07d60052
-Y07d600e3: _xlate_table: // Y07d600e3
-Y07d60779: _shm_do: // Y07d60779
-Y07d609b1: _shm_exit: // Y07d609b1
-Y08760005: _pixaddr_cga: // Y08760005
-Y08760058: _pixaddr_ega: // Y08760058
-Y0876009c: _pixaddr_vga: // Y0876009c
-Y087600de: _drawshape: // Y087600de
-Y087602c5: _plot: // Y087602c5
-Y0876037b: _linex: // Y0876037b
-Y087603b4: _waitsafe: // Y087603b4
-Y087603c1: _setcm_cga: // Y087603c1
-Y08760463: _fontcolor_cga: // Y08760463
-Y08760504: _fontcolor_ega: // Y08760504
-Y0876052f: _fontcolor_vga: // Y0876052f
-Y0876055a: _fntcolor: // Y0876055a
-Y087605c5: _initcolortabs_cga: // Y087605c5
-Y08760654: _initcolortabs_ega: // Y08760654
-Y0876069d: _initcolortabs_vga: // Y0876069d
-Y087606e7: _setpages: // Y087606e7
-Y08760700: _setpagemode: // Y08760700
-Y0876073f: _getportnum: // Y0876073f
-Y08760751: _pageflip: // Y08760751
-Y087607bf: _wait_vbi: // Y087607bf
-Y087607dd: _vga_setpal: // Y087607dd
-Y08760873: _readpal: // Y08760873
-Y08760930: _clrpal: // Y08760930
-Y087609ba: _fadein: // Y087609ba
-Y08760a42: _setcolor: // Y08760a42
-Y08760a67: _fadeout: // Y08760a67
-Y08760aef: _gr_config: // Y08760aef
-Y08760b72: _gr_init: // Y08760b72
-Y08760ddf: _gr_exit: // Y08760ddf
-Y09560003: _ldrawsh_cga: // Y09560003
-Y09560271: _ldrawsh_ega: // Y09560271
-Y09560558: _ldrawsh_vga: // Y09560558
-Y09560836: _ldrawsh_mcga: // Y09560836
-Y095609f9: _scroll: // Y095609f9
-Y09560e04: _lcopypage: // Y09560e04
-Y09560e7f: _scrollvp: // Y09560e7f
-Y09560eaa: _clrvp: // Y09560eaa
-Y0a620081: _plot_cga: // Y0a620081
-Y0a6200a0: _plot_ega: // Y0a6200a0
-Y0a6200eb: _plot_vga: // Y0a6200eb
-Y0a62011a: _readpix_vga: // Y0a62011a // 1a:00
-Y0a62014e: _line_cga: // Y0a62014e
-Y0a6202e8: _drawsh_cga: // Y0a6202e8
-Y0a990003: _k_pressed: // Y0a990003
-Y0a990065: _k_read: // Y0a990065
-Y0a9900b7: _k_status: // Y0a9900b7
-Y0a990124: _handler: // Y0a990124
-Y0a990191: _installhandler: // Y0a990191
-Y0a9901f4: _removehandler: // Y0a9901f4
-Y0a990214: _disablebios: // Y0a990214
-Y0a990225: _enablebios: // Y0a990225
-Y0a990244: _biosstatus: // Y0a990244
-Y0abf0002: _defwin: // Y0abf0002
-Y0abf0234: _drawwin: // Y0abf0234
-Y0abf0774: _undrawwin: // Y0abf0774
-Y0abf078b: _wprint: // Y0abf078b
-Y0abf0843: _wgetkey: // Y0abf0843
-Y0abf08bf: _winput: // Y0abf08bf
-Y0abf0a59: _wprintc: // Y0abf0a59
-Y0abf0aba: _titlewin: // Y0abf0aba
-Y0abf0b0b: _titletop: // Y0abf0b0b
-Y0abf0b56: _titlebot: // Y0abf0b56
-Y0abf0ba8: _initvp: // Y0abf0ba8
-Y0abf0bd2: _clearvp: // Y0abf0bd2
-Y0abf0bec: _fontcolor: // Y0abf0bec
-Y0b8b000e: _buttona1: // Y0b8b000e
-Y0b8b0024: _buttona2: // Y0b8b0024
-Y0b8b003a: _readspeed: // Y0b8b003a
-Y0b8b009d: _readjoy: // Y0b8b009d
-Y0b8b012f: _caldir: // Y0b8b012f
-Y0b8b01d1: _joypresent: // Y0b8b01d1
-Y0b8b020d: _calibratejoy: // Y0b8b020d
-Y0b8b02fd: _checkctrl: // Y0b8b02fd
-Y0b8b058a: _checkctrl0: // Y0b8b058a
-Y0b8b05b0: _sensectrlmode: // Y0b8b05b0
-Y0b8b05bc: _gc_config: // Y0b8b05bc
-Y0b8b063d: _getkey: // Y0b8b063d
-Y0b8b0651: _stopmac: // Y0b8b0651
-Y0b8b069c: _playmac: // Y0b8b069c
-Y0b8b074f: _recordmac: // Y0b8b074f
-Y0b8b0796: _macrecend: // Y0b8b0796
-Y0b8b07e6: _recmac: // Y0b8b07e6
-Y0b8b09f0: _getmac: // Y0b8b09f0
-Y0b8b0b49: _gc_init: // Y0b8b0b49
-Y0b8b0ba4: _gc_exit: // Y0b8b0ba4
-Y0c45000e: _uncrunch: // Y0c45000e
-Y0c4d0009: _cfg_getpath: // Y0c4d0009
-Y0c4d008e: _cfg_init: // Y0c4d008e
-Y0c4d027a: _doconfig: // Y0c4d027a
-Y0cc00000: _pixwrite: // Y0cc00000 // 24:18
-Y0ce0000b: _bogus_intr: // Y0ce0000b
-Y0ce00023: _snd_init: // Y0ce00023
-Y0ce001e8: _snd_play: // Y0ce001e8
-Y0ce002a1: _snd_do: // Y0ce002a1
-Y0ce0058a: _text_get: // Y0ce0058a
-Y0ce00612: _snd_exit: // Y0ce00612
-Y0ce0071e: _load_file: // Y0ce0071e
-Y0ce007d3: _playbuffer: // Y0ce007d3
-Y0ce0088a: _sb_update: // Y0ce0088a
-Y0ce008a8: _sb_playing: // Y0ce008a8
-Y0ce008c5: _sb_shutup: // Y0ce008c5
-Y0ce008de: _sb_playtune: // Y0ce008de
-Y0ce00900: _sampadd: // Y0ce00900
-Y0ce00a05: _soundadd: // Y0ce00a05
-Y0ce00c05: _soundstop: // Y0ce00c05
-Y0ce00c11: _timerset: // Y0ce00c11
-Y0ce00c4f: _our_pc_sound: // Y0ce00c4f
-Y0dac000c: _digi_intr: // Y0dac000c
-Y0dba0000: _initobjinfo: // Y0dba0000
-Y0dba0e09: _msg_null: // Y0dba0e09
-Y0dba0e10: _msg_apple: // Y0dba0e10
-Y0dba0ff6: _msg_knife: // Y0dba0ff6
-Y0dba13c1: _msg_nullkind: // Y0dba13c1
-Y0dba13c6: _msg_bigant: // Y0dba13c6
-Y0dba15a0: _msg_ant: // Y0dba15a0
-Y0dba1782: _msg_fly: // Y0dba1782
-Y0dba1982: _msg_phoenix: // Y0dba1982
-Y0dba1c2c: _msg_inchworm: // Y0dba1c2c
-Y0dba1d8b: _msg_zapper: // Y0dba1d8b
-Y0dba1e48: _msg_bobslug: // Y0dba1e48
-Y0dba1fde: _msg_checkpt: // Y0dba1fde
-Y0dba22c6: _msg_paul: // Y0dba22c6
-Y0dba233b: _msg_wiseman: // Y0dba233b
-Y0dba24f1: _msg_bridger: // Y0dba24f1
-Y0dba277c: _msg_key: // Y0dba277c
-Y0dba288e: _msg_pad: // Y0dba288e
-Y0dba295f: _msg_demon: // Y0dba295f
-Y0dba2d4e: _msg_fatso: // Y0dba2d4e
-Y0dba2f54: _msg_roman: // Y0dba2f54
-Y0dba312b: _msg_fireball: // Y0dba312b
-Y0dba326b: _msg_cloud: // Y0dba326b
-Y0dba3387: _msg_text6: // Y0dba3387
-Y0dba3496: _msg_score: // Y0dba3496
-Y0dba35ef: _msg_text8: // Y0dba35ef
-Y0dba36fc: _msg_frog: // Y0dba36fc
-Y0dba3a0e: _msg_door: // Y0dba3a0e
-Y0dba3dae: _msg_falldoor: // Y0dba3dae
-Y11b8000b: _msg_token: // Y11b8000b
-Y11b8021b: _msg_fire: // Y11b8021b
-Y11b80366: _msg_switch: // Y11b80366
-Y11b8056d: _msg_gem: // Y11b8056d
-Y11b806b1: _msg_boulder: // Y11b806b1
-Y11b809eb: _explode2: // Y11b809eb
-Y11b80a63: _explode1: // Y11b80a63
-Y11b80af6: _msg_expl1: // Y11b80af6
-Y11b80c4c: _msg_expl2: // Y11b80c4c
-Y11b80d0f: _msg_stalag: // Y11b80d0f
-Y11b80e86: _msg_snake: // Y11b80e86
-Y11b8131c: _msg_boll: // Y11b8131c
-Y11b81715: _msg_mega: // Y11b81715
-Y11b818a9: _msg_bat: // Y11b818a9
-Y11b81c6f: _msg_knight: // Y11b81c6f
-Y11b81ece: _msg_beenest: // Y11b81ece
-Y11b82124: _msg_beeswarm: // Y11b82124
-Y11b823ae: _msg_crab: // Y11b823ae
-Y11b8275a: _msg_croc: // Y11b8275a
-Y11b82ab5: _msg_epic: // Y11b82ab5
-Y11b82bd5: _msg_spinblad: // Y11b82bd5
-Y11b830e4: _msg_skull: // Y11b830e4
-Y11b8331c: _msg_button: // Y11b8331c
-Y11b834bd: _msg_pac: // Y11b834bd
-Y11b838ef: _msg_bubble: // Y11b838ef
-Y11b83a12: _msg_jellyfish: // Y11b83a12
-Y11b83dbe: _msg_badfish: // Y11b83dbe
-Y11b840a3: _msg_elev: // Y11b840a3
-Y11b84428: _msg_firebullet: // Y11b84428
-Y11b846a8: _msg_fishbullet: // Y11b846a8
-Y11b84790: _msg_searock: // Y11b84790
-Y11b8483d: _msg_eyes: // Y11b8483d
-Y11b849b4: _msg_vineclimb: // Y11b849b4
-Y11b84bad: _msg_flag: // Y11b84bad
-Y11b84d30: _msg_macrotrig: // Y11b84d30
-Y11b84d4a: _msg_txtmsg: // Y11b84d4a
-Y11b84df5: _msg_mapdemo: // Y11b84df5
-Y16ab0001: _msg_block: // Y16ab0001
-Y17310008: _calc_scroll: // Y17310008
-Y173101d3: _msg_player: // Y173101d3
-Y17311df2: _msg_tiny: // Y17311df2
-Y17312107: _msg_jillfish: // Y17312107
-Y1731270c: _msg_jillspider: // Y1731270c
-Y17312725: _msg_jillfrog: // Y17312725
-Y17312a68: _msg_jillbird: // Y17312a68
-Y17312f3e: _playerxfm: // Y17312f3e
-Y1a3b0004: _fin: // Y1a3b0004
-Y1a3b001d: _fout: // Y1a3b001d
-Y1a3b0036: _drawkeys: // Y1a3b0036
-Y1a3b0317: _drawcmds: // Y1a3b0317
-Y1a3b05af: _putbotmsg: // Y1a3b05af
-Y1a3b05d8: _drawstats: // Y1a3b05d8
-Y1a3b08fc: _zapobjs: // Y1a3b08fc
-Y1a3b094a: _loadcfg: // Y1a3b094a
-Y1a3b0a4b: _savecfg: // Y1a3b0a4b
-Y1a3b0ae0: _loadboard: // Y1a3b0ae0
-Y1a3b0cd5: _saveboard: // Y1a3b0cd5
-Y1a3b0de2: _numlines: // Y1a3b0de2
-Y1a3b0e0d: _getline: // Y1a3b0e0d
-Y1a3b0ebf: _printline: // Y1a3b0ebf
-Y1a3b0f3e: _ourdelay: // Y1a3b0f3e
-Y1a3b0f5b: _dotextmsg: // Y1a3b0f5b
-Y1a3b123c: _initboard: // Y1a3b123c
-Y1a3b1281: _putlevelmsg: // Y1a3b1281
-Y1a3b13d8: _donelevelmsg: // Y1a3b13d8
-Y1a3b143c: _drawcell: // Y1a3b143c
-Y1a3b14d9: _drawboard: // Y1a3b14d9
-Y1a3b1526: _moddrawboard: // Y1a3b1526
-Y1a3b1561: _play: // Y1a3b1561
-Y1a3b1aac: _pleasewait: // Y1a3b1aac
-Y1a3b1deb: _printhi: // Y1a3b1deb
-Y1a3b20fd: _loadsavewin: // Y1a3b20fd
-Y1a3b2448: _loadgame: // Y1a3b2448
-Y1a3b257b: _savegame: // Y1a3b257b
-Y1a3b2701: _drawgamewin: // Y1a3b2701
-Y1a3b27de: _noisemaker: // Y1a3b27de
-Y1a3b2851: _pageview: // Y1a3b2851
-Y1a3b29fe: _domenu: // Y1a3b29fe
-Y1a3b2c72: _askquit: // Y1a3b2c72
-Y1a3b2cbc: _dodemo: // Y1a3b2cbc
-Y1a3b2d92: _jmenu: // Y1a3b2d92
-Y1a3b307b: _main: // Y1a3b307b
-Y1a3b33a7: _rexit: // Y1a3b33a7
-Y1d86000b: _initinfo: // Y1d86000b
-Y1d9f0005: _infname: // Y1d9f0005
-Y1d9f0051: _printobjinfo: // Y1d9f0051
-Y1d9f025f: _objdesign: // Y1d9f025f
-Y1d9f09a8: _design: // Y1d9f09a8
-Y1ea20005: _initobjs: // Y1ea20005
-Y1ea2008e: _playerkill: // Y1ea2008e
-Y1ea200ef: _countobj: // Y1ea200ef
-Y1ea2012a: _notemod: // Y1ea2012a
-Y1ea20209: _setobjsize: // Y1ea20209
-Y1ea2037a: _findcheckpt: // Y1ea2037a
-Y1ea203c1: _dolevelsong: // Y1ea203c1
-Y1ea204c4: _p_reenter: // Y1ea204c4
-Y1ea205e4: _p_ouch: // Y1ea205e4
-Y1ea206b1: _seekplayer: // Y1ea206b1
-Y1ea2074f: _modjunglescroll: // Y1ea2074f
-Y1ea209f8: _junglescroll: // Y1ea209f8
-Y1ea20d09: _pagedjunglescroll: // Y1ea20d09
-Y1ea20d4f: _refresh: // Y1ea20d4f
-Y1ea211d4: _updbkgnd: // Y1ea211d4
-Y1ea212b6: _updobjs: // Y1ea212b6
-Y1ea21860: _killobj: // Y1ea21860
-Y1ea2188f: _addobj: // Y1ea2188f
-Y1ea21a10: _addinv: // Y1ea21a10
-Y1ea21a35: _takeinv: // Y1ea21a35
-Y1ea21a86: _invcount: // Y1ea21a86
-Y1ea21ab6: _initinv: // Y1ea21ab6
-Y1ea21ad1: _moveobj: // Y1ea21ad1
-Y1ea21b8c: _standfloor: // Y1ea21b8c
-Y1ea21c86: _trymove: // Y1ea21c86
-Y1ea21d70: _justmove: // Y1ea21d70
-Y1ea21da5: _onscreen: // Y1ea21da5
-Y1ea21e6d: _trymovey: // Y1ea21e6d
-Y1ea21f32: _crawl: // Y1ea21f32
-Y1ea21faf: _addscore: // Y1ea21faf
-Y1ea22062: _addtext: // Y1ea22062
-Y1ea220ec: _sendtrig: // Y1ea220ec
-Y1ea2215c: _setorigin: // Y1ea2215c
-Y1ea22224: _cando: // Y1ea22224
-Y1ea2232b: _objdo: // Y1ea2232b
-Y1ea223de: _touchbkgnd: // Y1ea223de
-Y1ea22503: _purgeobjs: // Y1ea22503
-Y1ea22598: _updbotmsg: // Y1ea22598
-Y1ea225b5: _hitplayer: // Y1ea225b5
-Y1ea22602: _fishdo: // Y1ea22602
-Y1ea22637: _pointvect: // Y1ea22637
-Y1ea2276f: _vectdist: // Y1ea2276f
-Y1ea227da: _trybreakwall: // Y1ea227da
-Y212d000e: SBC_READ_DSP_TIME: // Y212d000e
-Y212d0035: SBC_WRITE_DSP_TIME: // Y212d0035
-Y212d005d: SBC_READ_DSP: // Y212d005d
-Y212d007b: SBC_WRITE_DSP: // Y212d007b
-Y212d009a: SET_INT_VECTOR: // Y212d009a
-Y212d00af: GET_INT_VECTOR: // Y212d00af
-Y212d00c2: ENABLE_8259: // Y212d00c2
-Y212d00da: DISABLE_8259: // Y212d00da
-Y212d00f0: _sbc_scan_card: // Y212d00f0
-Y212d00f0: _ct_scan_card: // Y212d00f0
-Y212d011e: _ct_card_here: // Y212d011e
-Y212d011e: _sbc_check_card: // Y212d011e
-Y212d0296: _sbc_dsp_reset: // Y212d0296
-Y212d02c6: _sbfm_init: // Y212d02c6
-Y212d0305: _sbfm_status_addx: // Y212d0305
-Y212d0318: _sbfm_play_music: // Y212d0318
-Y212d032b: _sbfm_instrument: // Y212d032b
-Y212d0341: _sbfm_reset: // Y212d0341
-Y212d034e: _sbfm_sys_speed: // Y212d034e
-Y212d035e: _sbfm_song_speed: // Y212d035e
-Y212d036e: _sbfm_stop_music: // Y212d036e
-Y212d0377: _sbfm_version: // Y212d0377
-Y212d0380: _sbfm_transpose: // Y212d0380
-Y212d0390: _sbfm_pause_music: // Y212d0390
-Y212d039d: _sbfm_resume_music: // Y212d039d
-Y212d03aa: _sbfm_read_status: // Y212d03aa
-Y212d03c4: _sbfm_terminate: // Y212d03c4
-Y212d03e8: _sbfm_channel_map: // Y212d03e8
-Y212d03f1: _sbfm_fading: // Y212d03f1
-Y216e0000: SBFM_CMF_DRV: // Y216e0000
-Y22b8000c: __IOERROR: // Y22b8000c
-Y22bc0008: _exit: // Y22bc0008
-Y22bf000b: _atexit: // Y22bf000b
-Y22c2000a: _malloc: // Y22c2000a
-Y22c2001f: __pull_free_block: // Y22c2001f
-Y22c2020b: _farmalloc: // Y22c2020b
-Y22f3009a: __brk: // Y22f3009a
-Y22f300e1: __sbrk: // Y22f300e1
-Y2308000c: _setblock: // Y2308000c
-Y230a003f: _open: // Y230a003f
-Y2324000c: __open: // Y2324000c
-Y23290009: _ioctl: // Y23290009
-Y232c0006: _close: // Y232c0006
-Y232f0007: __close: // Y232f0007 // 21:00
-Y2331000d: _read: // Y2331000d
-Y233e0002: __read: // Y233e0002
-Y23400002: _write: // Y23400002 // 22:00
-Y23560008: __write: // Y23560008
-Y235b0004: _lseek: // Y235b0004
-Y235e0001: __LONGTOA: // Y235e0001
-Y235e0085: _itoa: // Y235e0085 // 23:00
-Y235e00b2: _ultoa: // Y235e00b2
-Y235e00d2: _ltoa: // Y235e00d2
-Y236d000d: _unlink: // Y236d000d
-Y236f0009: _strcat: // Y236f0009 // 1d:00
-Y2373000b: _strlen: // Y2373000b // 1f:00
-Y23750006: _strcmp: // Y23750006
-Y23780008: _strcpy: // Y23780008 // 1b:00
-Y237b0001: _memcpy: // Y237b0001
-Y237d0007: _setmem: // Y237d0007
-Y237d002d: _memset: // Y237d002d
-Y2381000c: _movmem: // Y2381000c
-Y23810060: _memmove: // Y23810060
-Y23890000: __chmod: // Y23890000
-Y238b002c: __VPRINTER: // Y238b002c
-Y23e00003: _coreleft: // Y23e00003
-Y23e0000b: _farcoreleft: // Y23e0000b
-Y23e20008: _free: // Y23e20008
-Y23e202e2: _farfree: // Y23e202e2
-Y2414003d: __creat: // Y2414003d // 1e:00
-Y24140057: _creattemp: // Y24140057
-Y24140074: _creatnew: // Y24140074
-Y241d0001: _filelength: // Y241d0001
-Y24210006: _clrscr: // Y24210006
-Y24240003: _textcolor: // Y24240003
-Y24240018: _textbackground: // Y24240018
-Y24240031: _textattr: // Y24240031
-Y2424003c: _highvideo: // Y2424003c
-Y24240042: _lowvideo: // Y24240042
-Y24240048: _normvideo: // Y24240048
-Y2428000f: __CPUTN: // Y2428000f
-Y24280156: _cprintf: // Y24280156
-Y243f0006: _cputs: // Y243f0006
-Y2441000a: _abs: // Y2441000a
-Y2442000a: _atol: // Y2442000a
-Y24420081: _atoi: // Y24420081
-Y244c0002: _delay: // Y244c0002
-Y24570008: _getvect: // Y24570008
-Y2457001a: _setvect: // Y2457001a
-Y2459000b: _gotoxy: // Y2459000b
-Y245f0006: _gettext: // Y245f0006
-Y245f005d: _puttext: // Y245f005d
-Y2468000b: _intr: // Y2468000b
-Y24730000: _movetext: // Y24730000
-Y247d000c: _outport: // Y247d000c
-Y247d0018: _outportb: // Y247d0018
-Y247f0004: _srand: // Y247f0004
-Y247f0015: _rand: // Y247f0015
-Y24820031: __SCROLL: // Y24820031
-Y249c0157: __SCREENIO: // Y249c0157
-Y249c0194: __VALIDATEXY: // Y249c0194
-Y24b9000e: _sound: // Y24b9000e
-Y24b9003a: _nosound: // Y24b9003a
-Y24bd0001: _strdup: // Y24bd0001
-Y24c1000b: _strupr: // Y24c1000b
-Y24c40000: _toupper: // Y24c40000
-Y24c70001: __VPTR: // Y24c70001
-Y24c70026: __VRAM: // Y24c70026
-Y24d10002: __wherexy: // Y24d10002
-Y24d10010: _wherex: // Y24d10010
-Y24d10022: _wherey: // Y24d10022
-Y24d40008: _window: // Y24d40008
-Y24dc005b: __Int0Vector: // Y24dc005b
-Y24dc005f: __Int4Vector: // Y24dc005f
-Y24dc0063: __Int5Vector: // Y24dc0063
-Y24dc0067: __Int6Vector: // Y24dc0067
-Y24dc006b: __argc: // Y24dc006b
-Y24dc006d: __argv: // Y24dc006d
-Y24dc0071: _environ: // Y24dc0071
-Y24dc0075: __envLng: // Y24dc0075
-Y24dc0077: __envseg: // Y24dc0077
-Y24dc0079: __envSize: // Y24dc0079
-Y24dc007b: __psp: // Y24dc007b
-Y24dc007d: __version: // Y24dc007d
-Y24dc007d: __osmajor: // Y24dc007d
-Y24dc007e: __osminor: // Y24dc007e
-Y24dc007f: _errno: // Y24dc007f
-Y24dc0081: __8087: // Y24dc0081
-Y24dc0083: __StartTime: // Y24dc0083
-Y24dc0087: __heapbase: // Y24dc0087
-Y24dc008b: __brklvl: // Y24dc008b
-Y24dc008f: __heaptop: // Y24dc008f
-Y24dc0094: _egatab: // Y24dc0094
-Y24dc0194: _vgapal: // Y24dc0194 // 20:00
-Y24dc0494: _DacWrite: // Y24dc0494
-Y24dc0496: _DacRead: // Y24dc0496
-Y24dc0498: _DacData: // Y24dc0498
-Y24dc049a: _input_status_1: // Y24dc049a
-Y24dc049c: _vbi_mask: // Y24dc049c
-Y24dc04c0: _systime: // Y24dc04c0
-Y24dc04c4: _macptr: // Y24dc04c4
-Y24dc05fc: _path: // Y24dc05fc
-Y24dc063c: _nosnd: // Y24dc063c
-Y24dc063e: _cfgdemo: // Y24dc063e
-Y24dc0c6e: _soundoff: // Y24dc0c6e
-Y24dc0c70: _soundf: // Y24dc0c70
-Y24dc0c72: _makesound: // Y24dc0c72
-Y24dc0c74: _myclock: // Y24dc0c74
-Y24dc0c78: _timer8int: // Y24dc0c78
-Y24dc0c7c: _pc_sound: // Y24dc0c7c
-Y24dc0c80: _xvoclen: // Y24dc0c80
-Y24dc0c82: _longclock: // Y24dc0c82
-Y24dc0c86: _notetable: // Y24dc0c86
-Y24dc0da6: _intrcount: // Y24dc0da6
-Y24dc0da8: _musiccount: // Y24dc0da8
-Y24dc0daa: _musicval: // Y24dc0daa
-Y24dc0dac: _timercount: // Y24dc0dac
-Y24dc0dae: _countdown: // Y24dc0dae
-Y24dc0db0: _countmax: // Y24dc0db0
-Y24dc0db2: _toggle: // Y24dc0db2
-Y24dc0db3: _freq: // Y24dc0db3
-Y24dc0db7: _dur: // Y24dc0db7
-Y24dc0dbb: _headersize: // Y24dc0dbb
-Y24dc0dbd: _vocflag: // Y24dc0dbd
-Y24dc0dbf: _musicflag: // Y24dc0dbf
-Y24dc0dc1: _vocfilehandle: // Y24dc0dc1
-Y24dc0dc3: _music_buffer: // Y24dc0dc3
-Y24dc0dc7: _transpose: // Y24dc0dc7
-Y24dc0dc8: _first_nokey: // Y24dc0dc8
-Y24dc0dca: _first_opendoor: // Y24dc0dca
-Y24dc0dcc: _first_apple: // Y24dc0dcc
-Y24dc0dce: _first_knife: // Y24dc0dce
-Y24dc0dd0: _first_key: // Y24dc0dd0
-Y24dc0dd2: _first_openmapdoor: // Y24dc0dd2
-Y24dc0dd4: _first_nogem: // Y24dc0dd4
-Y24dc1078: _first_switch: // Y24dc1078
-Y24dc107a: _first_elev: // Y24dc107a
-Y24dc107c: _first_hitknight: // Y24dc107c
-Y24dc107e: _first_touchgem: // Y24dc107e
-Y24dc1080: _inv_shape: // Y24dc1080
-Y24dc1096: _inv_xfm: // Y24dc1096
-Y24dc10ac: _inv_getmsg: // Y24dc10ac
-Y24dc10d8: _inv_first: // Y24dc10d8
-Y24dc1322: _blinkshtab: // Y24dc1322
-Y24dc1342: _pooftab: // Y24dc1342
-Y24dc134a: _fidgetseq: // Y24dc134a
-Y24dc13a2: __stklen: // Y24dc13a2
-Y24dc13a4: _debug: // Y24dc13a4
-Y24dc13a6: _swrite: // Y24dc13a6
-Y24dc13a8: _designflag: // Y24dc13a8
-Y24dc13aa: _turtle: // Y24dc13aa
-Y24dc13ac: _mirrortab: // Y24dc13ac
-Y24dc188a: _xdemoflag: // Y24dc188a
-Y24dc188c: _pgmname: // Y24dc188c
-Y24dc1892: _xshafile: // Y24dc1892
-Y24dc189c: _xvocfile: // Y24dc189c
-Y24dc18a6: _cfgfname: // Y24dc18a6
-Y24dc18b0: _dmafile: // Y24dc18b0
-Y24dc18b9: _mapboard: // Y24dc18b9
-Y24dc18bf: _introboard: // Y24dc18bf
-Y24dc18c9: _xintrosong: // Y24dc18c9
-Y24dc18d3: _xknightmsg: // Y24dc18d3
-Y24dc18f2: _xmsgdelay: // Y24dc18f2
-Y24dc18f4: _xblademsg: // Y24dc18f4
-Y24dc190e: _xbladename: // Y24dc190e
-Y24dc1916: _savepfx: // Y24dc1916
-Y24dc191e: _erroraddr: // Y24dc191e
-Y24dc1956: _facetable: // Y24dc1956
-Y24dc1958: _xstartlevel: // Y24dc1958
-Y24dc195a: _xbordercol: // Y24dc195a
-Y24dc195c: _menu1: // Y24dc195c
-Y24dc19b2: _menu2: // Y24dc19b2
-Y24dc19bd: _menuc: // Y24dc19bd
-Y24dc19bf: _demoboard: // Y24dc19bf
-Y24dc19e7: _demolvl: // Y24dc19e7
-Y24dc19f1: _demoname: // Y24dc19f1
-Y24dc1a19: _JILLB: // Y24dc1a19
-Y24dc1d4c: _JILLE: // Y24dc1d4c
-Y24dc231f: _e_len: // Y24dc231f
-Y24dc2321: _b_len: // Y24dc2321
-Y24dc2323: _v_producer: // Y24dc2323
-Y24dc232f: _v_publisher: // Y24dc232f
-Y24dc233e: _v_movename: // Y24dc233e
-Y24dc2348: _v_title: // Y24dc2348
-Y24dc235e: _fidgetmsg: // Y24dc235e
-Y24dc236e: _leveltxt: // Y24dc236e
-Y24dc2642: _ct_music_status: // Y24dc2642
-Y24dc2644: _ct_io_addx: // Y24dc2644
-Y24dc2646: _ct_int_num: // Y24dc2646
-Y24dc264c: __doserrno: // Y24dc264c
-Y24dc264e: __dosErrorToSV: // Y24dc264e
-Y24dc26a8: __exitbuf: // Y24dc26a8
-Y24dc26ac: __exitfopen: // Y24dc26ac
-Y24dc26b0: __exitopen: // Y24dc26b0
-Y24dc26b4: __atexitcnt: // Y24dc26b4
-Y24dc26b6: __first: // Y24dc26b6
-Y24dc26ba: __last: // Y24dc26ba
-Y24dc26be: __rover: // Y24dc26be
-Y24dc26c4: __ctype: // Y24dc26c4
-Y24dc27c6: __openfd: // Y24dc27c6
-Y24dc27ee: __fmode: // Y24dc27ee
-Y24dc27f0: __notUmask: // Y24dc27f0
-Y24dc289c: __video: // Y24dc289c
-Y24dc28ab: _directvideo: // Y24dc28ab
-Y24dc28be: __RealCvtVector: // Y24dc28be
-Y24dc28c2: __ScanTodVector: // Y24dc28c2
-Y24dc28ce: _colortab: // Y24dc28ce
-Y24dc29ce: _shm_fname: // Y24dc29ce
-Y24dc2a1e: _shm_want: // Y24dc2a1e
-Y24dc2a9e: _shm_flags: // Y24dc2a9e
-Y24dc2b1e: _shm_tbllen: // Y24dc2b1e
-Y24dc2b9e: _shm_tbladdr: // Y24dc2b9e
-Y24dc2c9e: _LOST: // Y24dc2c9e
-Y24dc2ca2: _cmtab: // Y24dc2ca2
-Y24dc34a2: _mainvp: // Y24dc34a2
-Y24dc34b2: _origmode: // Y24dc34b2
-Y24dc34b4: _pagemode: // Y24dc34b4
-Y24dc34b6: _pixvalue: // Y24dc34b6 // 02:00
-Y24dc34b7: _pagelen: // Y24dc34b7
-Y24dc34b9: _drawofs: // Y24dc34b9
-Y24dc34bb: _showofs: // Y24dc34bb
-Y24dc34bd: _x_ourmode: // Y24dc34bd
-Y24dc34be: _pageshow: // Y24dc34be // 04:00
-Y24dc34c0: _pagedraw: // Y24dc34c0 // 04:00
-Y24dc34c2: _pixelsperbyte: // Y24dc34c2
-Y24dc34c4: _oldint9: // Y24dc34c4
-Y24dc34c8: _bhead: // Y24dc34c8
-Y24dc34cc: _btail: // Y24dc34cc
-Y24dc34d0: _e0code: // Y24dc34d0
-Y24dc34d2: _k_ctrl: // Y24dc34d2
-Y24dc34d3: _k_alt: // Y24dc34d3
-Y24dc34d4: _keydown: // Y24dc34d4
-Y24dc36d4: _bioscall: // Y24dc36d4
-Y24dc36d5: _k_shift: // Y24dc36d5
-Y24dc36d6: _k_numlock: // Y24dc36d6
-Y24dc36d7: _k_rshift: // Y24dc36d7
-Y24dc36d8: _k_lshift: // Y24dc36d8
-Y24dc36da: _curhi: // Y24dc36da
-Y24dc36dc: _curlo: // Y24dc36dc
-Y24dc36de: _curback: // Y24dc36de
-Y24dc36e0: _cursorchar: // Y24dc36e0
-Y24dc36e6: _dx1: // Y24dc36e6
-Y24dc36e8: _dy1: // Y24dc36e8
-Y24dc36ea: _fire1: // Y24dc36ea
-Y24dc36ec: _flow1: // Y24dc36ec
-Y24dc36ee: _fire2: // Y24dc36ee
-Y24dc36f0: _joyxc: // Y24dc36f0
-Y24dc36f2: _joyyc: // Y24dc36f2
-Y24dc36f4: _joyyd: // Y24dc36f4
-Y24dc36f6: _key: // Y24dc36f6
-Y24dc36f8: _dx1old: // Y24dc36f8
-Y24dc36fa: _dy1old: // Y24dc36fa
-Y24dc36fc: _joyxl: // Y24dc36fc
-Y24dc36fe: _keybuf: // Y24dc36fe
-Y24dc37fe: _joyxr: // Y24dc37fe
-Y24dc3800: _dx1hold: // Y24dc3800
-Y24dc3802: _dy1hold: // Y24dc3802
-Y24dc3804: _joyyu: // Y24dc3804
-Y24dc3806: _mactime: // Y24dc3806
-Y24dc3808: _maclen: // Y24dc3808
-Y24dc380a: _joyflag: // Y24dc380a
-Y24dc380c: _macofs: // Y24dc380c
-Y24dc380e: _fire1off: // Y24dc380e
-Y24dc3810: _fire2off: // Y24dc3810
-Y24dc3812: _macfname: // Y24dc3812
-Y24dc3832: _macrecord: // Y24dc3832
-Y24dc3834: _joyxsense: // Y24dc3834
-Y24dc3836: _joyysense: // Y24dc3836
-Y24dc3838: _macplay: // Y24dc3838
-Y24dc383a: _macabort: // Y24dc383a
-Y24dc383c: _macaborted: // Y24dc383c
-Y24dc383e: _cf: // Y24dc383e
-Y24dc3894: _sampf: // Y24dc3894
-Y24dc3896: _vocpri: // Y24dc3896
-Y24dc3898: _vocrate: // Y24dc3898
-Y24dc38fc: _voclen: // Y24dc38fc
-Y24dc3960: _textmsg: // Y24dc3960
-Y24dc3964: _vocptr: // Y24dc3964
-Y24dc3a2c: _zsndpri: // Y24dc3a2c
-Y24dc3a2e: _soundmac: // Y24dc3a2e
-Y24dc3c2e: _textlen: // Y24dc3c2e
-Y24dc3c7e: _vocposn: // Y24dc3c7e
-Y24dc3d46: _zsndnum: // Y24dc3d46
-Y24dc3d48: _oldfreq: // Y24dc3d48
-Y24dc3d4a: _xvocptr: // Y24dc3d4a
-Y24dc3d4e: _soundlen: // Y24dc3d4e
-Y24dc3d50: _textposn: // Y24dc3d50
-Y24dc3df0: _xtickrate: // Y24dc3df0
-Y24dc3df2: _digi8int: // Y24dc3df2
-Y24dc3df6: _soundptr: // Y24dc3df6
-Y24dc3df8: _xclockval: // Y24dc3df8
-Y24dc3dfa: _xclockrate: // Y24dc3dfa
-Y24dc3dfc: _bogus8int: // Y24dc3dfc
-Y24dc3e00: _music8int: // Y24dc3e00
-Y24dc3e04: _textmsglen: // Y24dc3e04
-Y24dc3e06: _soundcount: // Y24dc3e06
-Y24dc3e08: _notepriority: // Y24dc3e08
-Y24dc3e0a: _samppriority: // Y24dc3e0a
-Y24dc3e0c: _lastwater: // Y24dc3e0c
-Y24dc3e0e: _fidgetnum: // Y24dc3e0e
-Y24dc3e10: _oldx0: // Y24dc3e10
-Y24dc3e12: _oldy0: // Y24dc3e12
-Y24dc3e14: _bd: // Y24dc3e14
-Y24dc7e14: _pl: // Y24dc7e14
-Y24dc7e5a: _info: // Y24dc7e5a
-Y24dc911a: _objs: // Y24dc911a
-Y24dcb058: _hiname: // Y24dcb058
-Y24dcb0d0: _botmsg: // Y24dcb0d0
-Y24dcb10c: _botvp: // Y24dcb10c
-Y24dcb11c: _cmdvp: // Y24dcb11c
-Y24dcb120: _botcol: // Y24dcb120
-Y24dcb122: _bottime: // Y24dcb122
-Y24dcb124: _kindxl: // Y24dcb124
-Y24dcb1ae: _kindyl: // Y24dcb1ae
-Y24dcb238: _hiscore: // Y24dcb238
-Y24dcb260: _gamevp: // Y24dcb260
-Y24dcb264: _ourwin: // Y24dcb264
-Y24dcb2bc: _kindmsg: // Y24dcb2bc
-Y24dcb3d0: _oursong: // Y24dcb3d0
-Y24dcb3f0: _statvp: // Y24dcb3f0
-Y24dcb3f4: _tempvp: // Y24dcb3f4
-Y24dcb404: _demonum: // Y24dcb404
-Y24dcb406: _scrnxs: // Y24dcb406
-Y24dcb408: _scrnys: // Y24dcb408
-Y24dcb40a: _kindname: // Y24dcb40a
-Y24dcb51e: _scrollxd: // Y24dcb51e
-Y24dcb520: _scrollyd: // Y24dcb520
-Y24dcb522: _savename: // Y24dcb522
-Y24dcb56a: _tempname: // Y24dcb56a
-Y24dcb5aa: _curlevel: // Y24dcb5aa
-Y24dcb5ca: _numobjs: // Y24dcb5ca
-Y24dcb5cc: _newlevel: // Y24dcb5cc
-Y24dcb5ec: _kindtable: // Y24dcb5ec
-Y24dcb676: _kindscore: // Y24dcb676
-Y24dcb700: _levelwin: // Y24dcb700
-Y24dcb758: _gameover: // Y24dcb758
-Y24dcb75a: _scrnobjs: // Y24dcb75a
-Y24dcb8da: _oldvgapal: // Y24dcb8da
-Y24dcbbda: _stateinfo: // Y24dcbbda
-Y24dcbbe6: _statmodflg: // Y24dcbbe6
-Y24dcbbe8: _gamecount: // Y24dcbbe8
-Y24dcbbea: _kindflags: // Y24dcbbea
-Y24dcbc74: _oldscrollxd: // Y24dcbc74
-Y24dcbc76: _oldscrollyd: // Y24dcbc76
-Y24dcbc78: _oldlevelnum: // Y24dcbc78
-Y24dcbc7a: _numscrnobjs: // Y24dcbc7a
-Y24dcbc7c: _levelmsgclock: // Y24dcbc7c
-Y24dcbc7e: _disy: // Y24dcbc7e
-Y24dcbc80: __atexittbl: // Y24dcbc80
-Y30ad0000: emws_limitSP: // Y30ad0000
-Y30ad00c0: emws_initialSP: // Y30ad00c0
-Y30ad00cc: emws_saveVector: // Y30ad00cc
-Y30ad00d0: emws_nmiVector: // Y30ad00d0
-Y30ad00d4: emws_status: // Y30ad00d4
-Y30ad00d6: emws_control: // Y30ad00d6
-Y30ad00d8: emws_TOS: // Y30ad00d8
-Y30ad00da: emws_adjust: // Y30ad00da
-Y30ad00dc: emws_fixSeg: // Y30ad00dc
-Y30ad00de: emws_BPsafe: // Y30ad00de
-Y30ad00e0: emws_stamp: // Y30ad00e0
-Y30ad00e4: emws_version: // Y30ad00e4
-Y30ad00e6: emuTop@: // Y30ad00e6
-Y30bb0006: _SOUNDS: // Y30bb0006
+;; Type 00:
+Y076a010d: __exit
+Y076a0172: __restorezero
+Y076a01af: _abort
+Y076a01c7: DGROUP@
+Y076a01d2: __setargv
+Y076a02d0: __setenvp
+Y076a0314: PADD@
+X076a0341: PSUB@
+Y076a036f: PCMP@
+Y076a0390: LXMUL@
+Y076a03cc: __REALCVT
+Y076a0414: __VideoInt
+Y076a0423: __c0crtinit
+Y076a0444: __crtinit
+Y076a04f2: LDIV@
+X076a04f6: LUDIV@
+X076a04fb: LMOD@
+X076a0500: LUMOD@
+Y076a0595: LXRSH@
+Y076a05c5: OVERFLOW@
+Y076a05d5: PSBP@
+Y076a05fa: SCOPY@
+Y07cb0006: _copyfile
+Y07d60007: _shm_init
+Y07d60052: _init8bit
+Y07d600e3: _xlate_table
+Y07d60779: _shm_do
+Y07d609b1: _shm_exit
+Y08760005: _pixaddr_cga
+Y08760058: _pixaddr_ega
+Y0876009c: _pixaddr_vga
+Y087600de: _drawshape
+X087602c5: _plot
+X0876037b: _linex
+Y087603b4: _waitsafe
+Y087603c1: _setcm_cga
+Y08760463: _fontcolor_cga
+Y08760504: _fontcolor_ega
+Y0876052f: _fontcolor_vga
+Y0876055a: _fntcolor
+Y087605c5: _initcolortabs_cga
+Y08760654: _initcolortabs_ega
+Y0876069d: _initcolortabs_vga
+Y087606e7: _setpages
+Y08760700: _setpagemode
+Y0876073f: _getportnum
+Y08760751: _pageflip
+X087607bf: _wait_vbi
+Y087607dd: _vga_setpal
+X08760873: _readpal
+Y08760930: _clrpal
+Y087609ba: _fadein
+X08760a42: _setcolor
+Y08760a67: _fadeout
+Y08760aef: _gr_config
+Y08760b72: _gr_init
+Y08760ddf: _gr_exit
+Y09560003: _ldrawsh_cga
+Y09560271: _ldrawsh_ega
+Y09560558: _ldrawsh_vga
+X09560836: _ldrawsh_mcga
+Y095609f9: _scroll
+Y09560e04: _lcopypage
+Y09560e7f: _scrollvp
+Y09560eaa: _clrvp
+Y0a620081: _plot_cga
+Y0a6200a0: _plot_ega
+Y0a6200eb: _plot_vga
+Y0a62011a: _readpix_vga: ;; Y0a62011a ;; 1a:00
+Y0a62014e: _line_cga
+X0a6202e8: _drawsh_cga
+Y0a990003: _k_pressed
+Y0a990065: _k_read
+Y0a9900b7: _k_status
+Y0a990124: _handler
+Y0a990191: _installhandler
+Y0a9901f4: _removehandler
+X0a990214: _disablebios
+X0a990225: _enablebios
+X0a990244: _biosstatus
+Y0abf0002: _defwin
+Y0abf0234: _drawwin
+Y0abf0774: _undrawwin
+Y0abf078b: _wprint
+Y0abf0843: _wgetkey
+Y0abf08bf: _winput
+X0abf0a59: _wprintc
+Y0abf0aba: _titlewin
+Y0abf0b0b: _titletop
+Y0abf0b56: _titlebot
+Y0abf0ba8: _initvp
+Y0abf0bd2: _clearvp
+Y0abf0bec: _fontcolor
+Y0b8b000e: _buttona1
+Y0b8b0024: _buttona2
+Y0b8b003a: _readspeed
+Y0b8b009d: _readjoy
+Y0b8b012f: _caldir
+Y0b8b01d1: _joypresent
+Y0b8b020d: _calibratejoy
+Y0b8b02fd: _checkctrl
+Y0b8b058a: _checkctrl0
+X0b8b05b0: _sensectrlmode
+Y0b8b05bc: _gc_config
+Y0b8b063d: _getkey
+Y0b8b0651: _stopmac
+Y0b8b069c: _playmac
+Y0b8b074f: _recordmac
+Y0b8b0796: _macrecend
+Y0b8b07e6: _recmac
+Y0b8b09f0: _getmac
+Y0b8b0b49: _gc_init
+Y0b8b0ba4: _gc_exit
+Y0c45000e: _uncrunch
+Y0c4d0009: _cfg_getpath
+Y0c4d008e: _cfg_init
+Y0c4d027a: _doconfig
+Y0cc00000: _pixwrite: ;; Y0cc00000 ;; 24:18
+X0ce0000b: _bogus_intr
+Y0ce00023: _snd_init
+Y0ce001e8: _snd_play
+Y0ce002a1: _snd_do
+Y0ce0058a: _text_get
+Y0ce00612: _snd_exit
+Y0ce0071e: _load_file
+Y0ce007d3: _playbuffer
+Y0ce0088a: _sb_update
+Y0ce008a8: _sb_playing
+X0ce008c5: _sb_shutup
+Y0ce008de: _sb_playtune
+Y0ce00900: _sampadd
+Y0ce00a05: _soundadd
+X0ce00c05: _soundstop
+Y0ce00c11: _timerset
+Y0ce00c4f: _our_pc_sound
+Y0dac000c: _digi_intr
+Y0dba0000: _initobjinfo
+Y0dba0e09: _msg_null
+Y0dba0e10: _msg_apple
+Y0dba0ff6: _msg_knife
+X0dba13c1: _msg_nullkind
+Y0dba13c6: _msg_bigant
+Y0dba15a0: _msg_ant
+Y0dba1782: _msg_fly
+Y0dba1982: _msg_phoenix
+Y0dba1c2c: _msg_inchworm
+Y0dba1d8b: _msg_zapper
+Y0dba1e48: _msg_bobslug
+Y0dba1fde: _msg_checkpt
+Y0dba22c6: _msg_paul
+Y0dba233b: _msg_wiseman
+Y0dba24f1: _msg_bridger
+Y0dba277c: _msg_key
+Y0dba288e: _msg_pad
+Y0dba295f: _msg_demon
+Y0dba2d4e: _msg_fatso
+Y0dba2f54: _msg_roman
+Y0dba312b: _msg_fireball
+Y0dba326b: _msg_cloud
+Y0dba3387: _msg_text6
+Y0dba3496: _msg_score
+Y0dba35ef: _msg_text8
+Y0dba36fc: _msg_frog
+Y0dba3a0e: _msg_door
+Y0dba3dae: _msg_falldoor
+Y11b8000b: _msg_token
+Y11b8021b: _msg_fire
+Y11b80366: _msg_switch
+Y11b8056d: _msg_gem
+Y11b806b1: _msg_boulder
+Y11b809eb: _explode2
+Y11b80a63: _explode1
+Y11b80af6: _msg_expl1
+Y11b80c4c: _msg_expl2
+Y11b80d0f: _msg_stalag
+Y11b80e86: _msg_snake
+Y11b8131c: _msg_boll
+Y11b81715: _msg_mega
+Y11b818a9: _msg_bat
+Y11b81c6f: _msg_knight
+Y11b81ece: _msg_beenest
+Y11b82124: _msg_beeswarm
+Y11b823ae: _msg_crab
+Y11b8275a: _msg_croc
+Y11b82ab5: _msg_epic
+Y11b82bd5: _msg_spinblad
+Y11b830e4: _msg_skull
+Y11b8331c: _msg_button
+Y11b834bd: _msg_pac
+Y11b838ef: _msg_bubble
+Y11b83a12: _msg_jellyfish
+Y11b83dbe: _msg_badfish
+Y11b840a3: _msg_elev
+Y11b84428: _msg_firebullet
+Y11b846a8: _msg_fishbullet
+Y11b84790: _msg_searock
+Y11b8483d: _msg_eyes
+Y11b849b4: _msg_vineclimb
+Y11b84bad: _msg_flag
+Y11b84d30: _msg_macrotrig
+Y11b84d4a: _msg_txtmsg
+Y11b84df5: _msg_mapdemo
+Y16ab0001: _msg_block
+Y17310008: _calc_scroll
+Y173101d3: _msg_player
+Y17311df2: _msg_tiny
+Y17312107: _msg_jillfish
+Y1731270c: _msg_jillspider
+Y17312725: _msg_jillfrog
+Y17312a68: _msg_jillbird
+Y17312f3e: _playerxfm
+Y1a3b0004: _fin
+Y1a3b001d: _fout
+Y1a3b0036: _drawkeys
+Y1a3b0317: _drawcmds
+Y1a3b05af: _putbotmsg
+Y1a3b05d8: _drawstats
+Y1a3b08fc: _zapobjs
+Y1a3b094a: _loadcfg
+Y1a3b0a4b: _savecfg
+Y1a3b0ae0: _loadboard
+Y1a3b0cd5: _saveboard
+Y1a3b0de2: _numlines
+Y1a3b0e0d: _getline
+Y1a3b0ebf: _printline
+Y1a3b0f3e: _ourdelay
+Y1a3b0f5b: _dotextmsg
+Y1a3b123c: _initboard
+Y1a3b1281: _putlevelmsg
+Y1a3b13d8: _donelevelmsg
+Y1a3b143c: _drawcell
+Y1a3b14d9: _drawboard
+Y1a3b1526: _moddrawboard
+Y1a3b1561: _play
+Y1a3b1aac: _pleasewait
+Y1a3b1deb: _printhi
+Y1a3b20fd: _loadsavewin
+Y1a3b2448: _loadgame
+Y1a3b257b: _savegame
+Y1a3b2701: _drawgamewin
+Y1a3b27de: _noisemaker
+Y1a3b2851: _pageview
+Y1a3b29fe: _domenu
+Y1a3b2c72: _askquit
+Y1a3b2cbc: _dodemo
+Y1a3b2d92: _jmenu
+Y1a3b307b: _main
+Y1a3b33a7: _rexit
+Y1d86000b: _initinfo
+Y1d9f0005: _infname
+Y1d9f0051: _printobjinfo
+Y1d9f025f: _objdesign
+Y1d9f09a8: _design
+Y1ea20005: _initobjs
+Y1ea2008e: _playerkill
+Y1ea200ef: _countobj
+Y1ea2012a: _notemod
+Y1ea20209: _setobjsize
+Y1ea2037a: _findcheckpt
+Y1ea203c1: _dolevelsong
+Y1ea204c4: _p_reenter
+Y1ea205e4: _p_ouch
+Y1ea206b1: _seekplayer
+Y1ea2074f: _modjunglescroll
+Y1ea209f8: _junglescroll
+Y1ea20d09: _pagedjunglescroll
+Y1ea20d4f: _refresh
+Y1ea211d4: _updbkgnd
+Y1ea212b6: _updobjs
+Y1ea21860: _killobj
+Y1ea2188f: _addobj
+Y1ea21a10: _addinv
+Y1ea21a35: _takeinv
+Y1ea21a86: _invcount
+Y1ea21ab6: _initinv
+Y1ea21ad1: _moveobj
+Y1ea21b8c: _standfloor
+Y1ea21c86: _trymove
+Y1ea21d70: _justmove
+Y1ea21da5: _onscreen
+Y1ea21e6d: _trymovey
+Y1ea21f32: _crawl
+Y1ea21faf: _addscore
+X1ea22062: _addtext
+Y1ea220ec: _sendtrig
+Y1ea2215c: _setorigin
+Y1ea22224: _cando
+Y1ea2232b: _objdo
+Y1ea223de: _touchbkgnd
+Y1ea22503: _purgeobjs
+Y1ea22598: _updbotmsg
+Y1ea225b5: _hitplayer
+Y1ea22602: _fishdo
+Y1ea22637: _pointvect
+Y1ea2276f: _vectdist
+Y1ea227da: _trybreakwall
+Y212d000e: SBC_READ_DSP_TIME
+Y212d0035: SBC_WRITE_DSP_TIME
+X212d005d: SBC_READ_DSP
+X212d007b: SBC_WRITE_DSP
+Y212d009a: SET_INT_VECTOR
+Y212d00af: GET_INT_VECTOR
+X212d00c2: ENABLE_8259
+X212d00da: DISABLE_8259
+Y212d00f0: _sbc_scan_card
+Y212d00f0: _ct_scan_card
+Y212d011e: _ct_card_here
+Y212d011e: _sbc_check_card
+Y212d0296: _sbc_dsp_reset
+Y212d02c6: _sbfm_init
+X212d0305: _sbfm_status_addx
+Y212d0318: _sbfm_play_music
+Y212d032b: _sbfm_instrument
+Y212d0341: _sbfm_reset
+X212d034e: _sbfm_sys_speed
+X212d035e: _sbfm_song_speed
+Y212d036e: _sbfm_stop_music
+X212d0377: _sbfm_version
+X212d0380: _sbfm_transpose
+X212d0390: _sbfm_pause_music
+X212d039d: _sbfm_resume_music
+X212d03aa: _sbfm_read_status
+Y212d03c4: _sbfm_terminate
+X212d03e8: _sbfm_channel_map
+X212d03f1: _sbfm_fading
+Y216e0000: SBFM_CMF_DRV
+Y22b8000c: __IOERROR
+Y22bc0008: _exit
+X22bf000b: _atexit
+Y22c2000a: _malloc
+Y22c2001f: __pull_free_block
+Y22c2020b: _farmalloc
+Y22f3009a: __brk
+Y22f300e1: __sbrk
+Y2308000c: _setblock
+Y230a003f: _open
+Y2324000c: __open
+Y23290009: _ioctl
+Y232c0006: _close
+Y232f0007: __close: ;; Y232f0007 ;; 21:00
+Y2331000d: _read
+Y233e0002: __read
+Y23400002: _write: ;; Y23400002 ;; 22:00
+Y23560008: __write
+Y235b0004: _lseek
+Y235e0001: __LONGTOA
+Y235e0085: _itoa: ;; Y235e0085 ;; 23:00
+X235e00b2: _ultoa
+Y235e00d2: _ltoa
+Y236d000d: _unlink
+Y236f0009: _strcat: ;; Y236f0009 ;; 1d:00
+Y2373000b: _strlen: ;; Y2373000b ;; 1f:00
+Y23750006: _strcmp
+Y23780008: _strcpy: ;; Y23780008 ;; 1b:00
+Y237b0001: _memcpy
+Y237d0007: _setmem
+Y237d002d: _memset
+Y2381000c: _movmem
+Y23810060: _memmove
+Y23890000: __chmod
+Y238b002c: __VPRINTER
+Y23e00003: _coreleft
+Y23e0000b: _farcoreleft
+Y23e20008: _free
+Y23e202e2: _farfree
+Y2414003d: __creat: ;; Y2414003d ;; 1e:00
+X24140057: _creattemp
+X24140074: _creatnew
+Y241d0001: _filelength
+Y24210006: _clrscr
+Y24240003: _textcolor
+Y24240018: _textbackground
+X24240031: _textattr
+X2424003c: _highvideo
+X24240042: _lowvideo
+X24240048: _normvideo
+Y2428000f: __CPUTN
+X24280156: _cprintf
+Y243f0006: _cputs
+Y2441000a: _abs
+Y2442000a: _atol
+X24420081: _atoi
+Y244c0002: _delay
+Y24570008: _getvect
+Y2457001a: _setvect
+Y2459000b: _gotoxy
+Y245f0006: _gettext
+Y245f005d: _puttext
+Y2468000b: _intr
+Y24730000: _movetext
+Y247d000c: _outport
+X247d0018: _outportb
+Y247f0004: _srand
+Y247f0015: _rand
+Y24820031: __SCROLL
+Y249c0157: __SCREENIO
+Y249c0194: __VALIDATEXY
+Y24b9000e: _sound
+Y24b9003a: _nosound
+Y24bd0001: _strdup
+Y24c1000b: _strupr
+Y24c40000: _toupper
+Y24c70001: __VPTR
+Y24c70026: __VRAM
+Y24d10002: __wherexy
+X24d10010: _wherex
+X24d10022: _wherey
+Y24d40008: _window
+Y24dc005b: __Int0Vector
+Y24dc005f: __Int4Vector
+Y24dc0063: __Int5Vector
+Y24dc0067: __Int6Vector
+Y24dc006b: __argc
+Y24dc006d: __argv
+Y24dc0071: _environ
+Y24dc0075: __envLng
+Y24dc0077: __envseg
+Y24dc0079: __envSize
+Y24dc007b: __psp
+Y24dc007d: __version
+Y24dc007d: __osmajor
+X24dc007e: __osminor
+Y24dc007f: _errno
+Y24dc0081: __8087
+Y24dc0083: __StartTime
+Y24dc0087: __heapbase
+Y24dc008b: __brklvl
+Y24dc008f: __heaptop
+Y24dc0094: _egatab
+Y24dc0194: _vgapal: ;; Y24dc0194 ;; 20:00
+Y24dc0494: _DacWrite
+Y24dc0496: _DacRead
+Y24dc0498: _DacData
+X24dc049a: _input_status_1
+X24dc049c: _vbi_mask
+Y24dc04c0: _systime
+Y24dc04c4: _macptr
+Y24dc05fc: _path
+Y24dc063c: _nosnd
+Y24dc063e: _cfgdemo
+Y24dc0c6e: _soundoff
+Y24dc0c70: _soundf
+Y24dc0c72: _makesound
+Y24dc0c74: _myclock
+Y24dc0c78: _timer8int
+Y24dc0c7c: _pc_sound
+Y24dc0c80: _xvoclen
+Y24dc0c82: _longclock
+Y24dc0c86: _notetable
+Y24dc0da6: _intrcount
+Y24dc0da8: _musiccount
+Y24dc0daa: _musicval
+Y24dc0dac: _timercount
+Y24dc0dae: _countdown
+Y24dc0db0: _countmax
+X24dc0db2: _toggle
+Y24dc0db3: _freq
+Y24dc0db7: _dur
+Y24dc0dbb: _headersize
+Y24dc0dbd: _vocflag
+Y24dc0dbf: _musicflag
+Y24dc0dc1: _vocfilehandle
+Y24dc0dc3: _music_buffer
+X24dc0dc7: _transpose
+Y24dc0dc8: _first_nokey
+Y24dc0dca: _first_opendoor
+Y24dc0dcc: _first_apple
+Y24dc0dce: _first_knife
+Y24dc0dd0: _first_key
+Y24dc0dd2: _first_openmapdoor
+Y24dc0dd4: _first_nogem
+Y24dc1078: _first_switch
+Y24dc107a: _first_elev
+Y24dc107c: _first_hitknight
+Y24dc107e: _first_touchgem
+Y24dc1080: _inv_shape
+Y24dc1096: _inv_xfm
+Y24dc10ac: _inv_getmsg
+Y24dc10d8: _inv_first
+Y24dc1322: _blinkshtab
+Y24dc1342: _pooftab
+Y24dc134a: _fidgetseq
+Y24dc13a2: __stklen
+Y24dc13a4: _debug
+Y24dc13a6: _swrite
+Y24dc13a8: _designflag
+Y24dc13aa: _turtle
+Y24dc13ac: _mirrortab
+Y24dc188a: _xdemoflag
+Y24dc188c: _pgmname
+Y24dc1892: _xshafile
+Y24dc189c: _xvocfile
+Y24dc18a6: _cfgfname
+Y24dc18b0: _dmafile
+Y24dc18b9: _mapboard
+Y24dc18bf: _introboard
+Y24dc18c9: _xintrosong
+Y24dc18d3: _xknightmsg
+Y24dc18f2: _xmsgdelay
+Y24dc18f4: _xblademsg
+Y24dc190e: _xbladename
+Y24dc1916: _savepfx
+Y24dc191e: _erroraddr
+Y24dc1956: _facetable
+Y24dc1958: _xstartlevel
+Y24dc195a: _xbordercol
+Y24dc195c: _menu1
+Y24dc19b2: _menu2
+Y24dc19bd: _menuc
+Y24dc19bf: _demoboard
+Y24dc19e7: _demolvl
+Y24dc19f1: _demoname
+Y24dc1a19: _JILLB
+Y24dc1d4c: _JILLE
+Y24dc231f: _e_len
+Y24dc2321: _b_len
+Y24dc2323: _v_producer
+Y24dc232f: _v_publisher
+Y24dc233e: _v_movename
+Y24dc2348: _v_title
+Y24dc235e: _fidgetmsg
+Y24dc236e: _leveltxt
+Y24dc2642: _ct_music_status
+Y24dc2644: _ct_io_addx
+Y24dc2646: _ct_int_num
+Y24dc264c: __doserrno
+Y24dc264e: __dosErrorToSV
+Y24dc26a8: __exitbuf
+Y24dc26ac: __exitfopen
+Y24dc26b0: __exitopen
+Y24dc26b4: __atexitcnt
+Y24dc26b6: __first
+Y24dc26ba: __last
+Y24dc26be: __rover
+Y24dc26c4: __ctype
+Y24dc27c6: __openfd
+Y24dc27ee: __fmode
+Y24dc27f0: __notUmask
+Y24dc289c: __video
+Y24dc28ab: _directvideo
+Y24dc28be: __RealCvtVector
+X24dc28c2: __ScanTodVector
+Y24dc28ce: _colortab
+Y24dc29ce: _shm_fname
+Y24dc2a1e: _shm_want
+Y24dc2a9e: _shm_flags
+Y24dc2b1e: _shm_tbllen
+Y24dc2b9e: _shm_tbladdr
+Y24dc2c9e: _LOST
+Y24dc2ca2: _cmtab
+Y24dc34a2: _mainvp
+Y24dc34b2: _origmode
+Y24dc34b4: _pagemode
+Y24dc34b6: _pixvalue: ;; Y24dc34b6 ;; 02:00
+Y24dc34b7: _pagelen
+Y24dc34b9: _drawofs
+Y24dc34bb: _showofs
+Y24dc34bd: _x_ourmode
+Y24dc34be: _pageshow: ;; Y24dc34be ;; 04:00
+Y24dc34c0: _pagedraw: ;; Y24dc34c0 ;; 04:00
+Y24dc34c2: _pixelsperbyte
+Y24dc34c4: _oldint9
+Y24dc34c8: _bhead
+Y24dc34cc: _btail
+Y24dc34d0: _e0code
+Y24dc34d2: _k_ctrl
+Y24dc34d3: _k_alt
+Y24dc34d4: _keydown
+Y24dc36d4: _bioscall
+Y24dc36d5: _k_shift
+Y24dc36d6: _k_numlock
+Y24dc36d7: _k_rshift
+Y24dc36d8: _k_lshift
+Y24dc36da: _curhi
+X24dc36dc: _curlo
+Y24dc36de: _curback
+Y24dc36e0: _cursorchar
+Y24dc36e6: _dx1
+Y24dc36e8: _dy1
+Y24dc36ea: _fire1
+Y24dc36ec: _flow1
+Y24dc36ee: _fire2
+Y24dc36f0: _joyxc
+Y24dc36f2: _joyyc
+Y24dc36f4: _joyyd
+Y24dc36f6: _key
+Y24dc36f8: _dx1old
+Y24dc36fa: _dy1old
+Y24dc36fc: _joyxl
+Y24dc36fe: _keybuf
+Y24dc37fe: _joyxr
+Y24dc3800: _dx1hold
+Y24dc3802: _dy1hold
+Y24dc3804: _joyyu
+Y24dc3806: _mactime
+Y24dc3808: _maclen
+Y24dc380a: _joyflag
+Y24dc380c: _macofs
+Y24dc380e: _fire1off
+Y24dc3810: _fire2off
+Y24dc3812: _macfname
+Y24dc3832: _macrecord
+Y24dc3834: _joyxsense
+Y24dc3836: _joyysense
+Y24dc3838: _macplay
+Y24dc383a: _macabort
+Y24dc383c: _macaborted
+Y24dc383e: _cf
+Y24dc3894: _sampf
+Y24dc3896: _vocpri
+Y24dc3898: _vocrate
+Y24dc38fc: _voclen
+Y24dc3960: _textmsg
+Y24dc3964: _vocptr
+X24dc3a2c: _zsndpri
+Y24dc3a2e: _soundmac
+Y24dc3c2e: _textlen
+Y24dc3c7e: _vocposn
+X24dc3d46: _zsndnum
+Y24dc3d48: _oldfreq
+Y24dc3d4a: _xvocptr
+X24dc3d4e: _soundlen
+Y24dc3d50: _textposn
+Y24dc3df0: _xtickrate
+Y24dc3df2: _digi8int
+Y24dc3df6: _soundptr
+Y24dc3df8: _xclockval
+Y24dc3dfa: _xclockrate
+Y24dc3dfc: _bogus8int
+Y24dc3e00: _music8int
+Y24dc3e04: _textmsglen
+Y24dc3e06: _soundcount
+Y24dc3e08: _notepriority
+Y24dc3e0a: _samppriority
+Y24dc3e0c: _lastwater
+Y24dc3e0e: _fidgetnum
+Y24dc3e10: _oldx0
+Y24dc3e12: _oldy0
+Y24dc3e14: _bd
+Y24dc7e14: _pl
+Y24dc7e5a: _info
+Y24dc911a: _objs
+Y24dcb058: _hiname
+Y24dcb0d0: _botmsg
+Y24dcb10c: _botvp
+Y24dcb11c: _cmdvp
+Y24dcb120: _botcol
+Y24dcb122: _bottime
+Y24dcb124: _kindxl
+Y24dcb1ae: _kindyl
+Y24dcb238: _hiscore
+Y24dcb260: _gamevp
+Y24dcb264: _ourwin
+Y24dcb2bc: _kindmsg
+Y24dcb3d0: _oursong
+Y24dcb3f0: _statvp
+Y24dcb3f4: _tempvp
+Y24dcb404: _demonum
+Y24dcb406: _scrnxs
+Y24dcb408: _scrnys
+Y24dcb40a: _kindname
+Y24dcb51e: _scrollxd
+Y24dcb520: _scrollyd
+Y24dcb522: _savename
+Y24dcb56a: _tempname
+Y24dcb5aa: _curlevel
+Y24dcb5ca: _numobjs
+Y24dcb5cc: _newlevel
+Y24dcb5ec: _kindtable
+Y24dcb676: _kindscore
+Y24dcb700: _levelwin
+Y24dcb758: _gameover
+Y24dcb75a: _scrnobjs
+Y24dcb8da: _oldvgapal
+Y24dcbbda: _stateinfo
+Y24dcbbe6: _statmodflg
+Y24dcbbe8: _gamecount
+Y24dcbbea: _kindflags
+Y24dcbc74: _oldscrollxd
+Y24dcbc76: _oldscrollyd
+Y24dcbc78: _oldlevelnum
+Y24dcbc7a: _numscrnobjs
+Y24dcbc7c: _levelmsgclock
+Y24dcbc7e: _disy
+Y24dcbc80: __atexittbl
+Y30ad0000: emws_limitSP
+Y30ad00c0: emws_initialSP
+Y30ad00cc: emws_saveVector
+Y30ad00d0: emws_nmiVector
+Y30ad00d4: emws_status
+Y30ad00d6: emws_control
+Y30ad00d8: emws_TOS
+Y30ad00da: emws_adjust
+Y30ad00dc: emws_fixSeg
+Y30ad00de: emws_BPsafe
+Y30ad00e0: emws_stamp
+Y30ad00e4: emws_version
+Y30ad00e6: emuTop@
+Y30bb0006: _SOUNDS
 
-// Local Variables (in PIXWRITE)
-0006 0000 n // 4 6 0 a
-fff0 0000 a2 // 18 -10 0 2
-ffe0 0000 a1 // 18 -20 0 2
-ffc0 0000 a // 19 -40 0 2
-ffa0 0000 f // 19 -60 0 2
-ff90 0000 ns // 18 -70 0 2
-ff8e 0000 y // 4 -72 0 2
-0006 0000 x // 4 6 0 4
-0007 0000 h // 4 7 0 4
-ff8c 0000 oldpagedraw // 4 -74 0 2
-0006 0000 n // 4 6 0 a
-0400 0001 ptrdiff_t // 6 0 4 1 6
-0400 0001 size_t // a 0 4 1 6
-0400 0001 p_rec // 20 0 4 1 6
+;; Local Variables (in PIXWRITE):
+0006 0000 n ;; 4 6 0 a
+fff0 0000 a2 ;; 18 -10 0 2
+ffe0 0000 a1 ;; 18 -20 0 2
+ffc0 0000 a ;; 19 -40 0 2
+ffa0 0000 f ;; 19 -60 0 2
+ff90 0000 ns ;; 18 -70 0 2
+ff8e 0000 y ;; 4 -72 0 2
+0006 0000 x ;; 4 6 0 4
+0007 0000 h ;; 4 7 0 4
+ff8c 0000 oldpagedraw ;; 4 -74 0 2
+0006 0000 n ;; 4 6 0 a
+0400 0001 ptrdiff_t ;; 6 0 4 1 6
+0400 0001 size_t ;; a 0 4 1 6
+0400 0001 p_rec ;; 20 0 4 1 6

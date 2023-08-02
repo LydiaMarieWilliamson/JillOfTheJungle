@@ -51874,7 +51874,7 @@ Y24f10077:	word
 Y24f10079:	word
 Y24f1007b:	word
 Y24f1007d:	byte
-Y24f1007e:	byte
+X24f1007e:	byte
 Y24f1007f:	word
 Y24f10081:	word
 Y24f10083:	dword

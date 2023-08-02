@@ -55152,7 +55152,7 @@ Y2a170077:	word
 Y2a170079:	word
 Y2a17007b:	word
 Y2a17007d:	byte
-Y2a17007e:	byte
+X2a17007e:	byte
 Y2a17007f:	word
 Y2a170081:	word
 Y2a170083:	dword
@@ -55211,7 +55211,7 @@ Y2a170194:	db 00,00,00, 00,00,2a, 00,2a,00, 00,2a,2a, 2a,00,00, 2a,00,2a, 2a,15,
 Y2a170494:	dw 03c8
 Y2a170496:	dw 03c7
 Y2a170498:	dw 03c9
-Y2a17049a:	dw 03da
+X2a17049a:	dw 03da
 Y2a17049c:	dw 0008	;;;
 Y2a17049e:	db "\r\nVideo mode: C)ga E)ga V)ga? ",00
 Y2a1704bd:	db 00
@@ -55934,7 +55934,7 @@ Y2a174456:	word
 Y2a174458:	word
 Y2a17445a:	word
 Y2a17445c:	word
-Y2a17445e:	word
+X2a17445e:	word
 Y2a174460:	word
 Y2a174462:	word
 Y2a174464:	word

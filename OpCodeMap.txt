@@ -1,4 +1,4 @@
-This file is linked to Dasm8086.c.
+This file is linked to Das8086.c.
 
 80x86 OpCode Cheat Sheet.
 Notes:
@@ -65,174 +65,174 @@ x5 │	d	[DI+Offset]	x ≠ 3
 x6 │	d	[BP+Offset]	x ≠ 0,3
 x7 │	d	[BX+Offset]	x ≠ 3
 
-k	│ v	Av	Ev	Rv	V	movsv	cmpsv	stosv	lodsv	scasv	insv	outsv
+k	│ x	Ax	Ex	Rx	Ix	movsx	cmpsx	stosx	lodsx	scasx	insx	outsx
 ────────┼────────────────────────────────────────────────────────────────────────────────────────────
-0	│ b	AL	Eb	Rb	B	movsb	cmpsb	stosb	lodsb	scasb	insb	outsb
-1	│ w	AX	Ew	Rw	W	movsw	cmpsw	stosw	lodsw	scasw	insw	outsw
+0	│ b	AL	Eb	Rb	Ib	movsb	cmpsb	stosb	lodsb	scasb	insb	outsb
+1	│ v	eAX	Ev	Rv	Iv	movsv	cmpsv	stosv	lodsv	scasv	insv	outsv
+1 (16)	│ w	AX	Ew	Rw	Iw	movsw	cmpsw	stosw	lodsw	scasw	insw	outsw
+1 (32)	│ d	EAX	Ed	Rd	Id	movsd	cmpsd	stosd	lodsd	scasd	insd	outsd
 
 OpCode Encodings
-
-0P0+k xPm d	Ap Ev,Rv	[P: 0=add,1=or,2=adc,3=sbb,4=and,5=sub,6=xor,7=cmp]
-0P2+k xPm d	Ap Rv,Ev	[P: 0=add,1=or,2=adc,3=sbb,4=and,5=sub,6=xor,7=cmp]
-0P4+k v		Ap Av,V		[P: 0=add,1=or,2=adc,3=sbb,4=and,5=sub,6=xor,7=cmp]
-0s6		push Rs
-0s7		pop Rs		[s ≠ 1, 80186+]
-017 000 x0m d	sldt Ew		[80???+]
-017 000 x1m d	str Ew		[80???+]
-017 000 x2m d	lldt Ew		[80???+]
-017 000 x3m d	ltr Ew		[80???+]
-017 000 x4m d	verr Ew		[80???+]
-017 000 x5m d	verw Ew		[80???+]
-017 001 x0m d	sgdt Es		[80???+]	(x ≠ 3)
-017 001 x1m d	sidt Es		[80???+]	(x ≠ 3)
-017 001 x2m d	lgdt Es		[80???+]	(x ≠ 3)
-017 001 x3m d	lidt Es		[80???+]	(x ≠ 3)
-017 001 x4m d	smsw Ev		[80???+]
-017 001 x6m d	lmsw Ev		[80???+]
-017 001 x7m d	invlpg E	[80???+]	(x ≠ 3)
-017 001 371	rdtscp
-017 002 xrm d	lar Rw,Ew	[80???+]
-017 003 xrm d	lsl Rw,Ew	[80???+]
-017 006		clts		[80???+]
-017 010		invd		[80???+]
-017 011		wbinvd		[80???+]
-017 017		ud2		[80???+]
-017 037 x0m d	nop R?		[80???+]
-017 040 xer	mov R?,CRe	[e ≠ 5,6,7]	[80???+]
-017 041 xer	mov R?,DRe	[80???+]
-017 042 xer	mov CRe,R?	[e ≠ 1,5,6,7]	[80???+]
-017 043 xer	mov DRe,R?	[80???+]
-017 060		wrmsr
-017 061		rdtsc
-017 062		rdmsr
-017 063		rdpmc
-017 070 360 xrm d	movbe R?,E?	[80???+]
-017 070 361 xrm d	movbe E?,R?	[80???+]
-017 200+c v	jCC V		[80???+]
-017 220+c xom	setCC E?	[80???+]
-017 2s1		pop Rs		[80???+]	(s = 4,5)
-017 242		cpuid		[80???+]
-017 243 xrm d	bt Ew,Rw	[80???+]
-017 244 xrm d b	shld E?,R?,B	[80???+]
-017 245 xrm d	shld E?,R?,CL	[80???+]
-017 252		rsm		[80???+]
-017 253 xrm d	bts Ew,Rw	[80???+]
-017 254 xrm d b	shrd E?,R?,B	[80???+]
-017 255 xrm d	shrd E?,R?,CL	[80???+]
-017 260+k xrm d	cmpxchg Ev,Rv	[80???+]
-017 262 xrm d	lss Rw,E	[80???+]	(x ≠ 3)
-017 263 xrm d	btr Ew,Rw	[80???+]
-017 264 xrm d	lfs Rw,E	[80???+]	(x ≠ 3)
-017 265 xrm d	lgs Rw,E	[80???+]	(x ≠ 3)
-017 266+k xrm d	movzx Rv,Ev	[80???+]
-017 272 x4m d b	bt Ew,B		[80???+]
-017 272 x5m d b	bts Ew,B	[80???+]
-017 272 x6m d b	btr Ew,B	[80???+]
-017 272 x7m d b	btc Ew,B	[80???+]
-017 273 xrm d	btc Ew,Rw	[80???+]
-017 274 xrm d	bsf Ew,Rw	[80???+]
-017 275 xrm d	bsr Ew,Rw	[80???+]
-017 276+k xrm d	movsx Rv,Ev	[80???+]
-017 300+k xrm d	xadd Ev,Rv	[80???+]
-017 31r		bswap Rd	[80???+]
-04+s6		Rs:
-04+P7		Dp
-1Pr		Ip Rw
-140		pusha		[80186+]
-141		popa		[80186+]
-142 xrm d	bound Rw,Ew	[80186+]	(x ≠ 3)
-143 xrm d	arpl Ew,Rw	[80???+]
-140+s		Rs:		(s=4,5)
-146 017 070 202 xrm d	invpcid Rd,M8	[80???+]
-146		OP:		[80???+]
-147		RAND:		[80???+]
-150 w		push W		[80186+]
-151 xrm d w	imul Rw,Ew,W	[80186+]
-152 b		push B		[80186+]
-153 xrm d b	imul Rw,Ew,S	[80186+]
-154+k		insv		[80186+]
-156+k		outsv		[80186+]
-16+c2 b		jCC C
-200+k xPm d v	Ap Ev,V		[P: 0=add,1=or,2=adc,3=sbb,4=and,5=sub,6=xor,7=cmp]
-202+k xPm d v	Ap Ev,S		[P: 0=add,1=or,2=adc,3=sbb,4=and,5=sub,6=xor,7=cmp]
-204+k xrm d	test Rv,Ev
-206+k xrm d	xchg Rv,Ev
-210+k xrm d	mov Ev,Rv
-212+k xrm d	mov Rv,Ev
-214 xsm d	mov Ew,Rs	(s ≠ 6,7)
-215 xrm d	lea Rw,E	(x ≠ 3)
-216 xsm d	mov Rs,Ew	(s ≠ 6,7)
-217 x0m d	pop Ew
-220		nop
-22r		xchg Rw,AX
-230		cbw
-231		cwd
-232 d		call far F
-233		wait
-234+P		Fp
-240+k w		mov Av,[W]
-242+k w		mov [W],Av
-244+k		movsv
-246+k		cmpsv
-250+k v		test Av,V
-252+k		stosv
-254+k		lodsv
-256+k		scasv
-26+kr v		mov Rv,V
-300+k xPm d	Sp Ev,V		(P ≠ 6) [80186+]
-302 w		ret W
-303		ret
-304 xrm d	les Rw,E	(x ≠ 3)
-305 xrm d	lds Rw,E	(x ≠ 3)
-306+v x0m d v	mov Ev,V
-310		enter		[80186+]
-311		leave		[80186+]
-312 w		retf W
-313		retf
-314		int 3
-315 b		int B
-316		into
-317		iret
-320+k xPm d	Sp Ev,1		(P ≠ 6)
-322+k xPm d	Sp Ev,CL	(P ≠ 6)
-324 0a		aam
-324 b		[aam B]
-325 0a		aad
-325 b		[aad B]
-326		salc		[8086/8088-]
-327		xlat
-33n xrm d	ESC n xrm
-34P b		Lp C
-344+k b		in Av,B
-346+k b		out B,Av
-350 w		call near N
-351 w		jmp near N
-352 d		jmp far F
-353 b		jmp short S
-354+k		in Av,DX
-356+k		out DX,Av
-360		lock
-361		―――
-362 246+k	repnz cmpsv
-362 256+k	repnz scasv
-363 246+k	repz cmpsv
-363 256+k	repz scasv
-363 154+k	rep insv		[80186+]
-363 156+k	rep outsv		[80186+]
-363 244+k	rep movsv
-363 252+k	rep stosv
-363 254+k	rep lodsv
-364		hlt
-365		cmc
-366+k x0m d v	test Ev,V
-366+k x1m d v	test Ev,V
-366+k xPm d	Up Ev		(P ≠ 0,1)
-37P		Bp
-376+k x0m d	inc Ev
-376+k x1m d	dec Ev
-376 xPm d	―――		[P ≠ 2,3,4,5,6,7]
-377 x2m d	call near En
-377 x3m d	call far Ef	(x ≠ 3)
-377 x4m d	jmp near En
-377 x5m d	jmp far Ef
-377 x6m d	push Ew
+────────────────
+00ppp00k xrm d		Ap Ex,Rx	[P: 0=add,1=or,2=adc,3=sbb,4=and,5=sub,6=xor,7=cmp]
+00ppp01k xrm d		Ap Rx,Ex	[P: 0=add,1=or,2=adc,3=sbb,4=and,5=sub,6=xor,7=cmp]
+00ppp10k x		Ap Ax,Ix	[P: 0=add,1=or,2=adc,3=sbb,4=and,5=sub,6=xor,7=cmp]
+000ss110		push Rs		[s ∈ [0,3]]
+000ss111		pop Rs		[s ∈ [0,3]; s ≠ 1, 80186+]
+00001111 000 x0m d	sldt Ew		[80???+]
+00001111 000 x1m d	str Ew		[80???+]
+00001111 000 x2m d	lldt Ew		[80???+]
+00001111 000 x3m d	ltr Ew		[80???+]
+00001111 000 x4m d	verr Ew		[80???+]
+00001111 000 x5m d	verw Ew		[80???+]
+00001111 001 x0m d	sgdt Es		[80???+]	(x ≠ 3)
+00001111 001 x1m d	sidt Es		[80???+]	(x ≠ 3)
+00001111 001 x2m d	lgdt Es		[80???+]	(x ≠ 3)
+00001111 001 x3m d	lidt Es		[80???+]	(x ≠ 3)
+00001111 001 x4m d	smsw Ev		[80???+]
+00001111 001 x6m d	lmsw Ev		[80???+]
+00001111 001 x7m d	invlpg E	[80???+]	(x ≠ 3)
+00001111 001 371	rdtscp
+00001111 002 xrm d	lar Rw,Ew	[80???+]
+00001111 003 xrm d	lsl Rw,Ew	[80???+]
+00001111 006		clts		[80???+]
+00001111 010		invd		[80???+]
+00001111 011		wbinvd		[80???+]
+00001111 017		ud2		[80???+]
+00001111 037 x0m d	nop R?		[80???+]
+00001111 040 xer	mov R?,CRe	[e ≠ 5,6,7]	[80???+]
+00001111 041 xer	mov R?,DRe	[80???+]
+00001111 042 xer	mov CRe,R?	[e ≠ 1,5,6,7]	[80???+]
+00001111 043 xer	mov DRe,R?	[80???+]
+00001111 060		wrmsr
+00001111 061		rdtsc
+00001111 062		rdmsr
+00001111 063		rdpmc
+00001111 070 360 xrm d	movbe R?,E?	[80???+]
+00001111 070 361 xrm d	movbe E?,R?	[80???+]
+00001111 200+c v	jCC V		[80???+]
+00001111 220+c xom	setCC E?	[80???+]
+00001111 2s1		pop Rs		[80???+]	(s = 4,5)
+00001111 242		cpuid		[80???+]
+00001111 243 xrm d	bt Ew,Rw	[80???+]
+00001111 244 xrm d b	shld E?,R?,B	[80???+]
+00001111 245 xrm d	shld E?,R?,CL	[80???+]
+00001111 252		rsm		[80???+]
+00001111 253 xrm d	bts Ew,Rw	[80???+]
+00001111 254 xrm d b	shrd E?,R?,B	[80???+]
+00001111 255 xrm d	shrd E?,R?,CL	[80???+]
+00001111 260+k xrm d	cmpxchg Ex,Rx	[80???+]
+00001111 262 xrm d	lss Rw,E	[80???+]	(x ≠ 3)
+00001111 263 xrm d	btr Ew,Rw	[80???+]
+00001111 264 xrm d	lfs Rw,E	[80???+]	(x ≠ 3)
+00001111 265 xrm d	lgs Rw,E	[80???+]	(x ≠ 3)
+00001111 266+k xrm d	movzx Rx,Ex	[80???+]
+00001111 272 x4m d b	bt Ew,B		[80???+]
+00001111 272 x5m d b	bts Ew,B	[80???+]
+00001111 272 x6m d b	btr Ew,B	[80???+]
+00001111 272 x7m d b	btc Ew,B	[80???+]
+00001111 273 xrm d	btc Ew,Rw	[80???+]
+00001111 274 xrm d	bsf Ew,Rw	[80???+]
+00001111 275 xrm d	bsr Ew,Rw	[80???+]
+00001111 276+k xrm d	movsx Rx,Ex	[80???+]
+00001111 300+k xrm d	xadd Ex,Rx	[80???+]
+00001111 31r		bswap Rd	[80???+]
+001ss110 		Rs:		[s ∈ [0,s]]
+001pp111 		Dp
+01ppprrr		Ip Rv
+01100000		pusha		[80186+]
+01100001		popa		[80186+]
+01100010 xrm d		bound Rv,Ev	[80186+]	(x ≠ 3)
+01100011 xrm d		arpl Ev,Rv	[80???+]
+01100sss		Rs:		(s=4,5)
+01100110 017 070 202 xrm d	invpcid Rd,M8	[80???+]
+01100110		OP:		[80???+]
+01100111		RAND:		[80???+]
+01101000 w		push Iv		[80186+]
+01101001 xrm d w	imul Rv,Ev,Iv	[80186+]
+01101010 b		push Ib		[80186+]
+01101011 xrm d b	imul Rv,Ev,Is	[80186+]
+0110110k		insx		[80186+]
+0110111k		outsx		[80186+]
+0111cccc b		jCC Jb
+1000000k xPm d x	Ap Ex,Ix	[P: 0=add,1=or,2=adc,3=sbb,4=and,5=sub,6=xor,7=cmp]
+1000001k xPm d x	Ap Ex,Is	[P: 0=add,1=or,2=adc,3=sbb,4=and,5=sub,6=xor,7=cmp]
+1000010k xrm d		test Rx,Ex
+1000011k xrm d		xchg Rx,Ex
+1000100k xrm d		mov Ex,Rx
+1000101k xrm d		mov Rx,Ex
+10001100 xsm d		mov Ev,Rs	(s ≠ 6,7)
+10001101 xrm d		lea Rw,E	(x ≠ 3)
+10001110 xsm d		mov Rs,Ev	(s ≠ 6,7)
+10001111 x0m d		pop Ev
+10010000		nop		( = xch eAX, eAX)
+10010rrr 		xchg Rv,eAX
+10011000		cbw
+10011001		cwd
+10011010 d		call far F
+10011011		wait
+100111pp		Fp
+1010000k x		mov Ax,Ox
+1010001k x		mov Ox,Ax
+1010010k		movsx
+1010011k		cmpsx
+1010100k x		test Ax,Ix
+1010101k		stosx
+1010110k		lodsx
+1010111k		scasx
+10110rrk x		mov Rx,Ix
+1100000k xPm d	Sp Ex,Ix	(P ≠ 6) [80186+]
+11000010 v		ret Iv
+11000011		ret
+11000100 xrm d		les Rv,E	(x ≠ 3)
+11000101 xrm d		lds Rv,E	(x ≠ 3)
+1100011k x0m d x	mov Ex,Ix
+11001000		enter		[80186+]
+11001001		leave		[80186+]
+11001010 v		retf Iv
+11001011		retf
+11001100		int 3
+11001101 b		int Ib
+11001110		into
+11001111		iret
+1101000k xPm d		Sp Ex,1		(P ≠ 6)
+1101001k xPm d		Sp Ex,CL	(P ≠ 6)
+11010100 b		aam Ib		(Officially: Ib = 0a, only)
+11010101 b		aad Ib		(Officially: Ib = 0a, only)
+11010110		salc		[8086/8088-]
+11010111		xlat
+11011ddd xrm d		ESC D xrm
+11100ppp b		Lp Jb
+1110010k b		in Ax,Ib
+1110011k b		out Ib,Ax
+11101000 v		call near Jv
+11101001 v		jmp near Jv
+11101010 d		jmp far Af
+11101011 b		jmp short Jb
+1110110k		in Ax,DX
+1110111k		out DX,Ax
+11110000		lock
+11110001		―――
+11110010 1010011k	repnz cmpsx
+11110010 1010111k	repnz scasx
+11110011 1010011k	repz cmpsx
+11110011 1010111k	repz scasx
+11110011 0110110k	rep insx		[80186+]
+11110011 0110111k	rep outsx		[80186+]
+11110011 1010010k	rep movsx
+11110011 1010101k	rep stosx
+11110011 1010111k	rep lodsx
+11110100		hlt
+11110101		cmc
+1111011k x0m d x	test Ex,Ix
+1111011k x1m d x	test Ex,Ix
+1111011k xPm d		Up Ex		(P ≠ 0,1)
+11111ppp		Bp
+1111110k x0m d		inc Ex
+1111110k x1m d		dec Ex
+11111100 xPm d		―――		(P = 0,1)
+11111111 x2m d		call near En
+11111111 x3m d		call far Ef	(x ≠ 3)
+11111111 x4m d		jmp near En
+11111111 x5m d		jmp far Ef
+11111111 x6m d		push Ew

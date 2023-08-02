@@ -51826,8 +51826,8 @@ Y24dc0194:	db 00,00,00, 00,00,2a, 00,2a,00, 00,2a,2a, 2a,00,00, 2a,00,2a, 2a,15,
 Y24dc0494:	dw 03c8
 Y24dc0496:	dw 03c7
 Y24dc0498:	dw 03c9
-Y24dc049a:	dw 03da
-Y24dc049c:	dw 0008
+X24dc049a:	dw 03da
+X24dc049c:	dw 0008
 Y24dc049e:	db "\r\nVideo mode: C)ga E)ga V)ga? ",00,00
 Y24dc04be:	dw 0020
 Y24dc04c0:	dword
@@ -51939,7 +51939,7 @@ Y24dc0daa:	word
 Y24dc0dac:	word
 Y24dc0dae:	dw 0001
 Y24dc0db0:	dw 0001
-Y24dc0db2:	byte
+X24dc0db2:	byte
 Y24dc0db3:	dword
 Y24dc0db7:	dword
 Y24dc0dbb:	dw 0280
@@ -51947,7 +51947,7 @@ Y24dc0dbd:	dw 0001
 Y24dc0dbf:	dw 0001
 Y24dc0dc1:	dw ffff
 Y24dc0dc3:	dword
-Y24dc0dc7:	byte
+X24dc0dc7:	byte
 Y24dc0dc8:	dw 0001
 Y24dc0dca:	dw 0001
 Y24dc0dcc:	dw 0001
@@ -52442,7 +52442,7 @@ Y24dc28b8:	dw offset A076a019f
 Y24dc28ba:	dw offset A076a019f
 Y24dc28bc:	dw offset A076a0423
 Y24dc28be:	dd A076a03a9
-Y24dc28c2:	dd A076a03ae,A076a03ae,A076a03ae
+X24dc28c2:	dd A076a03ae,A076a03ae,A076a03ae
 Y24dc28ce:	ds 0100
 Y24dc29ce:	ds 0050
 Y24dc2a1e:	ds 0080
@@ -52476,7 +52476,7 @@ Y24dc36d6:	byte
 Y24dc36d7:	byte
 Y24dc36d8:	word
 Y24dc36da:	word
-Y24dc36dc:	word
+X24dc36dc:	word
 Y24dc36de:	word
 Y24dc36e0:	ds 0006
 Y24dc36e6:	word
@@ -52516,14 +52516,14 @@ Y24dc3898:	ds 0064
 Y24dc38fc:	ds 0064
 Y24dc3960:	dword
 Y24dc3964:	ds 00c8
-Y24dc3a2c:	word
+X24dc3a2c:	word
 Y24dc3a2e:	ds 0200
 Y24dc3c2e:	ds 0050
 Y24dc3c7e:	ds 00c8
-Y24dc3d46:	word
+X24dc3d46:	word
 Y24dc3d48:	word
 Y24dc3d4a:	dword
-Y24dc3d4e:	word
+X24dc3d4e:	word
 Y24dc3d50:	ds 00a0
 Y24dc3df0:	word
 Y24dc3df2:	dword

@@ -2,6 +2,16 @@ These are translations, into 8086 assembly language, of episodes 1, 2 and 3 of J
 There is enough information to carry this through to a decompilation back into Turbo C;
 with many of the names of the routines and files restored.
 
+The syntax for the disassembly is improvised until I choose which assembler syntax to use and to get a better understanding of it.
+Address labels are treated as ordinary 32-bit numerals
+with "segment" and "offset" extracting, respectively, the high-order and low-order 16-bits of the numeral.
+The segmented addresses, in the 8086 for DOS, are physically flattened down to 20-bits by mapping:
+	(Segment, Offset) → 16*Segment + Offset.
+But, as much as possible, direct knowledge or use of that is avoided and the address space is treated as 2¹⁶ segments of 2¹⁶ bytes.
+In general, the 8086 segmentation was meant to reflect the division of programs into translation units.
+So, internal references within a segment would be local to the translation unit,
+while cross-segment references would be to global objects.
+
 Some notes on the game, its implementation and the 80x86 family:
 ∙	Most of Jill, parts 1, 2 and 3, were written in C using the Turbo C compiler,
 	which was popular for PC programmers in the 1980's and 1990's.
@@ -13,6 +23,8 @@ Some notes on the game, its implementation and the 80x86 family:
 		https://www.sandroid.org/TurboC/#Introduction
 	which also discusses porting Turbo C programs to GCC.
 ∙	Parts of Jill were written directly in the machine language of the Intel 8086 family.
+
+Some notes on the 8086 processor and its derivatives:
 ∙	The 8086 family evolved from the 4040, 8080, 8086, through 80186, 80286, 80386, 80486, 80586,
 	after which non-numeric names were used, starting with Pentium in place of 80586.
 	The 8080 legacy lives on as the octal-based coding used for the 80x86 operations.
@@ -22,3 +34,5 @@ Some notes on the game, its implementation and the 80x86 family:
 ∙	A single program can also multitask. That is called multi-threading.
 	This was not made a standard part of C or C++, however, until 2011.
 ∙	It may be possible to port Jill into QT as a multi-threaded application.
+∙	The "Das8086.c" disassembler program, referred to by the OpCodeMap.txt file,
+	may later be added or else included as part of a sub-module.

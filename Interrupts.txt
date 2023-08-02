@@ -1,38 +1,49 @@
 These are the BIOS interrupts used in episodes 1 and 2 of Jill of the Jungle.
+A much more comprehensive list - in fact, The List - is Ralf Brown's Interrupt List: https://ctyme.com/rbrown.htm
 
 Jill{1,2}Ex.s:
-   AH = 00, int 10		;; Set Video Mode: AL = Video Mode, CH:CL = Scan Row Start:End (CH.5 may be cursor-hide bit) => AL = Video Mode Flag/CRT Controller Mode Byte
+   AH = 00, int 10		;; Set Video Mode: AL = Video Mode, CH:CL = Scan Row Start:End (CH.5 may be cursor-hide bit) ⇒ AL = Video Mode Flag/CRT Controller Mode Byte
    AH = 02, int 10		;; Set Cursor Position: BH = Page Number, DL:DH = Col:Row
-   AH = 03, int 10		;; Get Cursor Position: BH = Page Number => AX = 0, CH:CL = Scan Row Start:End, DL:DH = Col:Row
+   AH = 03, int 10		;; Get Cursor Position: BH = Page Number ⇒ AX = 0, CH:CL = Scan Row Start:End, DL:DH = Col:Row
    AH = 06, AL = 00, int 10	;; Scroll Up Window: Clear, BH = bg:fg, CL:CH:DL:DH = Lo Col:Row Hi Col:Row
    AH = 06, AL = 01, int 10	;; Scroll Up Window: AL lines, BH = bg:fg, CL:CH:DL:DH = Lo Col:Row Hi Col:Row
-   AH = 08, int 10		;; Read Character:Attribute at Cursor: BH = Page Number => AL:AH = Character:Color
+   AH = 08, int 10		;; Read Character:Attribute at Cursor: BH = Page Number ⇒ AL:AH = Character:Color
    AH = 09, int 10		;; Write Character:Attribute at Cursor: BH = Page Number, AL:BL = Character:Color, CX = Rep Count
-   AH = 0E, int 10		;; Teletype Output: BH = Page Number, AL:BL = Character:Color[color in graphic mode only]
-   AH = 0F, int 10		;; Get Current Video Mode => AL = Video Mode
-   AH = 11, AL = 30, int 10	;; Get Font Information: BH = Pointer Specifier => ES:BP = Font Pointer, CX = Bytes/Char, DL = Highest Char Row.
+   AH = 0e, int 10		;; Teletype Output: BH = Page Number, AL:BL = Character:Color[color in graphic mode only]
+   AH = 0f, int 10		;; Get Current Video Mode ⇒ AL = Video Mode
+   AH = 11, AL = 30, int 10	;; Get Font Information: BH = Pointer Specifier ⇒ ES:BP = Font Pointer, CX = Bytes/Char, DL = Highest Char Row.
 
-   AH = 02, int 16		;; Get Shift Flags: => AL = Shift Flags, AH = *
+   AH = 00, int 16		;; Get Keystroke ⇒ AL = ASCII Character, AH = BIOS Scan Code
+   AH = 01, int 16		;; Check For Keystroke ⇒ ZF = No Keystroke Available, if ZF: AL = ASCII Character, AH = BIOS Scan Code
+   AH = 02, int 16		;; Get Shift Flags: ⇒ AL = Shift Flags, AH = *
 
-   AH = 00, int 1A		;; Get the System Time = CX:DX = Ticks since 12:00AM, AL: Midnight passed flag or day rollover count
+   AH = 00, int 1a		;; Get the System Time = CX:DX = Ticks since 12:00AM, AL: Midnight passed flag or day rollover count
 
-   int 20			;; Terminate program (exit(0)).
+   int 20			;; Terminate program (exit(0))
 
-   AH = 09, int 21		;; Write String to stdout: DS:DX = '$'-terminated string => DS:DX = '$'
+   AH = 03, int 21		;; Read Charater From StdAux ⇒ AL = Character
+   AH = 09, int 21		;; Write String to stdout: DS:DX = '$'-terminated string ⇒ DS:DX = '$'
+   AH = 25, int 21		;; Set Interrupt Vector: AL = Interrupt Number, DS:DX = Interrupt Handler
    AH = 25, int 21		;; Set Interrupt Vector: AL = Interrupt Number, DS:DX = Interrpt Handler
-   AH = 30, int 21		;; Get DOS version => AL:AH = Maj:Min Version Number, BL:CX = 24-bit user serial number
-   AH = 35, int 21		;; Get Interrupt Vector: AL = Interrupt Number => ES:BX = Interrupt Handler
-   AH = 3C, int 21		;; Creat -- Create or Truncate File: CX = File Attrs, DS:DX = Filename C-string => CF = OK, AX = File Handle/Error Codw
-   AH = 3D, int 21		;; Open -- Open Existing File: AL = Access/Sharing Mode, DS:DX = Filename C-string, CL = Attribute Mask => CF = OK, AX = File amdle/Error Code
-   AH = 3E, int 21		;; Close -- Close File: BX = File Handle => CF = OK, AX = */Error Code
-   AH = 3F, int 21		;; Read -- Read from File/Device: BX = File Handle, CX = Bytes In, DS:DX = Buffer => CF = OK, AX = Bytes Read/Error Code
-   AH = 40, int 21		;; Write -- Write to File/Device: BX = File Handle, CX = Bytes Out, DS:DX = Buffer => CF = OK, AX = Bytes
-   AH = 41, int 21		;; Unlink -- Delete File: DS:DX = Filename C-string, CL = Attribute Mask => CF = OK, AX = */Error Code
-   AH = 42, int 21		;; Lseek -- Set Current File Position: AL = Origin (00=Beg,01=At,02=End), BX = File Handle, CX:DX = Loc => CF = OK, DX:AX = New Loc (relative to Beg) or AX = Error Code
-   AH = 43, AL = 00, int 21	;; Get File Attributes: DS:DX = Filename C-string => CF = OK, CX = File Attributes, AX = CX/Error Code
-   AH = 43, AL = 01, int 21	;; Chmod -- Set File Attributes: CX = File Attributes, DS:DX = Filename C-string => CF = OK, AX = */Error Code
-   AH = 44, int 21		;; Ioctl -- Get Device Information: BX = Handle => CF = OK, DX = Device Info Word, AX = */Error Code
-   AH = 4A, int 21		;; Resize Memory Block: BX = New Size (Paragraphs), ES = Segment of Block to Resize, CF = OK, AX = Error Code
-   AH = 4C, int 21		;; Exit -- Terminate With Return Code: AL = Return Code
-   AH = 5A, int 21		;; Create Temporary File: CX = File Attribute, DS:DX = Path C-String+"\"+13 Byte Buffer => >CF = OK, DS:DX = Path+"\"+Filename, AX = File Handle Opened for Read/Write in compatibility mode / Error Code
-   AH = 5B, int 21		;; Create New File: CX = File Attribute, DS:DX = Filename C-String => CF = OK, AX = File Handle Opened for Read/Write in compatibility mode / Error Code
+   AH = 26, int 21		;; Create a new Program Segment Prefix (PSP), DX = the segment to create it at. ⇒ AL = indeterminate
+   AH = 2a, int 21		;; Get System Date ⇒ CX = Year (1980-2099), DH = Month, DL = Day, AL = Day Of Week (00=Sunday,⋯,06=Saturday)
+   AH = 2b, int 21		;; Set System Date CX = Year (1980-2099), DH = Month, DL = Day ⇒ AL = OK? 00: FF (no change if not OK)
+   AH = 2c, int 21		;; Get System Time ⇒ CH = Hour, CL = Minute, DH = Second, DL = 1/100 Seconds
+   AH = 2d, int 21		;; Set System Time CH = Hour, CL = Minute, DH = Second, DL = 1/100 Seconds ⇒ AL = OK? 00: FF (no change if not OK)
+   AH = 30, int 21		;; Get DOS version ⇒ AL:AH = Major:Minor Version Number, BL:CX = 24-bit user serial number
+   AH = 35, int 21		;; Get Interrupt Vector: AL = Interrupt Number, ⇒ ES:BX = Interrupt Handler
+   AH = 3c, int 21		;; Creat - Create or Truncate File: CX = File Attrs, DS:DX = Filename C-string ⇒ CF = OK, AX = File Handle/Error Code
+   AH = 3d, int 21		;; Open - Open Existing File: AL = Access/Sharing Mode, DS:DX = Filename C-string, CL = Attribute Mask ⇒ CF = OK, AX = File Handle/Error Code
+   AH = 3e, int 21		;; Close - Close File: BX = File Handle ⇒ CF = OK, AX = */Error Code
+   AH = 3f, int 21		;; Read - Read from File/Device: BX = File Handle, CX = Bytes In, DS:DX = Buffer ⇒ CF = OK, AX = Bytes Read/Error Code
+   AH = 40, int 21		;; Write - Write to File/Device: BX = File Handle, CX = Bytes Out, DS:DX = Buffer ⇒ CF = OK, AX = Bytes
+   AH = 41, int 21		;; Unlink - Delete File: DS:DX = Filename C-string, CL = Attribute Mask ⇒ CF = OK, AX = */Error Code
+   AH = 42, int 21		;; Lseek - Set Current File Position: AL = Origin (00=Beg,01=At,02=End), BX = File Handle, CX:DX = Loc ⇒ CF = OK, DX:AX = New Loc (relative to Beg) or AX = Error Code
+   AH = 43, AL = 00, int 21	;; Get File Attributes: DS:DX = Filename C-string ⇒ CF = OK, CX = File Attributes, AX = CX/Error Code
+   AH = 43, AL = 01, int 21	;; Chmod - Set File Attributes: CX = File Attributes, DS:DX = Filename C-string ⇒ CF = OK, AX = */Error Code
+   AH = 44, int 21		;; Ioctl - Get Device Information: BX = Handle ⇒ CF = OK, DX = Device Info Word, AX = */ErrorCode
+   AH = 4a, int 21		;; Resize Memory Block: BX = New Size (Paragraphs), ES = Segment of Block to Resize ⇒ CF = OK, AX = Error Code
+   AH = 4b, int 21		;; Load and/or Execute Program: AL = (0: Load and Execute, 1: Load Only, 3: Load Overlay), DS:DX = Program Name (as an ASCIZ string), ES:BX = Parameter Block ⇒ CF = (1: fail with error AX, 0: ok), BX,DX: indeterminate, AX: error code (if CF = 1) one of 01,02,05,08,0a,0b
+   AH = 4c, int 21		;; Exit - Terminate With Return Code: AL = Return Code
+   AH = 5a, int 21		;; Create Temporary File: CX = File Attribute, DS:DX = Path C-String+"\"+13 Byte Buffer ⇒ >CF = OK, DS:DX = Path+"\"+Filename, AX = File Handle Opened for Read/Write in compatibility mode / Error Code
+   AH = 5b, int 21		;; Create New File: CX = File Attribute, DS:DX = Filename C-String ⇒ CF = OK, AX = File Handle Opened for Read/Write in compatibility mode / Error Code

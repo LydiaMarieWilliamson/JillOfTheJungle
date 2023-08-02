@@ -1,5 +1,5 @@
 Notes on the Turbo C Debug Symbol Table
-*	Prolog (48 bytes)
+∙	Prologue (48 bytes)
 		fb 52  8  2 AA AA  0  0 BB BB CC CC  0  0 DD DD EE EE FF FF  0  0 GG GG
                 HH HH II II JJ JJ KK KK LL MM MM  0  0  0  0  0  1  0  0  0  0  0  0  0
 	with the following:
@@ -12,19 +12,19 @@ Notes on the Turbo C Debug Symbol Table
 		DDDD: The number of variable names.
 		EEEE: The maximum global variable name.
 		FFFF: The number of segments
-*	Identifiers
+∙	Identifiers
 	Each entry is of the form:
 		word SymbolId;	// Numbered 1, 2, ...
 		word XXX0;	// Usually 0, but not always.
 		dword Address;	// Segment:Offset (when Type == 01).
 		byte Type;	// Apparently: 01 for the entry point(s), 00 for CS-relative symbols.
-*	Segments
+∙	Segments
 	Each entry is of the form:
 		word SymbolId;	// Numbered 1, 2, ...
 		word XXX[7];	// Usually 0's, but not always.
-*	Names
-	Each entry is a C-string, corresponding to the numbers 1,2,...
-*	Epilog
+∙	Names
+	Each entry is a C-string, corresponding to the numbers 1, 2, ...
+∙	Epilogue
 	For Jill1.exe it is the following:
 		00 00 00 00 00 00 00 00 04 00 00 01 00 00 02 00 80 ff ff ff 7f 00 00 00 05 00 00 02 00 00 04 00
 		00 80 ff ff ff 7f 00 00 06 00 00 04 00 00 06 00 00 00 00 80 ff ff ff 7f 08 00 00 01 00 00 08 00
